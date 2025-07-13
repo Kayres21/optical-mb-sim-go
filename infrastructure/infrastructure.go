@@ -1,4 +1,4 @@
-package network
+package infrastructure
 
 type Node struct {
 	ID string `json:"id"`

@@ -5,53 +5,58 @@ import (
 	"log"
 	"os"
 	"simulator/connections"
-	"simulator/network"
+	"simulator/infrastructure"
 )
 
-func ReadCapacityFile(capacityPath string) network.Capacity {
+func ReadCapacityFile(capacityPath string) (infrastructure.Capacity, error) {
 	dataBytes, err := os.ReadFile(capacityPath)
 	if err != nil {
 		log.Fatalf("Error opening file: %v", err)
+		return infrastructure.Capacity{}, err
 	}
 
-	var capacities network.Capacity
+	var capacities infrastructure.Capacity
 
 	err = json.Unmarshal(dataBytes, &capacities)
 
 	if err != nil {
 		log.Fatalf("Error unmarshalling JSON: %v", err)
+		return infrastructure.Capacity{}, err
 	}
 
 	for i := range capacities.Bands {
 		capacities.Bands[i].Slots = make([]bool, capacities.Bands[i].Capacity)
 	}
 
-	return capacities
+	return capacities, nil
 }
 
-func ReadNetworkFile(networkPath string) network.Network {
+func ReadNetworkFile(networkPath string) (infrastructure.Network, error) {
 	dataBytesNetwork, err := os.ReadFile(networkPath)
 
 	if err != nil {
 		log.Fatalf("Error opening file: %v", err)
+		return infrastructure.Network{}, err
 	}
 
-	var network network.Network
+	var network infrastructure.Network
 
 	err = json.Unmarshal(dataBytesNetwork, &network)
 
 	if err != nil {
 		log.Fatalf("Error unmarshalling JSON: %v", err)
+		return infrastructure.Network{}, err
 	}
 
-	return network
+	return network, nil
 }
 
-func ReadBitRateFile(bitRatePath string) connections.BitRate {
+func ReadBitRateFile(bitRatePath string) (connections.BitRate, error) {
 	dataBytesBitrate, err := os.ReadFile(bitRatePath)
 
 	if err != nil {
 		log.Fatalf("Error opening file: %v", err)
+		return connections.BitRate{}, err
 	}
 
 	var bitrate connections.BitRate
@@ -60,18 +65,31 @@ func ReadBitRateFile(bitRatePath string) connections.BitRate {
 
 	if err != nil {
 		log.Fatalf("Error unmarshalling JSON: %v", err)
+		return connections.BitRate{}, err
 	}
 
-	return bitrate
+	return bitrate, nil
 }
 
-func NetworkGenerate(networkPath string, capacityPath string, bitRatePath string) network.Network {
+func NetworkGenerate(networkPath string, capacityPath string, bitRatePath string) (infrastructure.Network, error) {
 
-	capacities := ReadCapacityFile(capacityPath)
+	capacities, err := ReadCapacityFile(capacityPath)
 
-	bitRate := ReadBitRateFile(bitRatePath)
+	if err != nil {
+		log.Fatalf("Error reading capacities file: %v", err)
+	}
 
-	network := ReadNetworkFile(networkPath)
+	bitRate, err := ReadBitRateFile(bitRatePath)
 
-	return network
+	if err != nil {
+		log.Fatalf("Error reading bit rate file: %v", err)
+	}
+
+	network, err := ReadNetworkFile(networkPath)
+
+	if err != nil {
+		log.Fatalf("Error reading network file: %v", err)
+	}
+
+	return network, nil
 }
