@@ -1,7 +1,7 @@
 package connections
 
 import (
-	"simulator/infrastructure"
+	"simulator/internal/infrastructure"
 )
 
 type Connection struct {
@@ -22,4 +22,9 @@ type ConnectionEvent struct {
 
 type BitRate struct {
 	Name string
+}
+
+type Routes struct {
+	Alias string
+	Name  string
 }
