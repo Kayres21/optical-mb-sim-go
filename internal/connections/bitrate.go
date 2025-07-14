@@ -6,21 +6,21 @@ import (
 	"os"
 )
 
-func ReadBitRateFile(bitRatePath string) (BitRate, error) {
+func ReadBitRateFile(bitRatePath string) (BitRateList, error) {
 	dataBytesBitrate, err := os.ReadFile(bitRatePath)
 
 	if err != nil {
 		log.Fatalf("Error opening file: %v", err)
-		return BitRate{}, err
+		return BitRateList{}, err
 	}
 
-	var bitrate BitRate
+	var bitrate BitRateList
 
 	err = json.Unmarshal(dataBytesBitrate, &bitrate)
 
 	if err != nil {
 		log.Fatalf("Error unmarshalling JSON: %v", err)
-		return BitRate{}, err
+		return BitRateList{}, err
 	}
 
 	return bitrate, nil
