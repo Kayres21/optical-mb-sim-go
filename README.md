@@ -1,4 +1,4 @@
-# Multiband optical Simulator 
+# Optical Multiband Simulator 
 
 This simulator is based on "Flex Net Sim" [Git-Lab] https://gitlab.com/DaniloBorquez/flex-net-sim
 

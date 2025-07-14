@@ -1,12 +1,12 @@
 package connections
 
 import (
-	"simulator/network"
+	"simulator/internal/infrastructure"
 )
 
 type Connection struct {
 	Id           string
-	Links        []network.Link
+	Links        []infrastructure.Link
 	Slots        int
 	InitialSlot  int
 	FinalSlot    int
@@ -22,4 +22,9 @@ type ConnectionEvent struct {
 
 type BitRate struct {
 	Name string
+}
+
+type Routes struct {
+	Alias string
+	Name  string
 }
