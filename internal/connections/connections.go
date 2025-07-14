@@ -20,11 +20,39 @@ type ConnectionEvent struct {
 	Bitrate     int
 }
 
+type BitRateList struct {
+	BitRates []BitRate `json:"bitrates"`
+}
+
 type BitRate struct {
-	Name string
+	Modulation string  `json:"modulation"`
+	Slots      []Slots `json:"slots"`
+	Reachs     []Reach `json:"reach"`
+}
+
+type Slots struct {
+	Gigabits string `json:"gigabits"`
+	Slots    int    `json:"slots"`
+}
+
+type Reach struct {
+	NumberOfBands int            `json:"number_of_bands"`
+	Reach         []ReachPerBand `json:"reach"`
+}
+
+type ReachPerBand struct {
+	Band  string `json:"band"`
+	Reach int    `json:"reach"`
 }
 
 type Routes struct {
-	Alias string
-	Name  string
+	Alias string `json:"alias"`
+	Name  string `json:"name"`
+	Paths []Path `json:"routes"`
+}
+
+type Path struct {
+	Source      string  `json:"src"`
+	Destination string  `json:"dst"`
+	PathLinks   [][]int `json:"path"`
 }

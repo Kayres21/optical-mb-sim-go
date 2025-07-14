@@ -1,0 +1,353 @@
+{
+    "bitrates": [
+
+        {
+            "modulation": "BPSK",
+            "slots": [
+                {
+                    "gigabits": "10",
+                    "slots": 1
+                },
+                {
+                    "gigabits": "40",
+                    "slots": 2
+                },
+                {
+                    "gigabits": "100",
+                    "slots": 5
+                },
+                {
+                    "gigabits": "400",
+                    "slots": 18
+                },
+                {
+                    "gigabits": "1000",
+                    "slots": 44
+                }
+            ],
+            "reach": [
+                {
+                    "number_of_bands": 1,
+                    "reach": [
+                        {
+                            "band": "C",
+                            "reach": 19900
+                        }
+                    ]
+                },
+                {
+                    "number_of_bands": 2,
+                    "reach": [
+                        {
+                            "band": "C",
+                            "reach": 19700
+                        },
+                        {
+                            "band": "L",
+                            "reach": 16700
+                        }
+                    ]
+                },
+                {
+                    "number_of_bands": 3,
+                    "reach": [
+                        {
+                            "band": "C",
+                            "reach": 17400
+                        },
+                        {
+                            "band": "L",
+                            "reach": 16700
+                        },
+                        {
+                            "band": "S",
+                            "reach": 14800
+                        }
+                    ]
+                },
+                {
+                    "number_of_bands": 4,
+                    "reach": [
+                        {
+                            "band": "C",
+                            "reach": 13000
+                        },
+                        {
+                            "band": "L",
+                            "reach": 14400
+                        },
+                        {
+                            "band": "S",
+                            "reach": 10200
+                        },
+                        {
+                            "band": "E",
+                            "reach": 3100
+                        }
+                    ]
+                }
+            ]
+        },
+        {
+            "modulation": "QPSK",
+            "slots": [
+                {
+                    "gigabits": "10",
+                    "slots": 1
+                },
+                {
+                    "gigabits": "40",
+                    "slots": 1
+                },
+                {
+                    "gigabits": "100",
+                    "slots": 3
+                },
+                {
+                    "gigabits": "400",
+                    "slots": 9
+                },
+                {
+                    "gigabits": "1000",
+                    "slots": 22
+                }
+            ],
+            "reach": [
+                {
+                    "number_of_bands": 1,
+                    "reach": [
+                        {
+                            "band": "C",
+                            "reach": 9900
+                        }
+                    ]
+                },
+                {
+                    "number_of_bands": 2,
+                    "reach": [
+                        {
+                            "band": "C",
+                            "reach": 9900
+                        },
+                        {
+                            "band": "L",
+                            "reach": 8400
+                        }
+                    ]
+                },
+                {
+                    "number_of_bands": 3,
+                    "reach": [
+                        {
+                            "band": "C",
+                            "reach": 8700
+                        },
+                        {
+                            "band": "L",
+                            "reach": 8400
+                        },
+                        {
+                            "band": "S",
+                            "reach": 7400
+                        }
+                    ]
+                },
+                {
+                    "number_of_bands": 4,
+                    "reach": [
+                        {
+                            "band": "C",
+                            "reach": 6500
+                        },
+                        {
+                            "band": "L",
+                            "reach": 7200
+                        },
+                        {
+                            "band": "S",
+                            "reach": 5100
+                        },
+                        {
+                            "band": "E",
+                            "reach": 1500
+                        }
+                    ]
+                }
+            ]
+        },
+        {
+            "modulation": "8-QAM",
+            "slots": [
+                {
+                    "gigabits": "10",
+                    "slots": 1
+                },
+                {
+                    "gigabits": "40",
+                    "slots": 1
+                },
+                {
+                    "gigabits": "100",
+                    "slots": 2
+                },
+                {
+                    "gigabits": "400",
+                    "slots": 6
+                },
+                {
+                    "gigabits": "1000",
+                    "slots": 15
+                }
+            ],
+            "reach": [
+                {
+                    "number_of_bands": 1,
+                    "reach": [
+                        {
+                            "band": "C",
+                            "reach": 5400
+                        }
+                    ]
+                },
+                {
+                    "number_of_bands": 2,
+                    "reach": [
+                        {
+                            "band": "C",
+                            "reach": 5400
+                        },
+                        {
+                            "band": "L",
+                            "reach": 4600
+                        }
+                    ]
+                },
+                {
+                    "number_of_bands": 3,
+                    "reach": [
+                        {
+                            "band": "C",
+                            "reach": 4700
+                        },
+                        {
+                            "band": "L",
+                            "reach": 4600
+                        },
+                        {
+                            "band": "S",
+                            "reach": 4100
+                        }
+                    ]
+                },
+                {
+                    "number_of_bands": 4,
+                    "reach": [
+                        {
+                            "band": "C",
+                            "reach": 3500
+                        },
+                        {
+                            "band": "L",
+                            "reach": 3900
+                        },
+                        {
+                            "band": "S",
+                            "reach": 2900
+                        },
+                        {
+                            "band": "E",
+                            "reach": 900
+                        }
+                    ]
+                }
+            ]
+        },
+        {
+            "modulation": "16-QAM",
+            "slots": [
+                {
+                    "gigabits": "10",
+                    "slots": 1
+                },
+                {
+                    "gigabits": "40",
+                    "slots": 1
+                },
+                {
+                    "gigabits": "100",
+                    "slots": 5
+                },
+                {
+                    "gigabits": "400",
+                    "slots": 5
+                },
+                {
+                    "gigabits": "1000",
+                    "slots": 11
+                }
+            ],
+            "reach": [
+                {
+                    "number_of_bands": 1,
+                    "reach": [
+                        {
+                            "band": "C",
+                            "reach": 2700
+                        }
+                    ]
+                },
+                {
+                    "number_of_bands": 2,
+                    "reach": [
+                        {
+                            "band": "C",
+                            "reach": 1400
+                        },
+                        {
+                            "band": "L",
+                            "reach": 2200
+                        }
+                    ]
+                },
+                {
+                    "number_of_bands": 3,
+                    "reach": [
+                        {
+                            "band": "C",
+                            "reach": 2300
+                        },
+                        {
+                            "band": "L",
+                            "reach": 2200
+                        },
+                        {
+                            "band": "S",
+                            "reach": 2000
+                        }
+                    ]
+                },
+                {
+                    "number_of_bands": 4,
+                    "reach": [
+                        {
+                            "band": "C",
+                            "reach": 1700
+                        },
+                        {
+                            "band": "L",
+                            "reach": 1900
+                        },
+                        {
+                            "band": "S",
+                            "reach": 1400
+                        },
+                        {
+                            "band": "E",
+                            "reach": 400
+                        }
+                    ]
+                }
+            ]
+        }
+    ]
+}
