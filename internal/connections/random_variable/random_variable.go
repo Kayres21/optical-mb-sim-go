@@ -7,13 +7,18 @@ import (
 type RandomVariable struct {
 	Arrive                ExponentialVariable
 	Departure             ExponentialVariable
-	BitrateSelect         ExponentialVariable
-	SourceNodeSelect      ExponentialVariable
-	DestinationNodeSelect ExponentialVariable
-	BandSelect            ExponentialVariable
+	BitrateSelect         UniformVariable
+	SourceNodeSelect      UniformVariable
+	DestinationNodeSelect UniformVariable
+	BandSelect            UniformVariable
 }
 
 type ExponentialVariable struct {
+	Parameter int
+	Rng       *rand.Rand
+}
+
+type UniformVariable struct {
 	Parameter int
 	Rng       *rand.Rand
 }

@@ -84,11 +84,33 @@ func (ev *ExponentialVariable) SetParameter(parameter int) {
 	ev.Parameter = parameter
 }
 
-func (rv *RandomVariable) GetNetValueExponential(arrive bool) int {
+func (ev *UniformVariable) SetRng(rng *rand.Rand) {
+	ev.Rng = rng
+}
 
-	if arrive {
-		return -1 * int(math.Log(rv.Arrive.Rng.Float64())/float64(rv.Arrive.Parameter))
+func (ev *UniformVariable) SetParameter(parameter int) {
+	ev.Parameter = parameter
+}
+
+func (rv *RandomVariable) GetNetValueExponential(options string) float64 {
+
+	if options == "arrive" {
+		return -1 * float64(math.Log(rv.Arrive.Rng.Float64())/float64(rv.Arrive.Parameter))
 	}
-	return -1 * int(math.Log(rv.Departure.Rng.Float64())/float64(rv.Arrive.Parameter))
+	return -1 * float64(math.Log(rv.Departure.Rng.Float64())/float64(rv.Arrive.Parameter))
 
+}
+
+func (rv *RandomVariable) GetNetValueUniform(options string) int {
+	switch options {
+	case "bitrate":
+		return rv.BitrateSelect.Rng.Intn(rv.BitrateSelect.Parameter)
+	case "source":
+		return rv.SourceNodeSelect.Rng.Intn(rv.SourceNodeSelect.Parameter)
+	case "destination":
+		return rv.DestinationNodeSelect.Rng.Intn(rv.DestinationNodeSelect.Parameter)
+	case "band":
+		return rv.BandSelect.Rng.Intn(rv.BandSelect.Parameter)
+	}
+	return -1 // Default case, should not happen
 }

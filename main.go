@@ -3,6 +3,7 @@ package main
 import (
 	"fmt"
 	"simulator/internal/connections"
+	randomvariable "simulator/internal/connections/random_variable"
 	"simulator/internal/infrastructure"
 )
 
@@ -41,4 +42,30 @@ func main() {
 			}
 		}
 	}
+
+	var RandomVariable randomvariable.RandomVariable
+
+	RandomVariable.Arrive.SetParameter(10)
+	RandomVariable.Departure.SetParameter(2)
+	RandomVariable.BitrateSelect.SetParameter(3)
+	RandomVariable.SourceNodeSelect.SetParameter(30)
+	RandomVariable.DestinationNodeSelect.SetParameter(30)
+	RandomVariable.BandSelect.SetParameter(4)
+
+	RandomVariable.SetSeedArrive(1)
+	RandomVariable.SetSeedDeparture(2)
+	RandomVariable.SetSeedBitrate(3)
+	RandomVariable.SetSeedSource(4)
+	RandomVariable.SetSeedDestination(5)
+	RandomVariable.SetSeedBand(6)
+
+	fmt.Printf("Arrival Random Variable: %f\n", RandomVariable.GetNetValueExponential("arrive"))
+	fmt.Printf("Arrival Random Variable: %f\n", RandomVariable.GetNetValueExponential("arrive"))
+	fmt.Printf("Departure Random Variable: %f\n", RandomVariable.GetNetValueExponential("departure"))
+	fmt.Printf("Bitrate Random Variable: %d\n", RandomVariable.GetNetValueUniform("bitrate"))
+	fmt.Printf("Source Node Random Variable: %d\n", RandomVariable.GetNetValueUniform("source"))
+	fmt.Printf("Destination Node Random Variable: %d\n", RandomVariable.GetNetValueUniform("destination"))
+	fmt.Printf("Band Random Variable: %d\n", RandomVariable.GetNetValueUniform("band"))
+	fmt.Printf("Band Random Variable: %d\n", RandomVariable.GetNetValueUniform("band"))
+
 }
