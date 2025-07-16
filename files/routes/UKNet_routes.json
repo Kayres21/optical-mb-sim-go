@@ -1,6 +1,6 @@
 {
-    "alias": "BDM_UKNet",
-    "name": "BDM_UKNet",
+    "alias": "UKNet",
+    "name": "UKNet",
     "routes": [
         {
             "src": 0,

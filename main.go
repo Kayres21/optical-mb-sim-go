@@ -45,19 +45,23 @@ func main() {
 
 	var RandomVariable randomvariable.RandomVariable
 
-	RandomVariable.Arrive.SetParameter(10)
-	RandomVariable.Departure.SetParameter(2)
-	RandomVariable.BitrateSelect.SetParameter(3)
-	RandomVariable.SourceNodeSelect.SetParameter(30)
-	RandomVariable.DestinationNodeSelect.SetParameter(30)
-	RandomVariable.BandSelect.SetParameter(4)
+	lambda := 10
+	mu := 2
+	bitrate := 3
+	source := len(network.Nodes)
+	destination := len(network.Nodes)
+	band := len(network.Links[0].Capacities.Bands)
 
-	RandomVariable.SetSeedArrive(1)
-	RandomVariable.SetSeedDeparture(2)
-	RandomVariable.SetSeedBitrate(3)
-	RandomVariable.SetSeedSource(4)
-	RandomVariable.SetSeedDestination(5)
-	RandomVariable.SetSeedBand(6)
+	RandomVariable.SetParameters(lambda, mu, bitrate, source, destination, band)
+
+	seedArrive := int64(1)
+	seedDeparture := int64(2)
+	seedBitrate := int64(3)
+	seedSource := int64(4)
+	seedDestination := int64(5)
+	seedBand := int64(6)
+
+	RandomVariable.SetSeeds(seedArrive, seedDeparture, seedBitrate, seedSource, seedDestination, seedBand)
 
 	fmt.Printf("Arrival Random Variable: %f\n", RandomVariable.GetNetValueExponential("arrive"))
 	fmt.Printf("Arrival Random Variable: %f\n", RandomVariable.GetNetValueExponential("arrive"))

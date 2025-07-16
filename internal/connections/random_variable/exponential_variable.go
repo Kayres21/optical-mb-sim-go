@@ -114,3 +114,21 @@ func (rv *RandomVariable) GetNetValueUniform(options string) int {
 	}
 	return -1 // Default case, should not happen
 }
+
+func (rv *RandomVariable) SetSeeds(seedArrive, seedDeparture, seedBitrate, seedSource, seedDestination, seedBand int64) {
+	rv.SetSeedArrive(seedArrive)
+	rv.SetSeedDeparture(seedDeparture)
+	rv.SetSeedBitrate(seedBitrate)
+	rv.SetSeedSource(seedSource)
+	rv.SetSeedDestination(seedDestination)
+	rv.SetSeedBand(seedBand)
+}
+
+func (rv *RandomVariable) SetParameters(lambda, mu, bitrateSelect, sourceNodeSelect, destinationNodeSelect, bandSelect int) {
+	rv.SetLambda(lambda)
+	rv.SetMu(mu)
+	rv.SetBitrateSelectParameter(bitrateSelect)
+	rv.SetSourceNodeSelectParameter(sourceNodeSelect)
+	rv.SetDestinationNodeSelectParameter(destinationNodeSelect)
+	rv.SetBandSelectParameter(bandSelect)
+}
