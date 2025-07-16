@@ -1,11 +1,24 @@
 package randomvariable
 
+import (
+	"math/rand"
+)
+
 type RandomVariable struct {
-	Lambda          int
-	Mu              int
-	SeedArrive      int
-	SeedDeparture   int
-	SeedBitrate     int
-	SeedSource      int
-	SeedDestination int
+	Arrive                ExponentialVariable
+	Departure             ExponentialVariable
+	BitrateSelect         UniformVariable
+	SourceNodeSelect      UniformVariable
+	DestinationNodeSelect UniformVariable
+	BandSelect            UniformVariable
+}
+
+type ExponentialVariable struct {
+	Parameter int
+	Rng       *rand.Rand
+}
+
+type UniformVariable struct {
+	Parameter int
+	Rng       *rand.Rand
 }
