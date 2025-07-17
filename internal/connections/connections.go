@@ -11,6 +11,7 @@ type Connection struct {
 	InitialSlot  int
 	FinalSlot    int
 	BandSelected string
+	Allocated    bool
 }
 
 type ConnectionEvent struct {
