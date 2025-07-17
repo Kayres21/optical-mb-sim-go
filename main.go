@@ -13,7 +13,7 @@ func main() {
 	lambda := 10
 	mu := 2
 
-	goalConnections := 100000000000
+	goalConnections := 1e6
 
 	var simulator simulator.Simulator
 

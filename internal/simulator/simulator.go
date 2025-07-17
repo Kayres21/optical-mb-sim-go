@@ -11,7 +11,7 @@ type Simulator struct {
 	RandomVariable  randomvariable.RandomVariable
 	Network         infrastructure.Network
 	BitRateList     connections.BitRateList
-	GoalConnections int
+	GoalConnections float64
 }
 
 func (s *Simulator) SetRandomVariable(randomVariable randomvariable.RandomVariable) {
@@ -26,11 +26,11 @@ func (s *Simulator) SetBitRateList(bitRateList connections.BitRateList) {
 	s.BitRateList = bitRateList
 }
 
-func (s *Simulator) SetGoalConnection(goalConnections int) {
+func (s *Simulator) SetGoalConnection(goalConnections float64) {
 	s.GoalConnections = goalConnections
 }
 
-func (s *Simulator) SimulatorInit(networkPath string, capacitiesPath string, bitRatePath string, lambda int, mu int, goalConnections int) Simulator {
+func (s *Simulator) SimulatorInit(networkPath string, capacitiesPath string, bitRatePath string, lambda int, mu int, goalConnections float64) Simulator {
 
 	network, err := infrastructure.NetworkGenerate(networkPath, capacitiesPath)
 
