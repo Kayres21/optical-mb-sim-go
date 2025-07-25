@@ -6,7 +6,7 @@ import (
 	"os"
 )
 
-func ReadRoutesFile(routesPath string) (Routes, error) {
+func (r *Routes) ReadRoutesFile(routesPath string) (Routes, error) {
 	dataBytesNetwork, err := os.ReadFile(routesPath)
 
 	if err != nil {

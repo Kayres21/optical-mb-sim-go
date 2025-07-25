@@ -11,6 +11,7 @@ type Connection struct {
 	InitialSlot  int
 	FinalSlot    int
 	BandSelected string
+	Allocated    bool
 }
 
 type ConnectionEvent struct {
@@ -18,6 +19,8 @@ type ConnectionEvent struct {
 	Source      string
 	Destination string
 	Bitrate     int
+	EventType   string // "Arrive",  "Release"
+	Time        float64
 }
 
 type BitRateList struct {
