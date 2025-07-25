@@ -35,13 +35,32 @@ func (s *Simulator) SetConnectionsEvents(connectionsEvents []connections.Connect
 	s.ConnectionsEvents = connectionsEvents
 }
 
-func (s *Simulator) SimulatorInit(networkPath string, capacitiesPath string, bitRatePath string, lambda int, mu int, goalConnections float64) Simulator {
+func (s *Simulator) GetRandomVariable() randomvariable.RandomVariable {
+	return s.RandomVariable
+}
+
+func (s *Simulator) GetNetwork() infrastructure.Network {
+	return s.Network
+}
+
+func (s *Simulator) GetBitRateList() connections.BitRateList {
+	return s.BitRateList
+}
+
+func (s *Simulator) GetConnectionsEvents() []connections.ConnectionEvent {
+	return s.ConnectionsEvents
+}
+
+func (s *Simulator) GetGoalConnections() float64 {
+	return s.GoalConnections
+}
+
+func (s *Simulator) SimulatorInit(networkPath string, capacitiesPath string, bitRatePath string, lambda int, mu int, goalConnections float64) {
 
 	network, err := infrastructure.NetworkGenerate(networkPath, capacitiesPath)
 
 	if err != nil {
 		fmt.Printf("Error reading network file: %v\n", err)
-		return Simulator{}
 	}
 	fmt.Println("Network Name:", network.Name)
 
@@ -51,7 +70,6 @@ func (s *Simulator) SimulatorInit(networkPath string, capacitiesPath string, bit
 
 	if err != nil {
 		fmt.Printf("Error reading bitrate file: %v\n", err)
-		return Simulator{}
 	}
 
 	s.SetBitRateList(bitRate)
@@ -77,6 +95,5 @@ func (s *Simulator) SimulatorInit(networkPath string, capacitiesPath string, bit
 	s.SetRandomVariable(randomVariable)
 
 	s.SetGoalConnection(goalConnections)
-
-	return *s
+	s.RandomVariable.GetNetValueUniform("source")
 }
