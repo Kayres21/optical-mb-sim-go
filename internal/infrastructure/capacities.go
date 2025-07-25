@@ -25,6 +25,5 @@ func ReadCapacityFile(capacityPath string) (Capacity, error) {
 	for i := range capacities.Bands {
 		capacities.Bands[i].Slots = make([]bool, capacities.Bands[i].Capacity)
 	}
-
 	return capacities, nil
 }
