@@ -13,6 +13,7 @@ type Simulator struct {
 	BitRateList       connections.BitRateList
 	ConnectionsEvents []connections.ConnectionEvent
 	GoalConnections   float64
+	time              float64
 }
 
 func (s *Simulator) SetRandomVariable(randomVariable randomvariable.RandomVariable) {
@@ -53,6 +54,14 @@ func (s *Simulator) GetConnectionsEvents() []connections.ConnectionEvent {
 
 func (s *Simulator) GetGoalConnections() float64 {
 	return s.GoalConnections
+}
+
+func (s *Simulator) GetTime() float64 {
+	return s.time
+}
+
+func (s *Simulator) SetTime(time float64) {
+	s.time = time
 }
 
 func (s *Simulator) SimulatorInit(networkPath string, capacitiesPath string, bitRatePath string, lambda int, mu int, goalConnections float64) {
@@ -96,4 +105,6 @@ func (s *Simulator) SimulatorInit(networkPath string, capacitiesPath string, bit
 
 	s.SetGoalConnection(goalConnections)
 	s.RandomVariable.GetNetValueUniform("source")
+
+	s.SetTime(0)
 }

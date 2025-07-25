@@ -20,6 +20,7 @@ type ConnectionEvent struct {
 	Destination string
 	Bitrate     int
 	EventType   string // "Arrive",  "Release"
+	Time        float64
 }
 
 type BitRateList struct {

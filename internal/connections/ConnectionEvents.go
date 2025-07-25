@@ -3,6 +3,7 @@ package connections
 import (
 	"log"
 	randomvariable "simulator/internal/connections/random_variable"
+	"sort"
 	"strconv"
 )
 
@@ -19,6 +20,7 @@ func GenerateEvents(nodes_len int, randomVariable randomvariable.RandomVariable)
 					Destination: strconv.Itoa(j),
 					Bitrate:     randomVariable.GetNetValueUniform("bitrate"),
 					EventType:   "Arrive",
+					Time:        randomVariable.GetNetValueExponential("arrive"),
 				}
 				log.Printf("Generated event: %+v\n", event)
 				events = append(events, event)
@@ -26,5 +28,9 @@ func GenerateEvents(nodes_len int, randomVariable randomvariable.RandomVariable)
 
 		}
 	}
+
+	sort.Slice(events, func(i, j int) bool {
+		return events[i].Time < events[j].Time
+	})
 	return events
 }
