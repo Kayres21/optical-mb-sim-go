@@ -53,7 +53,13 @@ func (c *Controller) ConectionAllocation(source, destination string, bitRate con
 	return c.Allocator(source, destination, bitRate, connection, network, path)
 }
 
-func (c *Controller) ControllerInit(pathToRoutes string, network infrastructure.Network, connections []connections.Connection, allocator Allocator) {
+func (c *Controller) SetAllocator(allocator Allocator) {
+	c.Allocator = allocator
+}
+
+func (c *Controller) ControllerInit(pathToRoutes string, network infrastructure.Network, allocator Allocator) {
+
+	var connections []connections.Connection
 
 	routes, err := c.Routes.ReadRoutesFile(pathToRoutes)
 
@@ -64,6 +70,6 @@ func (c *Controller) ControllerInit(pathToRoutes string, network infrastructure.
 	c.SetRoutes(routes)
 	c.SetConnections(connections)
 	c.SetNetwork(network)
-	c.Allocator = allocator
+	c.SetAllocator(allocator)
 
 }
