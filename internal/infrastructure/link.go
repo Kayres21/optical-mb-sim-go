@@ -9,7 +9,7 @@ func (l *Link) GetSlotsByBand(band int) []bool {
 	return l.Capacities.Bands[band].Slots
 }
 
-func (l *Link) AssignConnectinon(initial_slot int, size int, band int) error {
+func (l *Link) AssignConnection(initial_slot int, size int, band int) error {
 
 	capacity := l.GetSlotsByBand(band)
 

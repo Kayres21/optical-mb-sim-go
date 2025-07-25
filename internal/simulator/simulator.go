@@ -74,7 +74,7 @@ func (s *Simulator) GetController() controller.Controller {
 	return s.Controller
 }
 
-func (s *Simulator) SimulatorInit(networkPath string, capacitiesPath string, bitRatePath string, lambda int, mu int, goalConnections float64, allocator controller.Allocator) {
+func (s *Simulator) SimulatorInit(networkPath string, capacitiesPath string, bitRatePath string, lambda int, mu int, goalConnections float64, allocator controller.Allocator, numberOfBands int) {
 
 	network, err := infrastructure.NetworkGenerate(networkPath, capacitiesPath)
 
@@ -100,7 +100,16 @@ func (s *Simulator) SimulatorInit(networkPath string, capacitiesPath string, bit
 	bitrate := len(bitRate.BitRates)
 	source := node_len
 	destination := node_len
-	band := len(network.Links[0].Capacities.Bands)
+
+	if numberOfBands > 4 {
+		fmt.Println("Warning: Number of bands exceeds 4, setting to 4.")
+		numberOfBands = 4
+	} else if numberOfBands < 1 {
+		fmt.Println("Warning: Number of bands is less than 1, setting to 1.")
+		numberOfBands = 1
+	}
+
+	band := numberOfBands
 
 	randomVariable.SetParameters(lambda, mu, bitrate, source, destination, band)
 
