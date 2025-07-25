@@ -85,9 +85,11 @@ func (s *Simulator) SimulatorInit(networkPath string, capacitiesPath string, bit
 
 	var randomVariable randomvariable.RandomVariable
 
+	node_len := len(network.Nodes)
+
 	bitrate := len(bitRate.BitRates)
-	source := len(network.Nodes)
-	destination := len(network.Nodes)
+	source := node_len
+	destination := node_len
 	band := len(network.Links[0].Capacities.Bands)
 
 	randomVariable.SetParameters(lambda, mu, bitrate, source, destination, band)
@@ -107,4 +109,9 @@ func (s *Simulator) SimulatorInit(networkPath string, capacitiesPath string, bit
 	s.RandomVariable.GetNetValueUniform("source")
 
 	s.SetTime(0)
+
+	connectionsEvents := connections.GenerateEvents(node_len, randomVariable)
+
+	s.SetConnectionsEvents(connectionsEvents)
+
 }
