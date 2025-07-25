@@ -3,6 +3,7 @@ package simulator
 import (
 	"fmt"
 	"simulator/internal/connections"
+	controller "simulator/internal/connections/controller"
 	randomvariable "simulator/internal/connections/random_variable"
 	"simulator/internal/infrastructure"
 )
@@ -12,6 +13,7 @@ type Simulator struct {
 	Network           infrastructure.Network
 	BitRateList       connections.BitRateList
 	ConnectionsEvents []connections.ConnectionEvent
+	Controller        controller.Controller
 	GoalConnections   float64
 	time              float64
 }
@@ -64,7 +66,15 @@ func (s *Simulator) SetTime(time float64) {
 	s.time = time
 }
 
-func (s *Simulator) SimulatorInit(networkPath string, capacitiesPath string, bitRatePath string, lambda int, mu int, goalConnections float64) {
+func (s *Simulator) SetController(controller controller.Controller) {
+	s.Controller = controller
+}
+
+func (s *Simulator) GetController() controller.Controller {
+	return s.Controller
+}
+
+func (s *Simulator) SimulatorInit(networkPath string, capacitiesPath string, bitRatePath string, lambda int, mu int, goalConnections float64, allocator controller.Allocator) {
 
 	network, err := infrastructure.NetworkGenerate(networkPath, capacitiesPath)
 
@@ -112,5 +122,10 @@ func (s *Simulator) SimulatorInit(networkPath string, capacitiesPath string, bit
 	connectionsEvents := connections.GenerateEvents(node_len, randomVariable)
 
 	s.SetConnectionsEvents(connectionsEvents)
+
+	var controller controller.Controller
+	controller.ControllerInit("files/routes/UKNet_routes.json", s.Network, allocator)
+
+	s.SetController(controller)
 
 }

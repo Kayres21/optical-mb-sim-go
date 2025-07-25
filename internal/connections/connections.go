@@ -55,7 +55,7 @@ type Routes struct {
 }
 
 type Path struct {
-	Source      string  `json:"src"`
-	Destination string  `json:"dst"`
+	Source      int     `json:"src"`
+	Destination int     `json:"dst"`
 	PathLinks   [][]int `json:"path"`
 }

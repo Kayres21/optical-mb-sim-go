@@ -17,9 +17,6 @@ func main() {
 
 	var simulator simulator.Simulator
 
-	simulator.SimulatorInit(networkPath, capacitiesPath, bitRatePath, lambda, mu, goalConnections)
-
-	// var controller controller.Controller
-	// controller.ControllerInit("files/routes/UKNet_routes.json", simulator.Network, simulator.Allocator)
+	simulator.SimulatorInit(networkPath, capacitiesPath, bitRatePath, lambda, mu, goalConnections, simulator.Controller.Allocator)
 
 }
