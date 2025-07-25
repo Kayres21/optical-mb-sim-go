@@ -8,10 +8,11 @@ import (
 )
 
 type Simulator struct {
-	RandomVariable  randomvariable.RandomVariable
-	Network         infrastructure.Network
-	BitRateList     connections.BitRateList
-	GoalConnections float64
+	RandomVariable    randomvariable.RandomVariable
+	Network           infrastructure.Network
+	BitRateList       connections.BitRateList
+	ConnectionsEvents []connections.ConnectionEvent
+	GoalConnections   float64
 }
 
 func (s *Simulator) SetRandomVariable(randomVariable randomvariable.RandomVariable) {
@@ -28,6 +29,10 @@ func (s *Simulator) SetBitRateList(bitRateList connections.BitRateList) {
 
 func (s *Simulator) SetGoalConnection(goalConnections float64) {
 	s.GoalConnections = goalConnections
+}
+
+func (s *Simulator) SetConnectionsEvents(connectionsEvents []connections.ConnectionEvent) {
+	s.ConnectionsEvents = connectionsEvents
 }
 
 func (s *Simulator) SimulatorInit(networkPath string, capacitiesPath string, bitRatePath string, lambda int, mu int, goalConnections float64) Simulator {
