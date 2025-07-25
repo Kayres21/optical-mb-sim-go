@@ -106,7 +106,6 @@ func (s *Simulator) SimulatorInit(networkPath string, capacitiesPath string, bit
 	s.SetRandomVariable(randomVariable)
 
 	s.SetGoalConnection(goalConnections)
-	s.RandomVariable.GetNetValueUniform("source")
 
 	s.SetTime(0)
 
