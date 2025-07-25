@@ -25,3 +25,19 @@ func ReadBitRateFile(bitRatePath string) (BitRateList, error) {
 
 	return bitrate, nil
 }
+
+func TrasnformIntToModulation(modulation int) string {
+	switch modulation {
+	case 0:
+		return "BPSK"
+	case 1:
+		return "QPSK"
+	case 2:
+		return "8-QAM"
+	case 3:
+		return "16-QAM"
+	default:
+		log.Fatalf("Invalid modulation type: %d", modulation)
+		return "BPSK" // Default case, should not be reached
+	}
+}
