@@ -42,5 +42,7 @@ func (l *Link) ReleaseConnection(initial_slot int, size int, band int) error {
 	for i := initial_slot; i < initial_slot+size; i++ {
 		capacity[i] = false
 	}
+
+	l.AssignCapacityByBand(capacity, band)
 	return nil
 }

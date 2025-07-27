@@ -19,7 +19,7 @@ type ConnectionEvent struct {
 	Source      string
 	Destination string
 	Bitrate     int
-	EventType   string // "Arrive",  "Release"
+	Event       EventsType // "Arrive",  "Release"
 	Time        float64
 }
 
@@ -59,3 +59,8 @@ type Path struct {
 	Destination int     `json:"dst"`
 	PathLinks   [][]int `json:"path"`
 }
+
+type EventsType string
+
+const ConnectionEventTypeArrive EventsType = "Arrive"
+const ConnectionEventTypeRelease EventsType = "Release"

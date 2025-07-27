@@ -2,6 +2,7 @@ package controller
 
 import (
 	"log"
+	"simulator/internal/allocator"
 	"simulator/internal/connections"
 	"simulator/internal/infrastructure"
 )
@@ -10,7 +11,7 @@ type Controller struct {
 	Routes      connections.Routes
 	Connections []connections.Connection
 	Network     infrastructure.Network
-	Allocator   Allocator
+	Allocator   allocator.Allocator
 }
 
 func (c *Controller) GetRoutes() connections.Routes {
@@ -47,17 +48,15 @@ func (c *Controller) GetConnectionById(id string) (connections.Connection, bool)
 	return connections.Connection{}, false
 }
 
-type Allocator func(source, destination string, bitRate connections.BitRate, connection connections.Connection, network infrastructure.Network, path connections.Routes) (bool, connections.Connection)
-
-func (c *Controller) ConectionAllocation(source, destination string, bitRate connections.BitRate, connection connections.Connection, network infrastructure.Network, path connections.Routes) (bool, connections.Connection) {
-	return c.Allocator(source, destination, bitRate, connection, network, path)
+func (c *Controller) ConectionAllocation(source, destination string, bitRate connections.BitRate, network infrastructure.Network, path connections.Routes, numberOfBands int) (bool, connections.Connection) {
+	return c.Allocator(source, destination, bitRate, network, path, numberOfBands)
 }
 
-func (c *Controller) SetAllocator(allocator Allocator) {
+func (c *Controller) SetAllocator(allocator allocator.Allocator) {
 	c.Allocator = allocator
 }
 
-func (c *Controller) ControllerInit(pathToRoutes string, network infrastructure.Network, allocator Allocator) {
+func (c *Controller) ControllerInit(pathToRoutes string, network infrastructure.Network, allocator allocator.Allocator) {
 
 	var connections []connections.Connection
 

@@ -1,6 +1,7 @@
 package main
 
 import (
+	"simulator/internal/allocator"
 	"simulator/internal/simulator"
 )
 
@@ -19,6 +20,6 @@ func main() {
 
 	var simulator simulator.Simulator
 
-	simulator.SimulatorInit(networkPath, capacitiesPath, bitRatePath, lambda, mu, goalConnections, simulator.Controller.Allocator, numberOfBands)
-
+	simulator.SimulatorInit(networkPath, capacitiesPath, bitRatePath, lambda, mu, goalConnections, allocator.FirstFit, numberOfBands)
+	simulator.SimulatorStart()
 }

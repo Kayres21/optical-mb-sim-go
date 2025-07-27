@@ -19,7 +19,7 @@ func GenerateEvents(nodes_len int, randomVariable randomvariable.RandomVariable)
 					Source:      strconv.Itoa(i),
 					Destination: strconv.Itoa(j),
 					Bitrate:     randomVariable.GetNetValueUniform("bitrate"),
-					EventType:   "Arrive",
+					Event:       "Arrive",
 					Time:        randomVariable.GetNetValueExponential("arrive"),
 				}
 				events = append(events, event)

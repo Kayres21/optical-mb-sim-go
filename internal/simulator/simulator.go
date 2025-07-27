@@ -2,20 +2,41 @@ package simulator
 
 import (
 	"fmt"
+	"simulator/internal/allocator"
 	"simulator/internal/connections"
-	controller "simulator/internal/connections/controller"
+	"simulator/internal/connections/controller"
 	randomvariable "simulator/internal/connections/random_variable"
 	"simulator/internal/infrastructure"
 )
 
 type Simulator struct {
-	RandomVariable    randomvariable.RandomVariable
-	Network           infrastructure.Network
-	BitRateList       connections.BitRateList
-	ConnectionsEvents []connections.ConnectionEvent
-	Controller        controller.Controller
-	GoalConnections   float64
-	time              float64
+	RandomVariable       randomvariable.RandomVariable
+	Network              infrastructure.Network
+	BitRateList          connections.BitRateList
+	ConnectionsEvents    []connections.ConnectionEvent
+	Controller           controller.Controller
+	GoalConnections      float64
+	Time                 float64
+	AllocatedConnections []bool
+	NumberOfBands        int
+}
+
+// Getter and Setter for AllocatedConnections
+func (s *Simulator) GetAllocatedConnections() []bool {
+	return s.AllocatedConnections
+}
+
+func (s *Simulator) SetAllocatedConnections(allocatedConnections []bool) {
+	s.AllocatedConnections = allocatedConnections
+}
+
+// Getter and Setter for NumberOfBands
+func (s *Simulator) GetNumberOfBands() int {
+	return s.NumberOfBands
+}
+
+func (s *Simulator) SetNumberOfBands(numberOfBands int) {
+	s.NumberOfBands = numberOfBands
 }
 
 func (s *Simulator) SetRandomVariable(randomVariable randomvariable.RandomVariable) {
@@ -54,16 +75,33 @@ func (s *Simulator) GetConnectionsEvents() []connections.ConnectionEvent {
 	return s.ConnectionsEvents
 }
 
+func (s *Simulator) GetFirstEvent() connections.ConnectionEvent {
+
+	connectionsEvents := s.GetConnectionsEvents()
+	if len(connectionsEvents) == 0 {
+		fmt.Println("No more events to process.")
+		return connections.ConnectionEvent{} // Return an empty event if no events are left
+	}
+	firstElement := connectionsEvents[0]
+
+	// Remove the first event from the list
+	connectionEventsNew := make([]connections.ConnectionEvent, len(connectionsEvents)-1)
+
+	s.SetConnectionsEvents(connectionEventsNew)
+
+	return firstElement
+}
+
 func (s *Simulator) GetGoalConnections() float64 {
 	return s.GoalConnections
 }
 
 func (s *Simulator) GetTime() float64 {
-	return s.time
+	return s.Time
 }
 
 func (s *Simulator) SetTime(time float64) {
-	s.time = time
+	s.Time = time
 }
 
 func (s *Simulator) SetController(controller controller.Controller) {
@@ -74,7 +112,7 @@ func (s *Simulator) GetController() controller.Controller {
 	return s.Controller
 }
 
-func (s *Simulator) SimulatorInit(networkPath string, capacitiesPath string, bitRatePath string, lambda int, mu int, goalConnections float64, allocator controller.Allocator, numberOfBands int) {
+func (s *Simulator) SimulatorInit(networkPath string, capacitiesPath string, bitRatePath string, lambda int, mu int, goalConnections float64, allocator allocator.Allocator, numberOfBands int) {
 
 	network, err := infrastructure.NetworkGenerate(networkPath, capacitiesPath)
 
@@ -136,5 +174,29 @@ func (s *Simulator) SimulatorInit(networkPath string, capacitiesPath string, bit
 	controller.ControllerInit("files/routes/UKNet_routes.json", s.Network, allocator)
 
 	s.SetController(controller)
+
+}
+
+func (s *Simulator) SimulatorStart() {
+
+	fmt.Println("Starting simulation...")
+
+	for i := 1; i <= int(s.GetGoalConnections()); i++ {
+
+		time := s.GetTime()
+		fmt.Printf("Time: %.2f, Processing connection %d\n", time, i)
+		event := s.GetFirstEvent()
+
+		fmt.Printf("Processing event: %s from %s to %s with bitrate %d at time %.2f\n", event.Event, event.Source, event.Destination, event.Bitrate, event.Time)
+		if event.Event == connections.ConnectionEventTypeArrive {
+
+			controller := s.GetController()
+
+			controller.ConectionAllocation(event.Source, event.Destination, s.GetBitRateList().BitRates[event.Bitrate], s.GetNetwork(), controller.Routes, s.GetNumberOfBands())
+
+		}
+	}
+
+	fmt.Println("Simulation completed.")
 
 }
