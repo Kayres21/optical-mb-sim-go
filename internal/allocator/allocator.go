@@ -2,8 +2,9 @@ package allocator
 
 import (
 	"log"
-	"simulator/internal/connections"
-	"simulator/internal/infrastructure"
+
+	"github.com/Kayres21/optical-mb-sim-go/internal/connections"
+	"github.com/Kayres21/optical-mb-sim-go/internal/infrastructure"
 )
 
 type Allocator func(source, destination int, bitRate connections.BitRate, network infrastructure.Network, path connections.Routes, numberOfBands int) (bool, connections.Connection)
@@ -44,20 +45,24 @@ func FirstFit(source int, destination int, bitRate connections.BitRate, network 
 				for _, link := range links {
 
 					link.AssignConnection(currentSlotIndex, len(bitRate.Slots), band)
-					
-				}
 
+				}
+				linksVal := make([]infrastructure.Link, len(links))
+				for i, l := range links {
+					linksVal[i] = *l
+				}
 				return true, connections.Connection{
-					Id:         connections.GenerateConnectionID(),
-					Source:     source,
-					Destination: destination,
-					Bitrate:    bitRate.Modulation,
-					Links:      links,
-					Slots:      len(bitRate.Slots),
-					InitialSlot: currentSlotIndex,
-					FinalSlot:   currentSlotIndex + len(bitRate.Slots) - 1,
+					Id:           connections.GenerateConnectionID(),
+					Source:       source,
+					Destination:  destination,
+					BitRate:      bitRate.Modulation,
+					Links:        linksVal,
+					Slots:        len(bitRate.Slots),
+					InitialSlot:  currentSlotIndex,
+					FinalSlot:    currentSlotIndex + len(bitRate.Slots) - 1,
 					BandSelected: band,
-					Allocated:   true,
+					Allocated:    true,
+				}
 			}
 		}
 
@@ -65,5 +70,5 @@ func FirstFit(source int, destination int, bitRate connections.BitRate, network 
 
 	connection := connections.Connection{}
 
-	return true, connection // Return true if allocation is successful
+	return false, connection
 }

@@ -1,16 +1,20 @@
 package connections
 
 import (
-	"simulator/internal/infrastructure"
+	"github.com/Kayres21/optical-mb-sim-go/internal/infrastructure"
+	"github.com/google/uuid"
 )
 
 type Connection struct {
 	Id           string
 	Links        []infrastructure.Link
+	Source       int
+	Destination  int
+	BitRate      string
 	Slots        int
 	InitialSlot  int
 	FinalSlot    int
-	BandSelected string
+	BandSelected int
 	Allocated    bool
 }
 
@@ -64,3 +68,8 @@ type EventsType string
 
 const ConnectionEventTypeArrive EventsType = "Arrive"
 const ConnectionEventTypeRelease EventsType = "Release"
+
+func GenerateConnectionID() string {
+	// Implement a simple ID generation logic (you can replace this with a more robust method)
+	return uuid.New().String()
+}

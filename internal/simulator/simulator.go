@@ -2,11 +2,12 @@ package simulator
 
 import (
 	"fmt"
-	"simulator/internal/allocator"
-	"simulator/internal/connections"
-	"simulator/internal/connections/controller"
-	randomvariable "simulator/internal/connections/random_variable"
-	"simulator/internal/infrastructure"
+
+	"github.com/Kayres21/optical-mb-sim-go/internal/allocator"
+	"github.com/Kayres21/optical-mb-sim-go/internal/connections"
+	"github.com/Kayres21/optical-mb-sim-go/internal/connections/controller"
+	randomvariable "github.com/Kayres21/optical-mb-sim-go/internal/connections/random_variable"
+	"github.com/Kayres21/optical-mb-sim-go/internal/infrastructure"
 )
 
 type Simulator struct {

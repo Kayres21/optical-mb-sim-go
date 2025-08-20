@@ -1,8 +1,8 @@
 package main
 
 import (
-	"simulator/internal/allocator"
-	"simulator/internal/simulator"
+	"github.com/Kayres21/optical-mb-sim-go/internal/allocator"
+	"github.com/Kayres21/optical-mb-sim-go/internal/simulator"
 )
 
 func main() {

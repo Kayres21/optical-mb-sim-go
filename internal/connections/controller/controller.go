@@ -2,9 +2,10 @@ package controller
 
 import (
 	"log"
-	"simulator/internal/allocator"
-	"simulator/internal/connections"
-	"simulator/internal/infrastructure"
+
+	"github.com/Kayres21/optical-mb-sim-go/internal/allocator"
+	"github.com/Kayres21/optical-mb-sim-go/internal/connections"
+	"github.com/Kayres21/optical-mb-sim-go/internal/infrastructure"
 )
 
 type Controller struct {

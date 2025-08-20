@@ -1,9 +1,10 @@
 package connections
 
 import (
-	randomvariable "simulator/internal/connections/random_variable"
 	"sort"
 	"strconv"
+
+	randomvariable "github.com/Kayres21/optical-mb-sim-go/internal/connections/random_variable"
 )
 
 func GenerateEvents(nodes_len int, randomVariable randomvariable.RandomVariable) []ConnectionEvent {
