@@ -63,3 +63,14 @@ func (n *Network) GetLinkByID(id int) *Link {
 	}
 	return nil
 }
+
+func (n *Network) GetLinkByIDs(ids []int) []*Link {
+	links := make([]*Link, 0, len(ids))
+	for _, id := range ids {
+		link := n.GetLinkByID(id)
+		if link != nil {
+			links = append(links, link)
+		}
+	}
+	return links
+}

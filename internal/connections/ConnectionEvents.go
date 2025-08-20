@@ -1,9 +1,10 @@
 package connections
 
 import (
-	randomvariable "simulator/internal/connections/random_variable"
 	"sort"
 	"strconv"
+
+	randomvariable "github.com/Kayres21/optical-mb-sim-go/internal/connections/random_variable"
 )
 
 func GenerateEvents(nodes_len int, randomVariable randomvariable.RandomVariable) []ConnectionEvent {
@@ -16,10 +17,10 @@ func GenerateEvents(nodes_len int, randomVariable randomvariable.RandomVariable)
 			if i != j {
 				event := ConnectionEvent{
 					Id:          strconv.Itoa(id),
-					Source:      strconv.Itoa(i),
-					Destination: strconv.Itoa(j),
+					Source:      i,
+					Destination: j,
 					Bitrate:     randomVariable.GetNetValueUniform("bitrate"),
-					EventType:   "Arrive",
+					Event:       "Arrive",
 					Time:        randomVariable.GetNetValueExponential("arrive"),
 				}
 				events = append(events, event)
@@ -32,5 +33,6 @@ func GenerateEvents(nodes_len int, randomVariable randomvariable.RandomVariable)
 	sort.Slice(events, func(i, j int) bool {
 		return events[i].Time < events[j].Time
 	})
+
 	return events
 }

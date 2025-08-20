@@ -2,15 +2,17 @@ package controller
 
 import (
 	"log"
-	"simulator/internal/connections"
-	"simulator/internal/infrastructure"
+
+	"github.com/Kayres21/optical-mb-sim-go/internal/allocator"
+	"github.com/Kayres21/optical-mb-sim-go/internal/connections"
+	"github.com/Kayres21/optical-mb-sim-go/internal/infrastructure"
 )
 
 type Controller struct {
 	Routes      connections.Routes
 	Connections []connections.Connection
 	Network     infrastructure.Network
-	Allocator   Allocator
+	Allocator   allocator.Allocator
 }
 
 func (c *Controller) GetRoutes() connections.Routes {
@@ -34,6 +36,10 @@ func (c *Controller) SetConnections(connections []connections.Connection) {
 	c.Connections = connections
 }
 
+func (c *Controller) AddConnection(connection connections.Connection) {
+	c.Connections = append(c.Connections, connection)
+}
+
 func (c *Controller) SetNetwork(network infrastructure.Network) {
 	c.Network = network
 }
@@ -47,13 +53,31 @@ func (c *Controller) GetConnectionById(id string) (connections.Connection, bool)
 	return connections.Connection{}, false
 }
 
-type Allocator func(source, destination string, bitRate connections.BitRate, connection connections.Connection, network infrastructure.Network, path connections.Routes) (bool, connections.Connection)
-
-func (c *Controller) ConectionAllocation(source, destination string, bitRate connections.BitRate, connection connections.Connection, network infrastructure.Network, path connections.Routes) (bool, connections.Connection) {
-	return c.Allocator(source, destination, bitRate, connection, network, path)
+func (c *Controller) ConectionAllocation(source, destination int, bitRate connections.BitRate, network infrastructure.Network, path connections.Routes, numberOfBands int) (bool, connections.Connection) {
+	return c.Allocator(source, destination, bitRate, network, path, numberOfBands)
 }
 
-func (c *Controller) ControllerInit(pathToRoutes string, network infrastructure.Network, connections []connections.Connection, allocator Allocator) {
+func (c *Controller) SetAllocator(allocator allocator.Allocator) {
+	c.Allocator = allocator
+}
+
+func (c *Controller) ReleaseConnection(connectionId string) bool {
+
+	con, valid := c.GetConnectionById(connectionId)
+
+	links := con.GetLinks()
+
+	for _, link := range links {
+
+		link.ReleaseConnection(con.GetInitialSlot(), con.GetSlots(), con.GetBandSelected())
+	}
+
+	return valid
+}
+
+func (c *Controller) ControllerInit(pathToRoutes string, network infrastructure.Network, allocator allocator.Allocator) {
+
+	var connections []connections.Connection
 
 	routes, err := c.Routes.ReadRoutesFile(pathToRoutes)
 
@@ -64,6 +88,6 @@ func (c *Controller) ControllerInit(pathToRoutes string, network infrastructure.
 	c.SetRoutes(routes)
 	c.SetConnections(connections)
 	c.SetNetwork(network)
-	c.Allocator = allocator
+	c.SetAllocator(allocator)
 
 }
