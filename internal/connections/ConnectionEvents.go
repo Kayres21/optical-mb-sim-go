@@ -16,8 +16,8 @@ func GenerateEvents(nodes_len int, randomVariable randomvariable.RandomVariable)
 			if i != j {
 				event := ConnectionEvent{
 					Id:          strconv.Itoa(id),
-					Source:      strconv.Itoa(i),
-					Destination: strconv.Itoa(j),
+					Source:      i,
+					Destination: j,
 					Bitrate:     randomVariable.GetNetValueUniform("bitrate"),
 					Event:       "Arrive",
 					Time:        randomVariable.GetNetValueExponential("arrive"),
@@ -32,5 +32,6 @@ func GenerateEvents(nodes_len int, randomVariable randomvariable.RandomVariable)
 	sort.Slice(events, func(i, j int) bool {
 		return events[i].Time < events[j].Time
 	})
+
 	return events
 }

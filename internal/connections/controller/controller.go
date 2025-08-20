@@ -35,6 +35,10 @@ func (c *Controller) SetConnections(connections []connections.Connection) {
 	c.Connections = connections
 }
 
+func (c *Controller) AddConnection(connection connections.Connection) {
+	c.Connections = append(c.Connections, connection)
+}
+
 func (c *Controller) SetNetwork(network infrastructure.Network) {
 	c.Network = network
 }
@@ -48,7 +52,7 @@ func (c *Controller) GetConnectionById(id string) (connections.Connection, bool)
 	return connections.Connection{}, false
 }
 
-func (c *Controller) ConectionAllocation(source, destination string, bitRate connections.BitRate, network infrastructure.Network, path connections.Routes, numberOfBands int) (bool, connections.Connection) {
+func (c *Controller) ConectionAllocation(source, destination int, bitRate connections.BitRate, network infrastructure.Network, path connections.Routes, numberOfBands int) (bool, connections.Connection) {
 	return c.Allocator(source, destination, bitRate, network, path, numberOfBands)
 }
 

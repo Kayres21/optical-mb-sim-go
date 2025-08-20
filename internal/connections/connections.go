@@ -16,8 +16,8 @@ type Connection struct {
 
 type ConnectionEvent struct {
 	Id          string
-	Source      string
-	Destination string
+	Source      int
+	Destination int
 	Bitrate     int
 	Event       EventsType // "Arrive",  "Release"
 	Time        float64
@@ -57,7 +57,7 @@ type Routes struct {
 type Path struct {
 	Source      int     `json:"src"`
 	Destination int     `json:"dst"`
-	PathLinks   [][]int `json:"path"`
+	PathLinks   [][]int `json:"paths"`
 }
 
 type EventsType string

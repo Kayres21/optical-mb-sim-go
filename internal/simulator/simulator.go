@@ -74,20 +74,19 @@ func (s *Simulator) GetBitRateList() connections.BitRateList {
 func (s *Simulator) GetConnectionsEvents() []connections.ConnectionEvent {
 	return s.ConnectionsEvents
 }
-
 func (s *Simulator) GetFirstEvent() connections.ConnectionEvent {
-
 	connectionsEvents := s.GetConnectionsEvents()
+
 	if len(connectionsEvents) == 0 {
 		fmt.Println("No more events to process.")
-		return connections.ConnectionEvent{} // Return an empty event if no events are left
+		return connections.ConnectionEvent{}
 	}
+
+	// Tomar el primer evento
 	firstElement := connectionsEvents[0]
 
-	// Remove the first event from the list
-	connectionEventsNew := make([]connections.ConnectionEvent, len(connectionsEvents)-1)
-
-	s.SetConnectionsEvents(connectionEventsNew)
+	// Actualizar la lista quitando el primer elemento
+	s.SetConnectionsEvents(connectionsEvents[1:])
 
 	return firstElement
 }
@@ -149,6 +148,8 @@ func (s *Simulator) SimulatorInit(networkPath string, capacitiesPath string, bit
 
 	band := numberOfBands
 
+	s.SetNumberOfBands(band)
+
 	randomVariable.SetParameters(lambda, mu, bitrate, source, destination, band)
 
 	seedArrive := int64(1)
@@ -183,17 +184,19 @@ func (s *Simulator) SimulatorStart() {
 
 	for i := 1; i <= int(s.GetGoalConnections()); i++ {
 
-		time := s.GetTime()
-		fmt.Printf("Time: %.2f, Processing connection %d\n", time, i)
+		//time := s.GetTime()
+
 		event := s.GetFirstEvent()
 
-		fmt.Printf("Processing event: %s from %s to %s with bitrate %d at time %.2f\n", event.Event, event.Source, event.Destination, event.Bitrate, event.Time)
 		if event.Event == connections.ConnectionEventTypeArrive {
 
 			controller := s.GetController()
 
-			controller.ConectionAllocation(event.Source, event.Destination, s.GetBitRateList().BitRates[event.Bitrate], s.GetNetwork(), controller.Routes, s.GetNumberOfBands())
+			asigned, con := controller.ConectionAllocation(event.Source, event.Destination, s.GetBitRateList().BitRates[event.Bitrate], s.GetNetwork(), controller.Routes, s.GetNumberOfBands())
 
+			if asigned {
+				s.Controller.AddConnection(con)
+			}
 		}
 	}
 
