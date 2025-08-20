@@ -9,6 +9,7 @@ import (
 	"github.com/Kayres21/optical-mb-sim-go/internal/connections/controller"
 	randomvariable "github.com/Kayres21/optical-mb-sim-go/internal/connections/random_variable"
 	"github.com/Kayres21/optical-mb-sim-go/internal/infrastructure"
+	"github.com/Kayres21/optical-mb-sim-go/pkg/helpers"
 )
 
 type Simulator struct {
@@ -94,7 +95,6 @@ func (s *Simulator) GetConnectionsEvents() []connections.ConnectionEvent {
 }
 
 func (s *Simulator) AddNewConnectionEvent(event connections.ConnectionEvent) {
-
 	events := s.GetConnectionsEvents()
 
 	events = append(events, event)
@@ -104,7 +104,6 @@ func (s *Simulator) AddNewConnectionEvent(event connections.ConnectionEvent) {
 	})
 
 	s.SetConnectionsEvents(events)
-
 }
 
 func (s *Simulator) GetFirstEvent() connections.ConnectionEvent {
@@ -144,7 +143,7 @@ func (s *Simulator) GetController() controller.Controller {
 	return s.Controller
 }
 
-func (s *Simulator) SimulatorInit(networkPath string, capacitiesPath string, bitRatePath string, lambda int, mu int, goalConnections float64, allocator allocator.Allocator, numberOfBands int) {
+func (s *Simulator) SimulatorInit(networkPath string, routesPath string, capacitiesPath string, bitRatePath string, lambda int, mu int, goalConnections float64, allocator allocator.Allocator, numberOfBands int) {
 
 	network, err := infrastructure.NetworkGenerate(networkPath, capacitiesPath)
 
@@ -205,7 +204,7 @@ func (s *Simulator) SimulatorInit(networkPath string, capacitiesPath string, bit
 	s.SetConnectionsEvents(connectionsEvents)
 
 	var controller controller.Controller
-	controller.ControllerInit("files/routes/UKNet_routes.json", s.Network, allocator)
+	controller.ControllerInit(routesPath, s.Network, allocator)
 
 	s.SetController(controller)
 
@@ -216,7 +215,6 @@ func (s *Simulator) SimulatorStart() {
 	fmt.Println("Starting simulation...")
 
 	for i := 1; i <= int(s.GetGoalConnections()); i++ {
-
 		time := s.GetTime()
 
 		event := s.GetFirstEvent()
@@ -244,12 +242,21 @@ func (s *Simulator) SimulatorStart() {
 					Event:       connections.ConnectionEventTypeRelease,
 					Time:        s.GetTime() + rv.GetNetValueExponential("departure"),
 				}
-
 				s.AddNewConnectionEvent(newEvent)
 
 			}
 			if !asigned {
+				rv := s.GetRandomVariable()
 
+				newEvent := connections.ConnectionEvent{
+					Id:          event.Id,
+					Source:      event.Source,
+					Destination: event.Destination,
+					Bitrate:     event.Bitrate,
+					Event:       connections.ConnectionEventTypeArrive,
+					Time:        s.GetTime() + rv.GetNetValueExponential("arrive"),
+				}
+				s.AddNewConnectionEvent(newEvent)
 			}
 
 		}
@@ -269,7 +276,6 @@ func (s *Simulator) SimulatorStart() {
 				Event:       connections.ConnectionEventTypeArrive,
 				Time:        s.GetTime() + rv.GetNetValueExponential("arrive"),
 			}
-
 			s.AddNewConnectionEvent(newEvent)
 
 		}
@@ -278,8 +284,7 @@ func (s *Simulator) SimulatorStart() {
 	}
 
 	fmt.Println("Simulation completed.")
-
-	fmt.Println(s.AssignedConnections)
-	fmt.Println(s.TotalConnections)
+	blockingProbabilitie := helpers.ComputeBlockingProbabilities(s.GetAssignedConnections(), s.GetTotalConnections())
+	fmt.Println(blockingProbabilitie)
 
 }
