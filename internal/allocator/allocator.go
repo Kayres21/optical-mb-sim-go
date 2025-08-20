@@ -1,8 +1,6 @@
 package allocator
 
 import (
-	"log"
-
 	"github.com/Kayres21/optical-mb-sim-go/internal/connections"
 	"github.com/Kayres21/optical-mb-sim-go/internal/infrastructure"
 )
@@ -15,7 +13,6 @@ func FirstFit(source int, destination int, bitRate connections.BitRate, network 
 	links := network.GetLinkByIDs(pathSelected)
 	for band := range numberOfBands {
 		capacityTotal := make([]bool, len(links[0].GetSlotsByBand(band)))
-		log.Printf("Checking band %d with %d links with capacity %d", band, len(links), len(capacityTotal))
 		for _, link := range links {
 
 			capacity := link.GetSlotsByBand(band)

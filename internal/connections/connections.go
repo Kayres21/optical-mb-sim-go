@@ -73,3 +73,85 @@ func GenerateConnectionID() string {
 	// Implement a simple ID generation logic (you can replace this with a more robust method)
 	return uuid.New().String()
 }
+
+func (c *Connection) GetId() string {
+	return c.Id
+}
+
+func (c *Connection) GetLinks() []infrastructure.Link {
+	return c.Links
+}
+
+func (c *Connection) GetSource() int {
+	return c.Source
+}
+
+func (c *Connection) GetDestination() int {
+	return c.Destination
+}
+
+func (c *Connection) GetBitRate() string {
+	return c.BitRate
+}
+
+func (c *Connection) GetSlots() int {
+	return c.Slots
+}
+
+func (c *Connection) GetInitialSlot() int {
+	return c.InitialSlot
+}
+
+func (c *Connection) GetFinalSlot() int {
+	return c.FinalSlot
+}
+
+func (c *Connection) GetBandSelected() int {
+	return c.BandSelected
+}
+
+func (c *Connection) IsAllocated() bool {
+	return c.Allocated
+}
+
+// Setters (with pointer receiver to modify the struct)
+
+func (c *Connection) SetId(id string) {
+	c.Id = id
+}
+
+func (c *Connection) SetLinks(links []infrastructure.Link) {
+	c.Links = links
+}
+
+func (c *Connection) SetSource(source int) {
+	c.Source = source
+}
+
+func (c *Connection) SetDestination(destination int) {
+	c.Destination = destination
+}
+
+func (c *Connection) SetBitRate(bitRate string) {
+	c.BitRate = bitRate
+}
+
+func (c *Connection) SetSlots(slots int) {
+	c.Slots = slots
+}
+
+func (c *Connection) SetInitialSlot(initialSlot int) {
+	c.InitialSlot = initialSlot
+}
+
+func (c *Connection) SetFinalSlot(finalSlot int) {
+	c.FinalSlot = finalSlot
+}
+
+func (c *Connection) SetBandSelected(band int) {
+	c.BandSelected = band
+}
+
+func (c *Connection) SetAllocated(allocated bool) {
+	c.Allocated = allocated
+}

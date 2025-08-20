@@ -2,6 +2,7 @@ package simulator
 
 import (
 	"fmt"
+	"sort"
 
 	"github.com/Kayres21/optical-mb-sim-go/internal/allocator"
 	"github.com/Kayres21/optical-mb-sim-go/internal/connections"
@@ -20,6 +21,22 @@ type Simulator struct {
 	Time                 float64
 	AllocatedConnections []bool
 	NumberOfBands        int
+	AssignedConnections  int
+	TotalConnections     int
+}
+
+func (s *Simulator) GetAssignedConnections() int {
+	return s.AssignedConnections
+}
+
+func (s *Simulator) SetAssignedConnections(assignedConnections int) {
+	s.AssignedConnections = assignedConnections
+}
+func (s *Simulator) GetTotalConnections() int {
+	return s.TotalConnections
+}
+func (s *Simulator) SetTotalConnections(totalConnections int) {
+	s.TotalConnections = totalConnections
 }
 
 // Getter and Setter for AllocatedConnections
@@ -75,6 +92,21 @@ func (s *Simulator) GetBitRateList() connections.BitRateList {
 func (s *Simulator) GetConnectionsEvents() []connections.ConnectionEvent {
 	return s.ConnectionsEvents
 }
+
+func (s *Simulator) AddNewConnectionEvent(event connections.ConnectionEvent) {
+
+	events := s.GetConnectionsEvents()
+
+	events = append(events, event)
+
+	sort.Slice(events, func(i, j int) bool {
+		return events[i].Time < events[j].Time
+	})
+
+	s.SetConnectionsEvents(events)
+
+}
+
 func (s *Simulator) GetFirstEvent() connections.ConnectionEvent {
 	connectionsEvents := s.GetConnectionsEvents()
 
@@ -185,7 +217,7 @@ func (s *Simulator) SimulatorStart() {
 
 	for i := 1; i <= int(s.GetGoalConnections()); i++ {
 
-		//time := s.GetTime()
+		time := s.GetTime()
 
 		event := s.GetFirstEvent()
 
@@ -195,12 +227,59 @@ func (s *Simulator) SimulatorStart() {
 
 			asigned, con := controller.ConectionAllocation(event.Source, event.Destination, s.GetBitRateList().BitRates[event.Bitrate], s.GetNetwork(), controller.Routes, s.GetNumberOfBands())
 
+			s.SetTotalConnections(s.GetTotalConnections() + 1)
+
 			if asigned {
 				s.Controller.AddConnection(con)
+				s.SetAssignedConnections(s.GetAssignedConnections() + 1)
+				s.SetAllocatedConnections(append(s.GetAllocatedConnections(), true))
+
+				rv := s.GetRandomVariable()
+
+				newEvent := connections.ConnectionEvent{
+					Id:          event.Id,
+					Source:      event.Source,
+					Destination: event.Destination,
+					Bitrate:     con.BandSelected,
+					Event:       connections.ConnectionEventTypeRelease,
+					Time:        s.GetTime() + rv.GetNetValueExponential("departure"),
+				}
+
+				s.AddNewConnectionEvent(newEvent)
+
 			}
+			if !asigned {
+
+			}
+
 		}
+
+		if event.Event == connections.ConnectionEventTypeRelease {
+			controller := s.GetController()
+
+			controller.ReleaseConnection(event.Id)
+
+			rv := s.GetRandomVariable()
+
+			newEvent := connections.ConnectionEvent{
+				Id:          event.Id,
+				Source:      event.Source,
+				Destination: event.Destination,
+				Bitrate:     event.Bitrate,
+				Event:       connections.ConnectionEventTypeArrive,
+				Time:        s.GetTime() + rv.GetNetValueExponential("arrive"),
+			}
+
+			s.AddNewConnectionEvent(newEvent)
+
+		}
+
+		s.SetTime(time + event.Time)
 	}
 
 	fmt.Println("Simulation completed.")
+
+	fmt.Println(s.AssignedConnections)
+	fmt.Println(s.TotalConnections)
 
 }

@@ -61,6 +61,20 @@ func (c *Controller) SetAllocator(allocator allocator.Allocator) {
 	c.Allocator = allocator
 }
 
+func (c *Controller) ReleaseConnection(connectionId string) bool {
+
+	con, valid := c.GetConnectionById(connectionId)
+
+	links := con.GetLinks()
+
+	for _, link := range links {
+
+		link.ReleaseConnection(con.GetInitialSlot(), con.GetSlots(), con.GetBandSelected())
+	}
+
+	return valid
+}
+
 func (c *Controller) ControllerInit(pathToRoutes string, network infrastructure.Network, allocator allocator.Allocator) {
 
 	var connections []connections.Connection
