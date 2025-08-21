@@ -53,8 +53,8 @@ func (c *Controller) GetConnectionById(id string) (connections.Connection, bool)
 	return connections.Connection{}, false
 }
 
-func (c *Controller) ConectionAllocation(source, destination int, bitRate connections.BitRate, network infrastructure.Network, path connections.Routes, numberOfBands int) (bool, connections.Connection) {
-	return c.Allocator(source, destination, bitRate, network, path, numberOfBands)
+func (c *Controller) ConectionAllocation(source, destination int, slot int, network infrastructure.Network, path connections.Routes, numberOfBands int) (bool, connections.Connection) {
+	return c.Allocator(source, destination, slot, network, path, numberOfBands)
 }
 
 func (c *Controller) SetAllocator(allocator allocator.Allocator) {

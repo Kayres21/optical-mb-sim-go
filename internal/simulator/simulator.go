@@ -143,6 +143,22 @@ func (s *Simulator) GetController() controller.Controller {
 	return s.Controller
 }
 
+func (s *Simulator) getSlotgigabites(bitrate connections.BitRate, gigabites int) int {
+
+	slots := bitrate.Slots
+
+	for _, slot := range slots {
+
+		if slot.Gigabits == fmt.Sprint(gigabites) {
+			return slot.Slots
+		}
+
+	}
+
+	return 0
+
+}
+
 func (s *Simulator) SimulatorInit(networkPath string, routesPath string, capacitiesPath string, bitRatePath string, lambda int, mu int, goalConnections float64, allocator allocator.Allocator, numberOfBands int) {
 
 	network, err := infrastructure.NetworkGenerate(networkPath, capacitiesPath)
@@ -180,9 +196,11 @@ func (s *Simulator) SimulatorInit(networkPath string, routesPath string, capacit
 
 	band := numberOfBands
 
+	gigabits := 5
+
 	s.SetNumberOfBands(band)
 
-	randomVariable.SetParameters(lambda, mu, bitrate, source, destination, band)
+	randomVariable.SetParameters(lambda, mu, bitrate, source, destination, band, gigabits)
 
 	seedArrive := int64(1)
 	seedDeparture := int64(2)
@@ -190,8 +208,9 @@ func (s *Simulator) SimulatorInit(networkPath string, routesPath string, capacit
 	seedSource := int64(4)
 	seedDestination := int64(5)
 	seedBand := int64(6)
+	seedGigabits := int64(7)
 
-	randomVariable.SetSeeds(seedArrive, seedDeparture, seedBitrate, seedSource, seedDestination, seedBand)
+	randomVariable.SetSeeds(seedArrive, seedDeparture, seedBitrate, seedSource, seedDestination, seedBand, seedGigabits)
 
 	s.SetRandomVariable(randomVariable)
 
@@ -223,7 +242,8 @@ func (s *Simulator) SimulatorStart() {
 
 			controller := s.GetController()
 
-			asigned, con := controller.ConectionAllocation(event.Source, event.Destination, s.GetBitRateList().BitRates[event.Bitrate], s.GetNetwork(), controller.Routes, s.GetNumberOfBands())
+			slot := s.getSlotgigabites(s.GetBitRateList().BitRates[event.Bitrate], event.GigabitsSelected)
+			asigned, con := controller.ConectionAllocation(event.Source, event.Destination, slot, s.GetNetwork(), controller.Routes, s.GetNumberOfBands())
 
 			s.SetTotalConnections(s.GetTotalConnections() + 1)
 

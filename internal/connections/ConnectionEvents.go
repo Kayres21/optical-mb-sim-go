@@ -16,12 +16,13 @@ func GenerateEvents(nodes_len int, randomVariable randomvariable.RandomVariable)
 		for j := range nodes_len {
 			if i != j {
 				event := ConnectionEvent{
-					Id:          strconv.Itoa(id),
-					Source:      i,
-					Destination: j,
-					Bitrate:     randomVariable.GetNetValueUniform("bitrate"),
-					Event:       "Arrive",
-					Time:        randomVariable.GetNetValueExponential("arrive"),
+					Id:               strconv.Itoa(id),
+					Source:           i,
+					Destination:      j,
+					Bitrate:          randomVariable.GetNetValueUniform("bitrate"),
+					Event:            "Arrive",
+					GigabitsSelected: randomVariable.GetNetValueUniform("gigabits"),
+					Time:             randomVariable.GetNetValueExponential("arrive"),
 				}
 				events = append(events, event)
 				id++

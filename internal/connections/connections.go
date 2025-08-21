@@ -10,7 +10,6 @@ type Connection struct {
 	Links        []infrastructure.Link
 	Source       int
 	Destination  int
-	BitRate      string
 	Slots        int
 	InitialSlot  int
 	FinalSlot    int
@@ -19,12 +18,13 @@ type Connection struct {
 }
 
 type ConnectionEvent struct {
-	Id          string
-	Source      int
-	Destination int
-	Bitrate     int
-	Event       EventsType // "Arrive",  "Release"
-	Time        float64
+	Id               string
+	Source           int
+	Destination      int
+	Bitrate          int
+	GigabitsSelected int
+	Event            EventsType // "Arrive",  "Release"
+	Time             float64
 }
 
 type BitRateList struct {
@@ -90,10 +90,6 @@ func (c *Connection) GetDestination() int {
 	return c.Destination
 }
 
-func (c *Connection) GetBitRate() string {
-	return c.BitRate
-}
-
 func (c *Connection) GetSlots() int {
 	return c.Slots
 }
@@ -130,10 +126,6 @@ func (c *Connection) SetSource(source int) {
 
 func (c *Connection) SetDestination(destination int) {
 	c.Destination = destination
-}
-
-func (c *Connection) SetBitRate(bitRate string) {
-	c.BitRate = bitRate
 }
 
 func (c *Connection) SetSlots(slots int) {

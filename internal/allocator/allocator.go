@@ -5,14 +5,15 @@ import (
 	"github.com/Kayres21/optical-mb-sim-go/internal/infrastructure"
 )
 
-type Allocator func(source, destination int, bitRate connections.BitRate, network infrastructure.Network, path connections.Routes, numberOfBands int) (bool, connections.Connection)
+type Allocator func(source, destination int, slot int, network infrastructure.Network, path connections.Routes, numberOfBands int) (bool, connections.Connection)
 
-func FirstFit(source int, destination int, bitRate connections.BitRate, network infrastructure.Network, path connections.Routes, numberOfBands int) (bool, connections.Connection) {
+func FirstFit(source int, destination int, slot int, network infrastructure.Network, path connections.Routes, numberOfBands int) (bool, connections.Connection) {
 	pathSelected := path.GetKshortestPath(0, source, destination)
 
 	links := network.GetLinkByIDs(pathSelected)
 	for band := range numberOfBands {
 		capacityTotal := make([]bool, len(links[0].GetSlotsByBand(band)))
+
 		for _, link := range links {
 
 			capacity := link.GetSlotsByBand(band)
@@ -29,6 +30,7 @@ func FirstFit(source int, destination int, bitRate connections.BitRate, network 
 
 		continousSlots := 0
 		currentSlotIndex := 0
+
 		for i := range capacityTotal {
 			if !capacityTotal[i] {
 				continousSlots++
@@ -37,11 +39,11 @@ func FirstFit(source int, destination int, bitRate connections.BitRate, network 
 				currentSlotIndex = i + 1
 			}
 
-			if continousSlots == len(bitRate.Slots) {
+			if continousSlots == slot {
 
 				for _, link := range links {
 
-					link.AssignConnection(currentSlotIndex, len(bitRate.Slots), band)
+					link.AssignConnection(currentSlotIndex, slot, band)
 
 				}
 				linksVal := make([]infrastructure.Link, len(links))
@@ -52,11 +54,10 @@ func FirstFit(source int, destination int, bitRate connections.BitRate, network 
 					Id:           connections.GenerateConnectionID(),
 					Source:       source,
 					Destination:  destination,
-					BitRate:      bitRate.Modulation,
 					Links:        linksVal,
-					Slots:        len(bitRate.Slots),
+					Slots:        slot,
 					InitialSlot:  currentSlotIndex,
-					FinalSlot:    currentSlotIndex + len(bitRate.Slots) - 1,
+					FinalSlot:    currentSlotIndex + slot - 1,
 					BandSelected: band,
 					Allocated:    true,
 				}

@@ -11,6 +11,7 @@ type RandomVariable struct {
 	SourceNodeSelect      UniformVariable
 	DestinationNodeSelect UniformVariable
 	BandSelect            UniformVariable
+	GigabitsSelected      UniformVariable
 }
 
 type ExponentialVariable struct {

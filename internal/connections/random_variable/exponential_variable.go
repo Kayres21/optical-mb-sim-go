@@ -53,6 +53,12 @@ func (rv *RandomVariable) SetSeedBand(seed int64) {
 
 }
 
+func (rv *RandomVariable) SetGigabits(seed int64) {
+	fuente := rand.NewSource(seed)
+
+	rv.GigabitsSelected.SetRng(rand.New(fuente))
+}
+
 func (rv *RandomVariable) SetLambda(lambda int) {
 	rv.Arrive.SetParameter(lambda)
 }
@@ -74,6 +80,10 @@ func (rv *RandomVariable) SetDestinationNodeSelectParameter(parameter int) {
 
 func (rv *RandomVariable) SetBandSelectParameter(parameter int) {
 	rv.BandSelect.SetParameter(parameter)
+}
+
+func (rv *RandomVariable) SetGigabitsSelectedParameter(parameter int) {
+	rv.GigabitsSelected.SetParameter(parameter)
 }
 
 func (ev *ExponentialVariable) SetRng(rng *rand.Rand) {
@@ -111,24 +121,32 @@ func (rv *RandomVariable) GetNetValueUniform(options string) int {
 		return rv.DestinationNodeSelect.Rng.Intn(rv.DestinationNodeSelect.Parameter)
 	case "band":
 		return rv.BandSelect.Rng.Intn(rv.BandSelect.Parameter)
+	case "gigabits":
+		var gigabitsArray [5]int = [5]int{10, 40, 100, 400, 10000}
+		selected := rv.GigabitsSelected.Rng.Intn(rv.GigabitsSelected.Parameter)
+		return gigabitsArray[selected]
 	}
+
 	return -1 // Default case, should not happen
 }
 
-func (rv *RandomVariable) SetSeeds(seedArrive, seedDeparture, seedBitrate, seedSource, seedDestination, seedBand int64) {
+func (rv *RandomVariable) SetSeeds(seedArrive, seedDeparture, seedBitrate, seedSource, seedDestination, seedBand, seedGigabits int64) {
 	rv.SetSeedArrive(seedArrive)
 	rv.SetSeedDeparture(seedDeparture)
 	rv.SetSeedBitrate(seedBitrate)
 	rv.SetSeedSource(seedSource)
 	rv.SetSeedDestination(seedDestination)
 	rv.SetSeedBand(seedBand)
+	rv.SetGigabits(seedGigabits)
+
 }
 
-func (rv *RandomVariable) SetParameters(lambda, mu, bitrateSelect, sourceNodeSelect, destinationNodeSelect, bandSelect int) {
+func (rv *RandomVariable) SetParameters(lambda, mu, bitrateSelect, sourceNodeSelect, destinationNodeSelect, bandSelect, gigabits int) {
 	rv.SetLambda(lambda)
 	rv.SetMu(mu)
 	rv.SetBitrateSelectParameter(bitrateSelect)
 	rv.SetSourceNodeSelectParameter(sourceNodeSelect)
 	rv.SetDestinationNodeSelectParameter(destinationNodeSelect)
 	rv.SetBandSelectParameter(bandSelect)
+	rv.SetGigabitsSelectedParameter(gigabits)
 }
