@@ -16,7 +16,7 @@ func main() {
 	routesPath := "files/routes/UKNet_routes.json"
 
 	lambda := 10
-	mu := 2
+	mu := 1
 
 	numberOfBands := 1
 
