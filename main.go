@@ -1,6 +1,9 @@
 package main
 
 import (
+	"fmt"
+	"time"
+
 	"github.com/Kayres21/optical-mb-sim-go/internal/allocator"
 	"github.com/Kayres21/optical-mb-sim-go/internal/simulator"
 )
@@ -17,10 +20,13 @@ func main() {
 
 	numberOfBands := 1
 
-	goalConnections := float64(100000)
+	goalConnections := 1e6
 
 	var simulator simulator.Simulator
 
 	simulator.SimulatorInit(networkPath, routesPath, capacitiesPath, bitRatePath, lambda, mu, goalConnections, allocator.FirstFit, numberOfBands)
+	inicio := time.Now()
 	simulator.SimulatorStart()
+	duracion := time.Since(inicio)
+	fmt.Printf("El programa tardó %s en ejecutarse.\n", duracion)
 }

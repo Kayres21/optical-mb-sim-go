@@ -159,6 +159,23 @@ func (s *Simulator) getSlotgigabites(bitrate connections.BitRate, gigabites int)
 
 }
 
+func (s *Simulator) printBlockingTable(i int, blockingProbabilitie float64) {
+	// Calcula el 10% del valor de s.GetGoalConnections()
+	// La división de enteros trunca el resultado, que es lo que queremos en este caso.
+	step := int(s.GetGoalConnections()) / 10
+
+	// Imprime la tabla solo si i es un múltiplo del 'step'
+	if i > 0 && i%step == 0 {
+		fmt.Println("--------------------------------")
+		fmt.Println("Tabla de Bloqueo")
+		fmt.Println("--------------------------------")
+		fmt.Printf("Conexiones: %d\n", i)
+		fmt.Printf("Probabilidad de bloqueo: %.4f\n", blockingProbabilitie)
+		fmt.Println("--------------------------------")
+		fmt.Println() // Salto de línea para mejor legibilidad
+	}
+}
+
 func (s *Simulator) SimulatorInit(networkPath string, routesPath string, capacitiesPath string, bitRatePath string, lambda int, mu int, goalConnections float64, allocator allocator.Allocator, numberOfBands int) {
 
 	network, err := infrastructure.NetworkGenerate(networkPath, capacitiesPath)
@@ -237,14 +254,14 @@ func (s *Simulator) SimulatorStart() {
 		time := s.GetTime()
 
 		event := s.GetFirstEvent()
-
+		blockingProbabilitie := helpers.ComputeBlockingProbabilities(s.GetAssignedConnections(), s.GetTotalConnections())
+		s.printBlockingTable(i, blockingProbabilitie)
 		if event.Event == connections.ConnectionEventTypeArrive {
 
 			controller := s.GetController()
 
 			slot := s.getSlotgigabites(s.GetBitRateList().BitRates[event.Bitrate], event.GigabitsSelected)
 			asigned, con := controller.ConectionAllocation(event.Source, event.Destination, slot, s.GetNetwork(), controller.Routes, s.GetNumberOfBands())
-
 			s.SetTotalConnections(s.GetTotalConnections() + 1)
 
 			if asigned {
@@ -304,7 +321,5 @@ func (s *Simulator) SimulatorStart() {
 	}
 
 	fmt.Println("Simulation completed.")
-	blockingProbabilitie := helpers.ComputeBlockingProbabilities(s.GetAssignedConnections(), s.GetTotalConnections())
-	fmt.Println(blockingProbabilitie)
 
 }

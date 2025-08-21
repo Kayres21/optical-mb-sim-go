@@ -122,7 +122,7 @@ func (rv *RandomVariable) GetNetValueUniform(options string) int {
 	case "band":
 		return rv.BandSelect.Rng.Intn(rv.BandSelect.Parameter)
 	case "gigabits":
-		var gigabitsArray [5]int = [5]int{10, 40, 100, 400, 10000}
+		var gigabitsArray [5]int = [5]int{10, 40, 100, 400, 1000}
 		selected := rv.GigabitsSelected.Rng.Intn(rv.GigabitsSelected.Parameter)
 		return gigabitsArray[selected]
 	}

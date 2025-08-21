@@ -1,6 +1,8 @@
 package helpers
 
-func ComputeBlockingProbabilities(assignedConnections, totalConnections int) int {
+func ComputeBlockingProbabilities(assignedConnections, totalConnections int) float64 {
 
-	return 1 - (assignedConnections / totalConnections)
+	result := float64(1.0 - (float64(assignedConnections) / float64(totalConnections)))
+
+	return result
 }
