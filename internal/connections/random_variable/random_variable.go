@@ -1,6 +1,7 @@
 package randomvariable
 
 import (
+	"fmt"
 	"math/rand"
 )
 
@@ -79,10 +80,12 @@ func (rv *RandomVariable) SetGigabits(seed int64) {
 }
 
 func (rv *RandomVariable) SetLambda(lambda int) {
+	fmt.Println("lambda", lambda)
 	rv.Arrive.SetParameter(lambda)
 }
 
 func (rv *RandomVariable) SetMu(mu int) {
+	fmt.Println("Mu", mu)
 	rv.Departure.SetParameter(mu)
 }
 
