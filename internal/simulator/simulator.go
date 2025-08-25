@@ -23,9 +23,36 @@ type Simulator struct {
 	Time                 float64
 	AllocatedConnections []bool
 	NumberOfBands        int
+	NumberOfBitrates     int
+	NumberOfNodes        int
+	NumberOfGigabits     int
 	AssignedConnections  int
 	TotalConnections     int
 	startTime            time.Time
+}
+
+func (s *Simulator) GetNumberOfGigabits() int {
+	return s.NumberOfGigabits
+}
+
+func (s *Simulator) SetNumberOfGigabits(numberOfGigabits int) {
+	s.NumberOfGigabits = numberOfGigabits
+}
+
+func (s *Simulator) GetNumberOfBitrates() int {
+	return s.NumberOfBitrates
+}
+
+func (s *Simulator) SetNumberOfBitrates(numberOfBitrates int) {
+	s.NumberOfBitrates = numberOfBitrates
+}
+
+func (s *Simulator) GetNumberOfNodes() int {
+	return s.NumberOfNodes
+}
+
+func (s *Simulator) SetNumberOfNodes(numberOfNodes int) {
+	s.NumberOfNodes = numberOfNodes
 }
 
 func (s *Simulator) GetAssignedConnections() int {
@@ -232,8 +259,7 @@ func (s *Simulator) connectionsEventsInit(nodeLen int, rv randomvariable.RandomV
 	s.SetConnectionsEvents(connectionsEvents)
 }
 
-func (s *Simulator) SimulatorInit(networkPath string, routesPath string, capacitiesPath string, bitRatePath string, lambda int, mu int, goalConnections float64, allocator allocator.Allocator, numberOfBands int) {
-
+func (s *Simulator) NetworkInit(networkPath string, capacitiesPath string) {
 	network, err := infrastructure.NetworkGenerate(networkPath, capacitiesPath)
 
 	if err != nil {
@@ -242,7 +268,9 @@ func (s *Simulator) SimulatorInit(networkPath string, routesPath string, capacit
 	fmt.Println("Network Name:", network.Name)
 
 	s.SetNetwork(network)
+}
 
+func (s *Simulator) BitRateInit(bitRatePath string) {
 	bitRate, err := connections.ReadBitRateFile(bitRatePath)
 
 	if err != nil {
@@ -250,12 +278,14 @@ func (s *Simulator) SimulatorInit(networkPath string, routesPath string, capacit
 	}
 
 	s.SetBitRateList(bitRate)
+}
 
-	nodeLen := len(network.Nodes)
+func (s *Simulator) VariablesNumbersInit(numberOfBands int) {
+	numberOfNodes := len(s.GetNetwork().Nodes)
+	numberOfBitrates := len(s.GetBitRateList().BitRates)
 
-	bitrate := len(bitRate.BitRates)
-	source := nodeLen
-	destination := nodeLen
+	s.SetNumberOfNodes(numberOfNodes)
+	s.SetNumberOfBitrates(numberOfBitrates)
 
 	if numberOfBands > 4 {
 		fmt.Println("Warning: Number of bands exceeds 4, setting to 4.")
@@ -265,21 +295,28 @@ func (s *Simulator) SimulatorInit(networkPath string, routesPath string, capacit
 		numberOfBands = 1
 	}
 
-	band := numberOfBands
+	s.SetNumberOfBands(numberOfBands)
 
-	gigabits := 5
+	s.SetNumberOfGigabits(5)
+}
 
-	s.SetNumberOfBands(band)
+func (s *Simulator) SimulatorInit(networkPath string, routesPath string, capacitiesPath string, bitRatePath string, lambda int, mu int, goalConnections float64, allocator allocator.Allocator, numberOfBands int) {
 
-	s.RandomVariableInit(lambda, mu, bitrate, source, destination, band, gigabits)
+	s.NetworkInit(networkPath, capacitiesPath)
+
+	s.BitRateInit(bitRatePath)
+
+	s.VariablesNumbersInit(numberOfBands)
+
+	s.RandomVariableInit(lambda, mu, s.GetNumberOfBitrates(), s.GetNumberOfNodes(), s.GetNumberOfNodes(), s.GetNumberOfBands(), s.GetNumberOfGigabits())
 
 	s.SetGoalConnection(goalConnections)
 
 	s.SetTime(0)
 
-	s.connectionsEventsInit(nodeLen, s.GetRandomVariable())
+	s.connectionsEventsInit(s.GetNumberOfNodes(), s.GetRandomVariable())
 
-	s.ControllerInit(routesPath, network, allocator)
+	s.ControllerInit(routesPath, s.GetNetwork(), allocator)
 
 	s.SetStartTime(time.Now())
 
