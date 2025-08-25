@@ -201,6 +201,37 @@ func (s *Simulator) printBlockingTable(i int, blockingProbability float64, logOn
 
 }
 
+func (s *Simulator) RandomVariableInit(lambda int, mu int, bitrate int, source int, destination int, band int, gigabits int) {
+
+	var randomVariable randomvariable.RandomVariable
+
+	randomVariable.SetParameters(lambda, mu, bitrate, source, destination, band, gigabits)
+
+	seedArrive := int64(1)
+	seedDeparture := int64(12)
+	seedBitrate := int64(123)
+	seedSource := int64(1234)
+	seedDestination := int64(12345)
+	seedBand := int64(123456)
+	seedGigabits := int64(1234567)
+
+	randomVariable.SetSeeds(seedArrive, seedDeparture, seedBitrate, seedSource, seedDestination, seedBand, seedGigabits)
+
+	s.SetRandomVariable(randomVariable)
+
+}
+
+func (s *Simulator) ControllerInit(routesPath string, network infrastructure.Network, allocator allocator.Allocator) {
+	var controller controller.Controller
+	controller.ControllerInit(routesPath, network, allocator)
+	s.SetController(controller)
+}
+
+func (s *Simulator) connectionsEventsInit(nodeLen int, rv randomvariable.RandomVariable) {
+	connectionsEvents := connections.GenerateEvents(nodeLen, rv)
+	s.SetConnectionsEvents(connectionsEvents)
+}
+
 func (s *Simulator) SimulatorInit(networkPath string, routesPath string, capacitiesPath string, bitRatePath string, lambda int, mu int, goalConnections float64, allocator allocator.Allocator, numberOfBands int) {
 
 	network, err := infrastructure.NetworkGenerate(networkPath, capacitiesPath)
@@ -220,13 +251,11 @@ func (s *Simulator) SimulatorInit(networkPath string, routesPath string, capacit
 
 	s.SetBitRateList(bitRate)
 
-	var randomVariable randomvariable.RandomVariable
-
-	node_len := len(network.Nodes)
+	nodeLen := len(network.Nodes)
 
 	bitrate := len(bitRate.BitRates)
-	source := node_len
-	destination := node_len
+	source := nodeLen
+	destination := nodeLen
 
 	if numberOfBands > 4 {
 		fmt.Println("Warning: Number of bands exceeds 4, setting to 4.")
@@ -242,31 +271,15 @@ func (s *Simulator) SimulatorInit(networkPath string, routesPath string, capacit
 
 	s.SetNumberOfBands(band)
 
-	randomVariable.SetParameters(lambda, mu, bitrate, source, destination, band, gigabits)
-
-	seedArrive := int64(1)
-	seedDeparture := int64(12)
-	seedBitrate := int64(123)
-	seedSource := int64(1234)
-	seedDestination := int64(12345)
-	seedBand := int64(123456)
-	seedGigabits := int64(1234567)
-
-	randomVariable.SetSeeds(seedArrive, seedDeparture, seedBitrate, seedSource, seedDestination, seedBand, seedGigabits)
-
-	s.SetRandomVariable(randomVariable)
+	s.RandomVariableInit(lambda, mu, bitrate, source, destination, band, gigabits)
 
 	s.SetGoalConnection(goalConnections)
 
 	s.SetTime(0)
 
-	connectionsEvents := connections.GenerateEvents(node_len, randomVariable)
-	s.SetConnectionsEvents(connectionsEvents)
+	s.connectionsEventsInit(nodeLen, s.GetRandomVariable())
 
-	var controller controller.Controller
-	controller.ControllerInit(routesPath, s.Network, allocator)
-
-	s.SetController(controller)
+	s.ControllerInit(routesPath, network, allocator)
 
 	s.SetStartTime(time.Now())
 
