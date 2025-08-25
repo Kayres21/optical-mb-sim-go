@@ -3,6 +3,7 @@ package simulator
 import (
 	"fmt"
 	"sort"
+	"time"
 
 	"github.com/Kayres21/optical-mb-sim-go/internal/allocator"
 	"github.com/Kayres21/optical-mb-sim-go/internal/connections"
@@ -24,6 +25,7 @@ type Simulator struct {
 	NumberOfBands        int
 	AssignedConnections  int
 	TotalConnections     int
+	startTime            time.Time
 }
 
 func (s *Simulator) GetAssignedConnections() int {
@@ -94,14 +96,23 @@ func (s *Simulator) GetConnectionsEvents() []connections.ConnectionEvent {
 	return s.ConnectionsEvents
 }
 
+func (s *Simulator) GetStartTime() time.Time {
+	return s.startTime
+}
+
+func (s *Simulator) SetStartTime(time time.Time) {
+	s.startTime = time
+}
+
 func (s *Simulator) AddNewConnectionEvent(event connections.ConnectionEvent) {
 	events := s.GetConnectionsEvents()
 
-	events = append(events, event)
-
-	sort.Slice(events, func(i, j int) bool {
-		return events[i].Time < events[j].Time
+	i := sort.Search(len(events), func(i int) bool {
+		return events[i].Time >= event.Time
 	})
+	events = append(events, connections.ConnectionEvent{})
+	copy(events[i+1:], events[i:])
+	events[i] = event
 
 	s.SetConnectionsEvents(events)
 }
@@ -114,10 +125,8 @@ func (s *Simulator) GetFirstEvent() connections.ConnectionEvent {
 		return connections.ConnectionEvent{}
 	}
 
-	// Tomar el primer evento
 	firstElement := connectionsEvents[0]
 
-	// Actualizar la lista quitando el primer elemento
 	s.SetConnectionsEvents(connectionsEvents[1:])
 
 	return firstElement
@@ -159,21 +168,68 @@ func (s *Simulator) getSlotgigabites(bitrate connections.BitRate, gigabites int)
 
 }
 
-func (s *Simulator) printBlockingTable(i int, blockingProbabilitie float64) {
-	// Calcula el 10% del valor de s.GetGoalConnections()
-	// La división de enteros trunca el resultado, que es lo que queremos en este caso.
-	step := int(s.GetGoalConnections()) / 10
+func (s *Simulator) printBlockingTable(i int, blockingProbability float64, logOn bool) {
 
-	// Imprime la tabla solo si i es un múltiplo del 'step'
-	if i > 0 && i%step == 0 {
-		fmt.Println("--------------------------------")
-		fmt.Println("Tabla de Bloqueo")
-		fmt.Println("--------------------------------")
-		fmt.Printf("Conexiones: %d\n", i)
-		fmt.Printf("Probabilidad de bloqueo: %.4f\n", blockingProbabilitie)
-		fmt.Println("--------------------------------")
-		fmt.Println() // Salto de línea para mejor legibilidad
+	if logOn {
+		if i == 0 {
+			fmt.Println("+----------+----------+----------+----------+")
+			fmt.Println("| progress |  arrives | blocking |  time(s) |")
+			fmt.Println("+----------+----------+----------+----------+")
+		}
+
+		step := s.GetGoalConnections() / 10
+
+		if step == 0 {
+			step = 1
+		}
+
+		if i > 0 && i%int(step) == 0 {
+
+			progress := (float64(i) / float64(s.GetGoalConnections())) * 100
+
+			elapsedTime := time.Since(s.GetStartTime())
+
+			hours := int(elapsedTime.Hours())
+			minutes := int(elapsedTime.Minutes()) % 60
+			seconds := int(elapsedTime.Seconds()) % 60
+			timeFormatted := fmt.Sprintf("%02d:%02d:%02d", hours, minutes, seconds)
+
+			fmt.Printf("|%8.1f %%|%10d|%10.6f|%10s|\n", progress, i, blockingProbability, timeFormatted)
+			fmt.Println("+----------+----------+----------+----------+")
+		}
 	}
+
+}
+
+func (s *Simulator) RandomVariableInit(lambda int, mu int, bitrate int, source int, destination int, band int, gigabits int) {
+
+	var randomVariable randomvariable.RandomVariable
+
+	randomVariable.SetParameters(lambda, mu, bitrate, source, destination, band, gigabits)
+
+	seedArrive := int64(1)
+	seedDeparture := int64(12)
+	seedBitrate := int64(123)
+	seedSource := int64(1234)
+	seedDestination := int64(12345)
+	seedBand := int64(123456)
+	seedGigabits := int64(1234567)
+
+	randomVariable.SetSeeds(seedArrive, seedDeparture, seedBitrate, seedSource, seedDestination, seedBand, seedGigabits)
+
+	s.SetRandomVariable(randomVariable)
+
+}
+
+func (s *Simulator) ControllerInit(routesPath string, network infrastructure.Network, allocator allocator.Allocator) {
+	var controller controller.Controller
+	controller.ControllerInit(routesPath, network, allocator)
+	s.SetController(controller)
+}
+
+func (s *Simulator) connectionsEventsInit(nodeLen int, rv randomvariable.RandomVariable) {
+	connectionsEvents := connections.GenerateEvents(nodeLen, rv)
+	s.SetConnectionsEvents(connectionsEvents)
 }
 
 func (s *Simulator) SimulatorInit(networkPath string, routesPath string, capacitiesPath string, bitRatePath string, lambda int, mu int, goalConnections float64, allocator allocator.Allocator, numberOfBands int) {
@@ -195,13 +251,11 @@ func (s *Simulator) SimulatorInit(networkPath string, routesPath string, capacit
 
 	s.SetBitRateList(bitRate)
 
-	var randomVariable randomvariable.RandomVariable
-
-	node_len := len(network.Nodes)
+	nodeLen := len(network.Nodes)
 
 	bitrate := len(bitRate.BitRates)
-	source := node_len
-	destination := node_len
+	source := nodeLen
+	destination := nodeLen
 
 	if numberOfBands > 4 {
 		fmt.Println("Warning: Number of bands exceeds 4, setting to 4.")
@@ -217,47 +271,31 @@ func (s *Simulator) SimulatorInit(networkPath string, routesPath string, capacit
 
 	s.SetNumberOfBands(band)
 
-	randomVariable.SetParameters(lambda, mu, bitrate, source, destination, band, gigabits)
-
-	seedArrive := int64(1)
-	seedDeparture := int64(2)
-	seedBitrate := int64(3)
-	seedSource := int64(4)
-	seedDestination := int64(5)
-	seedBand := int64(6)
-	seedGigabits := int64(7)
-
-	randomVariable.SetSeeds(seedArrive, seedDeparture, seedBitrate, seedSource, seedDestination, seedBand, seedGigabits)
-
-	s.SetRandomVariable(randomVariable)
+	s.RandomVariableInit(lambda, mu, bitrate, source, destination, band, gigabits)
 
 	s.SetGoalConnection(goalConnections)
 
 	s.SetTime(0)
 
-	connectionsEvents := connections.GenerateEvents(node_len, randomVariable)
+	s.connectionsEventsInit(nodeLen, s.GetRandomVariable())
 
-	s.SetConnectionsEvents(connectionsEvents)
+	s.ControllerInit(routesPath, network, allocator)
 
-	var controller controller.Controller
-	controller.ControllerInit(routesPath, s.Network, allocator)
-
-	s.SetController(controller)
+	s.SetStartTime(time.Now())
 
 }
 
-func (s *Simulator) SimulatorStart() {
+func (s *Simulator) SimulatorStart(logOn bool) {
 
 	fmt.Println("Starting simulation...")
 
-	for i := 1; i <= int(s.GetGoalConnections()); i++ {
+	for i := 0; i <= int(s.GetGoalConnections()); i++ {
 		time := s.GetTime()
 
 		event := s.GetFirstEvent()
 		blockingProbabilitie := helpers.ComputeBlockingProbabilities(s.GetAssignedConnections(), s.GetTotalConnections())
-		s.printBlockingTable(i, blockingProbabilitie)
+		s.printBlockingTable(i, blockingProbabilitie, logOn)
 		if event.Event == connections.ConnectionEventTypeArrive {
-
 			controller := s.GetController()
 
 			slot := s.getSlotgigabites(s.GetBitRateList().BitRates[event.Bitrate], event.GigabitsSelected)
@@ -283,6 +321,7 @@ func (s *Simulator) SimulatorStart() {
 
 			}
 			if !asigned {
+
 				rv := s.GetRandomVariable()
 
 				newEvent := connections.ConnectionEvent{
@@ -299,11 +338,10 @@ func (s *Simulator) SimulatorStart() {
 		}
 
 		if event.Event == connections.ConnectionEventTypeRelease {
+			rv := s.GetRandomVariable()
 			controller := s.GetController()
 
 			controller.ReleaseConnection(event.Id)
-
-			rv := s.GetRandomVariable()
 
 			newEvent := connections.ConnectionEvent{
 				Id:          event.Id,
