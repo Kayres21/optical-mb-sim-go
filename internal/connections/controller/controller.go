@@ -44,6 +44,34 @@ func (c *Controller) SetNetwork(network infrastructure.Network) {
 	c.Network = network
 }
 
+func (c *Controller) SetAllocator(allocator allocator.Allocator) {
+	c.Allocator = allocator
+}
+
+func (c *Controller) RoutesInit(pathToRoutes string) {
+
+	routes, err := c.Routes.ReadRoutesFile(pathToRoutes)
+
+	if err != nil {
+		log.Fatalf("Error reading routes file: %v", err)
+	}
+
+	c.SetRoutes(routes)
+}
+
+func (c *Controller) ConnectionsInit() {
+	var connections []connections.Connection
+	c.SetConnections(connections)
+}
+
+func (c *Controller) ControllerInit(pathToRoutes string, network infrastructure.Network, allocator allocator.Allocator) {
+	c.RoutesInit(pathToRoutes)
+	c.ConnectionsInit()
+	c.SetNetwork(network)
+	c.SetAllocator(allocator)
+
+}
+
 func (c *Controller) GetConnectionById(id string) (connections.Connection, bool) {
 	for _, connection := range c.Connections {
 		if connection.Id == id {
@@ -51,14 +79,6 @@ func (c *Controller) GetConnectionById(id string) (connections.Connection, bool)
 		}
 	}
 	return connections.Connection{}, false
-}
-
-func (c *Controller) ConectionAllocation(source, destination int, slot int, network infrastructure.Network, path connections.Routes, numberOfBands int) (bool, connections.Connection) {
-	return c.Allocator(source, destination, slot, network, path, numberOfBands)
-}
-
-func (c *Controller) SetAllocator(allocator allocator.Allocator) {
-	c.Allocator = allocator
 }
 
 func (c *Controller) ReleaseConnection(connectionId string) bool {
@@ -75,19 +95,6 @@ func (c *Controller) ReleaseConnection(connectionId string) bool {
 	return valid
 }
 
-func (c *Controller) ControllerInit(pathToRoutes string, network infrastructure.Network, allocator allocator.Allocator) {
-
-	var connections []connections.Connection
-
-	routes, err := c.Routes.ReadRoutesFile(pathToRoutes)
-
-	if err != nil {
-		log.Fatalf("Error reading routes file: %v", err)
-	}
-
-	c.SetRoutes(routes)
-	c.SetConnections(connections)
-	c.SetNetwork(network)
-	c.SetAllocator(allocator)
-
+func (c *Controller) ConectionAllocation(source, destination int, slot int, network infrastructure.Network, path connections.Routes, numberOfBands int) (bool, connections.Connection) {
+	return c.Allocator(source, destination, slot, network, path, numberOfBands)
 }
