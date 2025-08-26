@@ -70,7 +70,6 @@ const ConnectionEventTypeArrive EventsType = "Arrive"
 const ConnectionEventTypeRelease EventsType = "Release"
 
 func GenerateConnectionID() string {
-	// Implement a simple ID generation logic (you can replace this with a more robust method)
 	return uuid.New().String()
 }
 
@@ -109,8 +108,6 @@ func (c *Connection) GetBandSelected() int {
 func (c *Connection) IsAllocated() bool {
 	return c.Allocated
 }
-
-// Setters (with pointer receiver to modify the struct)
 
 func (c *Connection) SetId(id string) {
 	c.Id = id
