@@ -19,7 +19,7 @@ func main() {
 
 	numberOfBands := 1
 
-	goalConnections := float64(1000)
+	goalConnections := float64(1e6)
 
 	var simulator simulator.Simulator
 
