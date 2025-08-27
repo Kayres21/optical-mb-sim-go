@@ -6,6 +6,13 @@ import (
 	"os"
 )
 
+type Network struct {
+	Name  string `json:"name"`
+	Alias string `json:"alias"`
+	Nodes []Node `json:"nodes"`
+	Links []Link `json:"links"`
+}
+
 func ReadNetworkFile(networkPath string) (Network, error) {
 	dataBytesNetwork, err := os.ReadFile(networkPath)
 

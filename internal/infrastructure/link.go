@@ -5,6 +5,14 @@ import (
 	"log/slog"
 )
 
+type Link struct {
+	ID          int      `json:"id"`
+	Source      int      `json:"src"`
+	Destination int      `json:"dst"`
+	Length      int      `json:"length"`
+	Capacities  Capacity `json:"-"`
+}
+
 func (l *Link) GetSlotsByBand(band int) []bool {
 	return l.Capacities.Bands[band].Slots
 }

@@ -6,6 +6,17 @@ import (
 	"os"
 )
 
+type Capacity struct {
+	Bands []Bands `json:"bands"`
+}
+
+type Bands struct {
+	ID       string `json:"id"`
+	Name     string `json:"name"`
+	Capacity int    `json:"capacity"`
+	Slots    []bool `json:"-"`
+}
+
 func ReadCapacityFile(capacityPath string) (Capacity, error) {
 	dataBytes, err := os.ReadFile(capacityPath)
 	if err != nil {

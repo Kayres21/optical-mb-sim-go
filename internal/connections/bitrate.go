@@ -6,6 +6,31 @@ import (
 	"os"
 )
 
+type BitRateList struct {
+	BitRates []BitRate `json:"bitrates"`
+}
+
+type BitRate struct {
+	Modulation string  `json:"modulation"`
+	Slots      []Slots `json:"slots"`
+	Reachs     []Reach `json:"reach"`
+}
+
+type Slots struct {
+	Gigabits string `json:"gigabits"`
+	Slots    int    `json:"slots"`
+}
+
+type Reach struct {
+	NumberOfBands int            `json:"number_of_bands"`
+	Reach         []ReachPerBand `json:"reach"`
+}
+
+type ReachPerBand struct {
+	Band  string `json:"band"`
+	Reach int    `json:"reach"`
+}
+
 func ReadBitRateFile(bitRatePath string) (BitRateList, error) {
 	dataBytesBitrate, err := os.ReadFile(bitRatePath)
 

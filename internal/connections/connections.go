@@ -17,47 +17,6 @@ type Connection struct {
 	Allocated    bool
 }
 
-type ConnectionEvent struct {
-	Id               string
-	Source           int
-	Destination      int
-	Bitrate          int
-	GigabitsSelected int
-	Event            EventsType // "Arrive",  "Release"
-	Time             float64
-}
-
-type BitRateList struct {
-	BitRates []BitRate `json:"bitrates"`
-}
-
-type BitRate struct {
-	Modulation string  `json:"modulation"`
-	Slots      []Slots `json:"slots"`
-	Reachs     []Reach `json:"reach"`
-}
-
-type Slots struct {
-	Gigabits string `json:"gigabits"`
-	Slots    int    `json:"slots"`
-}
-
-type Reach struct {
-	NumberOfBands int            `json:"number_of_bands"`
-	Reach         []ReachPerBand `json:"reach"`
-}
-
-type ReachPerBand struct {
-	Band  string `json:"band"`
-	Reach int    `json:"reach"`
-}
-
-type Routes struct {
-	Alias string `json:"alias"`
-	Name  string `json:"name"`
-	Paths []Path `json:"routes"`
-}
-
 type Path struct {
 	Source      int     `json:"src"`
 	Destination int     `json:"dst"`
@@ -65,9 +24,6 @@ type Path struct {
 }
 
 type EventsType string
-
-const ConnectionEventTypeArrive EventsType = "Arrive"
-const ConnectionEventTypeRelease EventsType = "Release"
 
 func GenerateConnectionID() string {
 	return uuid.New().String()

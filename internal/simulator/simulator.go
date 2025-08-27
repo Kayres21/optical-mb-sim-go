@@ -8,7 +8,7 @@ import (
 	"github.com/Kayres21/optical-mb-sim-go/internal/allocator"
 	"github.com/Kayres21/optical-mb-sim-go/internal/connections"
 	"github.com/Kayres21/optical-mb-sim-go/internal/connections/controller"
-	randomvariable "github.com/Kayres21/optical-mb-sim-go/internal/connections/random_variable"
+	randomvariable "github.com/Kayres21/optical-mb-sim-go/internal/connections/randomVariable"
 	"github.com/Kayres21/optical-mb-sim-go/internal/infrastructure"
 	"github.com/Kayres21/optical-mb-sim-go/pkg/helpers"
 )
