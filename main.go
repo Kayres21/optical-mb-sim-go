@@ -14,16 +14,18 @@ func main() {
 	bitRatePath := "files/bitrate/bitrate.json"
 	routesPath := "files/routes/UKNet_routes.json"
 
-	lambda := 5
+	lambda := 500
 	mu := 1
 
-	numberOfBands := 1
+	numberOfBands := 4
 
-	goalConnections := float64(1e6)
+	goalConnections := 1e6
+
+	logsOn := true
 
 	var simulator simulator.Simulator
 
 	simulator.SimulatorInit(networkPath, routesPath, capacitiesPath, bitRatePath, lambda, mu, goalConnections, allocator.FirstFit, numberOfBands)
-	simulator.SimulatorStart(true)
+	simulator.SimulatorStart(logsOn)
 	simulator.SimulatorPlot("FirstFit_UKNet-erlang-"+strconv.Itoa(lambda), "Número de conexiones", "Probabilidad de bloqueo")
 }
