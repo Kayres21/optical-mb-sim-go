@@ -8,6 +8,8 @@ import (
 	"gonum.org/v1/plot"
 	"gonum.org/v1/plot/plotter"
 	"gonum.org/v1/plot/vg"
+
+	"github.com/google/uuid"
 )
 
 func GenerateScatterPlot(xData, yData []float64, title, xLabel, yLabel string) error {
@@ -37,7 +39,7 @@ func GenerateScatterPlot(xData, yData []float64, title, xLabel, yLabel string) e
 
 	p.Add(s)
 
-	filename := fmt.Sprintf("%s.png", title)
+	filename := fmt.Sprintf("%s+%s.png", title, uuid.New().String())
 	filePath := filepath.Join("result", filename)
 	if err := p.Save(4*vg.Inch, 4*vg.Inch, filePath); err != nil {
 		return err
