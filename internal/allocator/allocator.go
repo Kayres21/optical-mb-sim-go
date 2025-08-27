@@ -8,9 +8,11 @@ import (
 type Allocator func(source, destination int, slot int, network infrastructure.Network, path connections.Routes, numberOfBands int) (bool, connections.Connection)
 
 func FirstFit(source int, destination int, slot int, network infrastructure.Network, path connections.Routes, numberOfBands int) (bool, connections.Connection) {
+
 	pathSelected := path.GetKshortestPath(0, source, destination)
 
-	links := network.GetLinkByIDs(pathSelected)
+	links := network.GetLinkByPath(pathSelected)
+
 	for band := range numberOfBands {
 		capacityTotal := make([]bool, len(links[0].GetSlotsByBand(band)))
 

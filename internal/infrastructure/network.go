@@ -6,6 +6,13 @@ import (
 	"os"
 )
 
+type Network struct {
+	Name  string `json:"name"`
+	Alias string `json:"alias"`
+	Nodes []Node `json:"nodes"`
+	Links []Link `json:"links"`
+}
+
 func ReadNetworkFile(networkPath string) (Network, error) {
 	dataBytesNetwork, err := os.ReadFile(networkPath)
 
@@ -64,13 +71,28 @@ func (n *Network) GetLinkByID(id int) *Link {
 	return nil
 }
 
-func (n *Network) GetLinkByIDs(ids []int) []*Link {
+func (n *Network) GetLinkByPath(ids []int) []*Link {
 	links := make([]*Link, 0, len(ids))
-	for _, id := range ids {
-		link := n.GetLinkByID(id)
-		if link != nil {
-			links = append(links, link)
+	for i, id := range ids {
+
+		if i+1 < len(ids) {
+			src := id
+			dst := ids[i+1]
+			link := n.GetLinkBySourceDestination(src, dst)
+			if link != nil {
+				links = append(links, link)
+			}
 		}
+
 	}
 	return links
+}
+
+func (n *Network) GetLinkBySourceDestination(src, dst int) *Link {
+	for i := range n.Links {
+		if n.Links[i].Source == src && n.Links[i].Destination == dst {
+			return &n.Links[i]
+		}
+	}
+	return nil
 }

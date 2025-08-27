@@ -8,7 +8,7 @@ import (
 	"github.com/Kayres21/optical-mb-sim-go/internal/allocator"
 	"github.com/Kayres21/optical-mb-sim-go/internal/connections"
 	"github.com/Kayres21/optical-mb-sim-go/internal/connections/controller"
-	randomvariable "github.com/Kayres21/optical-mb-sim-go/internal/connections/random_variable"
+	randomvariable "github.com/Kayres21/optical-mb-sim-go/internal/connections/randomVariable"
 	"github.com/Kayres21/optical-mb-sim-go/internal/infrastructure"
 	"github.com/Kayres21/optical-mb-sim-go/pkg/helpers"
 )
@@ -29,6 +29,22 @@ type Simulator struct {
 	AssignedConnections  int
 	TotalConnections     int
 	startTime            time.Time
+	Results              []float64
+	Arrives              []float64
+}
+
+func (s *Simulator) GetResults() []float64 {
+	return s.Results
+}
+
+func (s *Simulator) SetResults(results []float64) {
+	s.Results = results
+}
+func (s *Simulator) GetArrives() []float64 {
+	return s.Arrives
+}
+func (s *Simulator) SetArrives(arrives []float64) {
+	s.Arrives = arrives
 }
 
 func (s *Simulator) GetNumberOfGigabits() int {
@@ -195,6 +211,14 @@ func (s *Simulator) getSlotgigabites(bitrate connections.BitRate, gigabites int)
 
 }
 
+func (s *Simulator) addResult(result float64) {
+	s.Results = append(s.Results, result)
+}
+
+func (s *Simulator) addArrive(arrive float64) {
+	s.Arrives = append(s.Arrives, arrive)
+}
+
 func (s *Simulator) printBlockingTable(i int, blockingProbability float64, logOn bool) {
 
 	if logOn {
@@ -223,6 +247,8 @@ func (s *Simulator) printBlockingTable(i int, blockingProbability float64, logOn
 
 			fmt.Printf("|%8.1f %%|%10d|%10.6f|%10s|\n", progress, i, blockingProbability, timeFormatted)
 			fmt.Println("+----------+----------+----------+----------+")
+			s.addResult(blockingProbability)
+			s.addArrive(float64(i))
 		}
 	}
 

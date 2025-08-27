@@ -4,8 +4,21 @@ import (
 	"sort"
 	"strconv"
 
-	randomvariable "github.com/Kayres21/optical-mb-sim-go/internal/connections/random_variable"
+	randomvariable "github.com/Kayres21/optical-mb-sim-go/internal/connections/randomVariable"
 )
+
+type ConnectionEvent struct {
+	Id               string
+	Source           int
+	Destination      int
+	Bitrate          int
+	GigabitsSelected int
+	Event            EventsType // "Arrive",  "Release"
+	Time             float64
+}
+
+const ConnectionEventTypeArrive EventsType = "Arrive"
+const ConnectionEventTypeRelease EventsType = "Release"
 
 func GenerateEvents(nodes_len int, randomVariable randomvariable.RandomVariable) []ConnectionEvent {
 

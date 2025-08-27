@@ -6,6 +6,12 @@ import (
 	"os"
 )
 
+type Routes struct {
+	Alias string `json:"alias"`
+	Name  string `json:"name"`
+	Paths []Path `json:"routes"`
+}
+
 func (r *Routes) ReadRoutesFile(routesPath string) (Routes, error) {
 	dataBytesNetwork, err := os.ReadFile(routesPath)
 
