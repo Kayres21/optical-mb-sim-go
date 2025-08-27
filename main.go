@@ -6,7 +6,6 @@ import (
 	"github.com/Kayres21/optical-mb-sim-go/internal/allocator"
 	"github.com/Kayres21/optical-mb-sim-go/internal/simulator"
 	"github.com/Kayres21/optical-mb-sim-go/pkg/plotter"
-	"github.com/google/uuid"
 )
 
 func main() {
@@ -27,5 +26,5 @@ func main() {
 
 	simulator.SimulatorInit(networkPath, routesPath, capacitiesPath, bitRatePath, lambda, mu, goalConnections, allocator.FirstFit, numberOfBands)
 	simulator.SimulatorStart(true)
-	plotter.GenerateScatterPlot(simulator.GetArrives(), simulator.GetResults(), "FirstFit_UKNet-erlang-"+strconv.Itoa(lambda)+"-"+uuid.NewString(), "Número de conexiones", "Probabilidad de bloqueo")
+	plotter.GenerateScatterPlot(simulator.GetArrives(), simulator.GetResults(), "FirstFit_UKNet-erlang-"+strconv.Itoa(lambda), "Número de conexiones", "Probabilidad de bloqueo")
 }
