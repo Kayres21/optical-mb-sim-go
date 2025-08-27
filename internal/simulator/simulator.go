@@ -11,6 +11,7 @@ import (
 	randomvariable "github.com/Kayres21/optical-mb-sim-go/internal/connections/randomVariable"
 	"github.com/Kayres21/optical-mb-sim-go/internal/infrastructure"
 	"github.com/Kayres21/optical-mb-sim-go/pkg/helpers"
+	"github.com/Kayres21/optical-mb-sim-go/pkg/plotter"
 )
 
 type Simulator struct {
@@ -423,4 +424,9 @@ func (s *Simulator) SimulatorStart(logOn bool) {
 
 	fmt.Println("Simulation completed.")
 
+}
+
+func (s *Simulator) SimulatorPlot(title string, xLabel string, yLabel string) error {
+	err := plotter.GenerateScatterPlot(s.GetArrives(), s.GetResults(), title, xLabel, yLabel)
+	return err
 }
