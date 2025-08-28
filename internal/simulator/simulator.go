@@ -354,9 +354,9 @@ func (s *Simulator) SimulatorStart(logOn bool) {
 	fmt.Println("Starting simulation...")
 
 	for i := 0; i <= int(s.GetGoalConnections()); i++ {
-		time := s.GetTime()
 
 		event := s.GetFirstEvent()
+		time := event.GetTime()
 		controller := s.GetController()
 
 		rv := s.GetRandomVariable()
@@ -369,7 +369,18 @@ func (s *Simulator) SimulatorStart(logOn bool) {
 			s.SetTotalConnections(s.GetTotalConnections() + 1)
 
 			slot := s.getSlotgigabites(s.GetBitRateList().BitRates[event.Bitrate], event.GigabitsSelected)
-			asigned, con := controller.ConectionAllocation(event.Source, event.Destination, slot, s.GetNetwork(), controller.Routes, s.GetNumberOfBands())
+			asigned, con := controller.ConectionAllocation(event.Source, event.Destination, slot, s.GetNetwork(), controller.Routes, s.GetNumberOfBands(), event.Id)
+
+			newArriveEvent := connections.ConnectionEvent{
+				Id:               event.Id,
+				Source:           event.Source,
+				Destination:      event.Destination,
+				Bitrate:          event.Bitrate,
+				GigabitsSelected: event.GigabitsSelected,
+				Event:            connections.ConnectionEventTypeArrive,
+				Time:             time + rv.GetNetValueExponential("arrive"),
+			}
+			s.AddNewConnectionEvent(newArriveEvent)
 
 			if asigned {
 				s.Controller.AddConnection(con)
@@ -378,30 +389,16 @@ func (s *Simulator) SimulatorStart(logOn bool) {
 
 				s.SetAllocatedConnections(append(s.GetAllocatedConnections(), true))
 
-				newEvent := connections.ConnectionEvent{
+				newDepartureEvent := connections.ConnectionEvent{
 					Id:               event.Id,
 					Source:           event.Source,
 					Destination:      event.Destination,
 					Bitrate:          con.BandSelected,
 					Event:            connections.ConnectionEventTypeRelease,
 					GigabitsSelected: event.GigabitsSelected,
-					Time:             s.GetTime() + rv.GetNetValueExponential("departure"),
+					Time:             time + rv.GetNetValueExponential("departure"),
 				}
-				s.AddNewConnectionEvent(newEvent)
-
-			}
-			if !asigned {
-
-				newEvent := connections.ConnectionEvent{
-					Id:               event.Id,
-					Source:           event.Source,
-					Destination:      event.Destination,
-					Bitrate:          event.Bitrate,
-					GigabitsSelected: event.GigabitsSelected,
-					Event:            connections.ConnectionEventTypeArrive,
-					Time:             s.GetTime() + rv.GetNetValueExponential("arrive"),
-				}
-				s.AddNewConnectionEvent(newEvent)
+				s.AddNewConnectionEvent(newDepartureEvent)
 			}
 
 		}
@@ -412,20 +409,18 @@ func (s *Simulator) SimulatorStart(logOn bool) {
 
 			controller.ReleaseConnection(event.Id)
 
-			newEvent := connections.ConnectionEvent{
+			newEventArrive := connections.ConnectionEvent{
 				Id:               event.Id,
 				Source:           event.Source,
 				Destination:      event.Destination,
 				Bitrate:          event.Bitrate,
 				GigabitsSelected: event.GigabitsSelected,
 				Event:            connections.ConnectionEventTypeArrive,
-				Time:             s.GetTime() + rv.GetNetValueExponential("arrive"),
+				Time:             time + rv.GetNetValueExponential("arrive"),
 			}
-			s.AddNewConnectionEvent(newEvent)
-
+			s.AddNewConnectionEvent(newEventArrive)
 		}
 
-		s.SetTime(time + event.Time)
 	}
 
 	fmt.Println("Simulation completed.")

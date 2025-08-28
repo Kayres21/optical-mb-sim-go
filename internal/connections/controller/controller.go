@@ -80,7 +80,15 @@ func (c *Controller) GetConnectionById(id string) (connections.Connection, bool)
 	}
 	return connections.Connection{}, false
 }
-
+func countTrue(s []bool) int {
+	count := 0
+	for _, v := range s {
+		if v {
+			count++
+		}
+	}
+	return count
+}
 func (c *Controller) ReleaseConnection(connectionId string) bool {
 
 	con, valid := c.GetConnectionById(connectionId)
@@ -88,13 +96,13 @@ func (c *Controller) ReleaseConnection(connectionId string) bool {
 	links := con.GetLinks()
 
 	for _, link := range links {
-
 		link.ReleaseConnection(con.GetInitialSlot(), con.GetSlots(), con.GetBandSelected())
+
 	}
 
 	return valid
 }
 
-func (c *Controller) ConectionAllocation(source, destination int, slot int, network infrastructure.Network, path connections.Routes, numberOfBands int) (bool, connections.Connection) {
-	return c.Allocator(source, destination, slot, network, path, numberOfBands)
+func (c *Controller) ConectionAllocation(source, destination int, slot int, network infrastructure.Network, path connections.Routes, numberOfBands int, id string) (bool, connections.Connection) {
+	return c.Allocator(source, destination, slot, network, path, numberOfBands, id)
 }

@@ -33,6 +33,16 @@ func ReadNetworkFile(networkPath string) (Network, error) {
 	return network, nil
 }
 
+func cloneCapacity(orig Capacity) Capacity {
+	bands := make([]Bands, len(orig.Bands))
+	for i, b := range orig.Bands {
+		slots := make([]bool, len(b.Slots))
+		copy(slots, b.Slots)
+		bands[i] = Bands{Slots: slots}
+	}
+	return Capacity{Bands: bands}
+}
+
 func NetworkGenerate(networkPath string, capacityPath string) (Network, error) {
 
 	capacities, err := ReadCapacityFile(capacityPath)
@@ -48,7 +58,7 @@ func NetworkGenerate(networkPath string, capacityPath string) (Network, error) {
 	}
 
 	for i := range network.Links {
-		network.Links[i].Capacities = capacities
+		network.Links[i].Capacities = cloneCapacity(capacities)
 	}
 
 	return network, nil

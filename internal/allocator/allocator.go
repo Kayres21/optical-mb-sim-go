@@ -5,9 +5,19 @@ import (
 	"github.com/Kayres21/optical-mb-sim-go/internal/infrastructure"
 )
 
-type Allocator func(source, destination int, slot int, network infrastructure.Network, path connections.Routes, numberOfBands int) (bool, connections.Connection)
+func countTrue(s []bool) int {
+	count := 0
+	for _, v := range s {
+		if v {
+			count++
+		}
+	}
+	return count
+}
 
-func FirstFit(source int, destination int, slot int, network infrastructure.Network, path connections.Routes, numberOfBands int) (bool, connections.Connection) {
+type Allocator func(source, destination int, slot int, network infrastructure.Network, path connections.Routes, numberOfBands int, id string) (bool, connections.Connection)
+
+func FirstFit(source int, destination int, slot int, network infrastructure.Network, path connections.Routes, numberOfBands int, id string) (bool, connections.Connection) {
 
 	pathSelected := path.GetKshortestPath(0, source, destination)
 
@@ -19,6 +29,8 @@ func FirstFit(source int, destination int, slot int, network infrastructure.Netw
 		for _, link := range links {
 
 			capacity := link.GetSlotsByBand(band)
+
+			//fmt.Println(countTrue(capacity), "occupied slots in link", link.ID, "band", band)
 
 			if len(capacity) != len(capacityTotal) {
 				return false, connections.Connection{}
@@ -48,15 +60,11 @@ func FirstFit(source int, destination int, slot int, network infrastructure.Netw
 					link.AssignConnection(currentSlotIndex, slot, band)
 
 				}
-				linksVal := make([]infrastructure.Link, len(links))
-				for i, l := range links {
-					linksVal[i] = *l
-				}
 				return true, connections.Connection{
-					Id:           connections.GenerateConnectionID(),
+					Id:           id,
 					Source:       source,
 					Destination:  destination,
-					Links:        linksVal,
+					Links:        links,
 					Slots:        slot,
 					InitialSlot:  currentSlotIndex,
 					FinalSlot:    currentSlotIndex + slot - 1,
