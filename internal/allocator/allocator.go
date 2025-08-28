@@ -5,9 +5,9 @@ import (
 	"github.com/Kayres21/optical-mb-sim-go/internal/infrastructure"
 )
 
-type Allocator func(source, destination int, slot int, network infrastructure.Network, path connections.Routes, numberOfBands int) (bool, connections.Connection)
+type Allocator func(source, destination int, slot int, network infrastructure.Network, path connections.Routes, numberOfBands int, id string) (bool, connections.Connection)
 
-func FirstFit(source int, destination int, slot int, network infrastructure.Network, path connections.Routes, numberOfBands int) (bool, connections.Connection) {
+func FirstFit(source int, destination int, slot int, network infrastructure.Network, path connections.Routes, numberOfBands int, id string) (bool, connections.Connection) {
 
 	pathSelected := path.GetKshortestPath(0, source, destination)
 

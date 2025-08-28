@@ -369,7 +369,7 @@ func (s *Simulator) SimulatorStart(logOn bool) {
 			s.SetTotalConnections(s.GetTotalConnections() + 1)
 
 			slot := s.getSlotgigabites(s.GetBitRateList().BitRates[event.Bitrate], event.GigabitsSelected)
-			asigned, con := controller.ConectionAllocation(event.Source, event.Destination, slot, s.GetNetwork(), controller.Routes, s.GetNumberOfBands())
+			asigned, con := controller.ConectionAllocation(event.Source, event.Destination, slot, s.GetNetwork(), controller.Routes, s.GetNumberOfBands(), event.Id)
 
 			if asigned {
 				s.Controller.AddConnection(con)

@@ -95,6 +95,6 @@ func (c *Controller) ReleaseConnection(connectionId string) bool {
 	return valid
 }
 
-func (c *Controller) ConectionAllocation(source, destination int, slot int, network infrastructure.Network, path connections.Routes, numberOfBands int) (bool, connections.Connection) {
-	return c.Allocator(source, destination, slot, network, path, numberOfBands)
+func (c *Controller) ConectionAllocation(source, destination int, slot int, network infrastructure.Network, path connections.Routes, numberOfBands int, id string) (bool, connections.Connection) {
+	return c.Allocator(source, destination, slot, network, path, numberOfBands, id)
 }
