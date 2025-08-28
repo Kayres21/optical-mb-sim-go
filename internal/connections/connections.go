@@ -7,7 +7,7 @@ import (
 
 type Connection struct {
 	Id           string
-	Links        []infrastructure.Link
+	Links        []*infrastructure.Link
 	Source       int
 	Destination  int
 	Slots        int
@@ -33,7 +33,7 @@ func (c *Connection) GetId() string {
 	return c.Id
 }
 
-func (c *Connection) GetLinks() []infrastructure.Link {
+func (c *Connection) GetLinks() []*infrastructure.Link {
 	return c.Links
 }
 
@@ -69,7 +69,7 @@ func (c *Connection) SetId(id string) {
 	c.Id = id
 }
 
-func (c *Connection) SetLinks(links []infrastructure.Link) {
+func (c *Connection) SetLinks(links []*infrastructure.Link) {
 	c.Links = links
 }
 

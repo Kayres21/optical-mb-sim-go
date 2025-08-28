@@ -14,7 +14,7 @@ func main() {
 	bitRatePath := "files/bitrate/bitrate.json"
 	routesPath := "files/routes/UKNet_routes.json"
 
-	lambda := 500
+	lambda := 50
 	mu := 1
 
 	numberOfBands := 4
