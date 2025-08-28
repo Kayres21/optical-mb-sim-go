@@ -8,13 +8,14 @@ import (
 )
 
 type ConnectionEvent struct {
-	Id               string
-	Source           int
-	Destination      int
-	Bitrate          int
-	GigabitsSelected int
-	Event            EventsType // "Arrive",  "Release"
-	Time             float64
+	Id                   string
+	Source               int
+	Destination          int
+	Bitrate              int
+	GigabitsSelected     int
+	Event                EventsType // "Arrive",  "Release"
+	Time                 float64
+	ConnectionAssignedId string
 }
 
 const ConnectionEventTypeArrive EventsType = "Arrive"
@@ -33,13 +34,14 @@ func GenerateEvents(nodes_len int, randomVariable randomvariable.RandomVariable)
 		for j := range nodes_len {
 			if i != j {
 				event := ConnectionEvent{
-					Id:               strconv.Itoa(id),
-					Source:           i,
-					Destination:      j,
-					Bitrate:          randomVariable.GetNetValueUniform("bitrate"),
-					Event:            "Arrive",
-					GigabitsSelected: randomVariable.GetNetValueUniform("gigabits"),
-					Time:             randomVariable.GetNetValueExponential("arrive"),
+					Id:                   strconv.Itoa(id),
+					Source:               i,
+					Destination:          j,
+					Bitrate:              randomVariable.GetNetValueUniform("bitrate"),
+					Event:                "Arrive",
+					GigabitsSelected:     randomVariable.GetNetValueUniform("gigabits"),
+					Time:                 randomVariable.GetNetValueExponential("arrive"),
+					ConnectionAssignedId: "",
 				}
 				events = append(events, event)
 				id++

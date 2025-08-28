@@ -1,6 +1,7 @@
 package controller
 
 import (
+	"fmt"
 	"log"
 
 	"github.com/Kayres21/optical-mb-sim-go/internal/allocator"
@@ -80,18 +81,14 @@ func (c *Controller) GetConnectionById(id string) (connections.Connection, bool)
 	}
 	return connections.Connection{}, false
 }
-func countTrue(s []bool) int {
-	count := 0
-	for _, v := range s {
-		if v {
-			count++
-		}
-	}
-	return count
-}
-func (c *Controller) ReleaseConnection(connectionId string) bool {
+
+func (c *Controller) ReleaseConnection(connectionId string) error {
 
 	con, valid := c.GetConnectionById(connectionId)
+
+	if !valid {
+		return fmt.Errorf("connection with ID %s not found", connectionId)
+	}
 
 	links := con.GetLinks()
 
@@ -100,7 +97,7 @@ func (c *Controller) ReleaseConnection(connectionId string) bool {
 
 	}
 
-	return valid
+	return nil
 }
 
 func (c *Controller) ConectionAllocation(source, destination int, slot int, network infrastructure.Network, path connections.Routes, numberOfBands int, id string) (bool, connections.Connection) {
