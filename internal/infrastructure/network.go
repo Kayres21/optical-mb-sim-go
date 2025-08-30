@@ -13,6 +13,34 @@ type Network struct {
 	Links []Link `json:"links"`
 }
 
+func (n *Network) GetName() string {
+	return n.Name
+}
+
+func (n *Network) GetAlias() string {
+	return n.Alias
+}
+func (n *Network) GetNodes() []Node {
+	return n.Nodes
+}
+func (n *Network) GetLinks() []Link {
+	return n.Links
+}
+
+func (n *Network) SetNodes(nodes []Node) {
+	n.Nodes = nodes
+}
+func (n *Network) SetLinks(links []Link) {
+	n.Links = links
+}
+
+func (n *Network) SetName(name string) {
+	n.Name = name
+}
+func (n *Network) SetAlias(alias string) {
+	n.Alias = alias
+}
+
 func ReadNetworkFile(networkPath string) (Network, error) {
 	dataBytesNetwork, err := os.ReadFile(networkPath)
 

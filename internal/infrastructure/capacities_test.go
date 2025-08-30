@@ -59,7 +59,7 @@ func TestBandGetAndSetSlots(t *testing.T) {
 
 func TestReadCapacityFile(t *testing.T) {
 
-	capacityPath := "/home/erick/tesis/simulador/files/capacities/capacities_test.json"
+	capacityPath := "../../files/capacities/capacities_test.json"
 
 	capacity, err := ReadCapacityFile(capacityPath)
 	if err != nil {
