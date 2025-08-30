@@ -34,11 +34,11 @@ func ReadNetworkFile(networkPath string) (Network, error) {
 }
 
 func cloneCapacity(orig Capacity) Capacity {
-	bands := make([]Bands, len(orig.Bands))
+	bands := make([]Band, len(orig.Bands))
 	for i, b := range orig.Bands {
 		slots := make([]bool, len(b.Slots))
 		copy(slots, b.Slots)
-		bands[i] = Bands{Slots: slots}
+		bands[i] = Band{Slots: slots}
 	}
 	return Capacity{Bands: bands}
 }

@@ -1,0 +1,53 @@
+{
+    "alias": "network_test",
+    "name": "network_test",
+    "nodes": [
+        {
+            "id": 0
+        },
+        {
+            "id": 1
+        },
+        {
+            "id": 2
+        }
+    ],
+    "links": [
+        {
+            "dst": 0,
+            "id": 0,
+            "length": 161,
+            "src": 1
+        },
+        {
+            "dst": 1,
+            "id": 1,
+            "length": 161,
+            "src": 0
+        },
+        {
+            "dst": 0,
+            "id": 2,
+            "length": 294,
+            "src": 2
+        },
+        {
+            "dst": 2,
+            "id": 3,
+            "length": 294,
+            "src": 0
+        },
+        {
+            "dst": 1,
+            "id": 4,
+            "length": 133,
+            "src": 2
+        },
+        {
+            "dst": 2,
+            "id": 5,
+            "length": 133,
+            "src": 1
+        }
+    ]
+}
