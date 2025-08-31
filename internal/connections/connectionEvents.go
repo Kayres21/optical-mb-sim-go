@@ -18,6 +18,8 @@ type ConnectionEvent struct {
 	ConnectionAssignedId string
 }
 
+type EventsType string
+
 const ConnectionEventTypeArrive EventsType = "Arrive"
 const ConnectionEventTypeRelease EventsType = "Release"
 

@@ -1,6 +1,6 @@
 {
-    "alias": "network_test",
-    "name": "network_test",
+    "alias": "Test Routes",
+    "name": "network_test_routes",
     "routes": [
         {
             "src": 0,
