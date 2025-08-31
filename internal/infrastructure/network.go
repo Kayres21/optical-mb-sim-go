@@ -94,7 +94,7 @@ func NetworkGenerate(networkPath string, capacityPath string) (Network, error) {
 
 func (n *Network) GetNodeByID(id int) *Node {
 	for i := range n.Nodes {
-		if n.Nodes[i].ID == id {
+		if n.Nodes[i].GetID() == id {
 			return &n.Nodes[i]
 		}
 	}
@@ -102,7 +102,7 @@ func (n *Network) GetNodeByID(id int) *Node {
 }
 func (n *Network) GetLinkByID(id int) *Link {
 	for i := range n.Links {
-		if n.Links[i].ID == id {
+		if n.Links[i].GetID() == id {
 			return &n.Links[i]
 		}
 	}
