@@ -10,10 +10,42 @@ type BitRateList struct {
 	BitRates []BitRate `json:"bitrates"`
 }
 
+func (b *BitRateList) GetBitRates() []BitRate {
+	return b.BitRates
+}
+
+func (b *BitRateList) SetBitRates(bitRates []BitRate) {
+	b.BitRates = bitRates
+}
+
 type BitRate struct {
 	Modulation string  `json:"modulation"`
 	Slots      []Slots `json:"slots"`
 	Reachs     []Reach `json:"reach"`
+}
+
+func (b *BitRate) GetModulation() string {
+	return b.Modulation
+}
+
+func (b *BitRate) SetModulation(modulation string) {
+	b.Modulation = modulation
+}
+
+func (b *BitRate) GetSlots() []Slots {
+	return b.Slots
+}
+
+func (b *BitRate) SetSlots(slots []Slots) {
+	b.Slots = slots
+}
+
+func (b *BitRate) GetReachs() []Reach {
+	return b.Reachs
+}
+
+func (b *BitRate) SetReachs(reachs []Reach) {
+	b.Reachs = reachs
 }
 
 type Slots struct {
@@ -21,14 +53,62 @@ type Slots struct {
 	Slots    int    `json:"slots"`
 }
 
+func (s *Slots) GetGigabits() string {
+	return s.Gigabits
+}
+
+func (s *Slots) SetGigabits(gigabits string) {
+	s.Gigabits = gigabits
+}
+
+func (s *Slots) GetSlots() int {
+	return s.Slots
+}
+
+func (s *Slots) SetSlots(slots int) {
+	s.Slots = slots
+}
+
 type Reach struct {
 	NumberOfBands int            `json:"number_of_bands"`
 	Reach         []ReachPerBand `json:"reach"`
 }
 
+func (r *Reach) GetNumberOfBands() int {
+	return r.NumberOfBands
+}
+
+func (r *Reach) SetNumberOfBands(numberOfBands int) {
+	r.NumberOfBands = numberOfBands
+}
+
+func (r *Reach) GetReach() []ReachPerBand {
+	return r.Reach
+}
+
+func (r *Reach) SetReach(reach []ReachPerBand) {
+	r.Reach = reach
+}
+
 type ReachPerBand struct {
 	Band  string `json:"band"`
 	Reach int    `json:"reach"`
+}
+
+func (r *ReachPerBand) GetBand() string {
+	return r.Band
+}
+
+func (r *ReachPerBand) SetBand(band string) {
+	r.Band = band
+}
+
+func (r *ReachPerBand) GetReach() int {
+	return r.Reach
+}
+
+func (r *ReachPerBand) SetReach(reach int) {
+	r.Reach = reach
 }
 
 func ReadBitRateFile(bitRatePath string) (BitRateList, error) {
