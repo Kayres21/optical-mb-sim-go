@@ -1,0 +1,16 @@
+{
+    "bands": [
+        {
+            "id": "0",
+            "name": "C",
+            "capacity": 344
+        },
+        {
+            "id": "1",
+            "name": "L",
+            "capacity": 480
+        }
+    ]
+
+
+}

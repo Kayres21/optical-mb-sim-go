@@ -367,9 +367,11 @@ func (s *Simulator) SimulatorStart(logOn bool) {
 		s.printBlockingTable(i, blockingProbabilitie, logOn)
 
 		if event.Event == connections.ConnectionEventTypeArrive {
+
 			s.SetTotalConnections(s.GetTotalConnections() + 1)
 
 			slot := s.getSlotgigabites(s.GetBitRateList().BitRates[event.Bitrate], event.GigabitsSelected)
+
 			asigned, con := controller.ConectionAllocation(event.Source, event.Destination, slot, s.GetNetwork(), controller.Routes, s.GetNumberOfBands(), strconv.Itoa(i))
 
 			newArriveEvent := connections.ConnectionEvent{
@@ -386,7 +388,6 @@ func (s *Simulator) SimulatorStart(logOn bool) {
 
 			if asigned {
 				s.Controller.AddConnection(con)
-
 				s.SetAssignedConnections(s.GetAssignedConnections() + 1)
 
 				s.SetAllocatedConnections(append(s.GetAllocatedConnections(), true))

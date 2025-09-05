@@ -13,6 +13,34 @@ type Network struct {
 	Links []Link `json:"links"`
 }
 
+func (n *Network) GetName() string {
+	return n.Name
+}
+
+func (n *Network) GetAlias() string {
+	return n.Alias
+}
+func (n *Network) GetNodes() []Node {
+	return n.Nodes
+}
+func (n *Network) GetLinks() []Link {
+	return n.Links
+}
+
+func (n *Network) SetNodes(nodes []Node) {
+	n.Nodes = nodes
+}
+func (n *Network) SetLinks(links []Link) {
+	n.Links = links
+}
+
+func (n *Network) SetName(name string) {
+	n.Name = name
+}
+func (n *Network) SetAlias(alias string) {
+	n.Alias = alias
+}
+
 func ReadNetworkFile(networkPath string) (Network, error) {
 	dataBytesNetwork, err := os.ReadFile(networkPath)
 
@@ -34,11 +62,11 @@ func ReadNetworkFile(networkPath string) (Network, error) {
 }
 
 func cloneCapacity(orig Capacity) Capacity {
-	bands := make([]Bands, len(orig.Bands))
+	bands := make([]Band, len(orig.Bands))
 	for i, b := range orig.Bands {
 		slots := make([]bool, len(b.Slots))
 		copy(slots, b.Slots)
-		bands[i] = Bands{Slots: slots}
+		bands[i] = Band{Slots: slots}
 	}
 	return Capacity{Bands: bands}
 }
@@ -66,7 +94,7 @@ func NetworkGenerate(networkPath string, capacityPath string) (Network, error) {
 
 func (n *Network) GetNodeByID(id int) *Node {
 	for i := range n.Nodes {
-		if n.Nodes[i].ID == id {
+		if n.Nodes[i].GetID() == id {
 			return &n.Nodes[i]
 		}
 	}
@@ -74,7 +102,7 @@ func (n *Network) GetNodeByID(id int) *Node {
 }
 func (n *Network) GetLinkByID(id int) *Link {
 	for i := range n.Links {
-		if n.Links[i].ID == id {
+		if n.Links[i].GetID() == id {
 			return &n.Links[i]
 		}
 	}

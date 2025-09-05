@@ -7,14 +7,54 @@ import (
 )
 
 type Capacity struct {
-	Bands []Bands `json:"bands"`
+	Bands []Band `json:"bands"`
 }
 
-type Bands struct {
+type Band struct {
 	ID       string `json:"id"`
 	Name     string `json:"name"`
-	Capacity int    `json:"capacity"`
+	SlotsLen int    `json:"capacity"`
 	Slots    []bool `json:"-"`
+}
+
+func (c *Capacity) GetBands() []Band {
+	return c.Bands
+}
+
+func (c *Capacity) SetBands(bands []Band) {
+	c.Bands = bands
+}
+
+func (b *Band) GetID() string {
+	return b.ID
+}
+
+func (b *Band) GetSlotsLen() int {
+	return b.SlotsLen
+}
+
+func (b *Band) GetName() string {
+	return b.Name
+}
+
+func (b *Band) GetSlots() []bool {
+	return b.Slots
+}
+
+func (b *Band) SetSlots(slots []bool) {
+	b.Slots = slots
+}
+
+func (b *Band) SetSlotsLen(slotsLen int) {
+	b.SlotsLen = slotsLen
+}
+
+func (b *Band) SetName(name string) {
+	b.Name = name
+}
+
+func (b *Band) SetID(id string) {
+	b.ID = id
 }
 
 func ReadCapacityFile(capacityPath string) (Capacity, error) {
@@ -34,7 +74,10 @@ func ReadCapacityFile(capacityPath string) (Capacity, error) {
 	}
 
 	for i := range capacities.Bands {
-		capacities.Bands[i].Slots = make([]bool, capacities.Bands[i].Capacity)
+
+		slots := make([]bool, capacities.Bands[i].GetSlotsLen())
+
+		capacities.Bands[i].SetSlots(slots)
 	}
 	return capacities, nil
 }

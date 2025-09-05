@@ -11,6 +11,23 @@ type Routes struct {
 	Name  string `json:"name"`
 	Paths []Path `json:"routes"`
 }
+type Path struct {
+	Source      int     `json:"src"`
+	Destination int     `json:"dst"`
+	PathLinks   [][]int `json:"paths"`
+}
+
+func (r *Routes) GetName() string {
+	return r.Name
+}
+
+func (r *Routes) GetAlias() string {
+	return r.Alias
+}
+
+func (r *Routes) GetPaths() []Path {
+	return r.Paths
+}
 
 func (r *Routes) ReadRoutesFile(routesPath string) (Routes, error) {
 	dataBytesNetwork, err := os.ReadFile(routesPath)

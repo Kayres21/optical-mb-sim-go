@@ -1,0 +1,79 @@
+{
+    "bitrates": [
+
+        {
+            "modulation": "BPSK",
+            "slots": [
+                {
+                    "gigabits": "10",
+                    "slots": 1
+                },
+                {
+                    "gigabits": "40",
+                    "slots": 2
+                }
+            ],
+            "reach": [
+                {
+                    "number_of_bands": 1,
+                    "reach": [
+                        {
+                            "band": "C",
+                            "reach": 19900
+                        }
+                    ]
+                },
+                {
+                    "number_of_bands": 2,
+                    "reach": [
+                        {
+                            "band": "C",
+                            "reach": 19700
+                        },
+                        {
+                            "band": "L",
+                            "reach": 16700
+                        }
+                    ]
+                }
+            ]
+        },
+        {
+            "modulation": "QPSK",
+            "slots": [
+                {
+                    "gigabits": "10",
+                    "slots": 1
+                },
+                {
+                    "gigabits": "40",
+                    "slots": 1
+                }
+            ],
+            "reach": [
+                {
+                    "number_of_bands": 1,
+                    "reach": [
+                        {
+                            "band": "C",
+                            "reach": 9900
+                        }
+                    ]
+                },
+                {
+                    "number_of_bands": 2,
+                    "reach": [
+                        {
+                            "band": "C",
+                            "reach": 9900
+                        },
+                        {
+                            "band": "L",
+                            "reach": 8400
+                        }
+                    ]
+                }
+            ]
+        }
+    ]
+}

@@ -2,7 +2,6 @@ package connections
 
 import (
 	"github.com/Kayres21/optical-mb-sim-go/internal/infrastructure"
-	"github.com/google/uuid"
 )
 
 type Connection struct {
@@ -15,18 +14,6 @@ type Connection struct {
 	FinalSlot    int
 	BandSelected int
 	Allocated    bool
-}
-
-type Path struct {
-	Source      int     `json:"src"`
-	Destination int     `json:"dst"`
-	PathLinks   [][]int `json:"paths"`
-}
-
-type EventsType string
-
-func GenerateConnectionID() string {
-	return uuid.New().String()
 }
 
 func (c *Connection) GetId() string {
