@@ -14,3 +14,20 @@ func TestReadBirateFile(t *testing.T) {
 	}
 
 }
+
+func TestTransformIntToModulation(t *testing.T) {
+
+	if TrasnformIntToModulation(0) != "BPSK" {
+		t.Errorf("Expected BPSK, got %s", TrasnformIntToModulation(0))
+	}
+	if TrasnformIntToModulation(1) != "QPSK" {
+		t.Errorf("Expected QPSK, got %s", TrasnformIntToModulation(0))
+	}
+	if TrasnformIntToModulation(2) != "8-QAM" {
+		t.Errorf("Expected 8-QAM, got %s", TrasnformIntToModulation(0))
+	}
+	if TrasnformIntToModulation(3) != "16-QAM" {
+		t.Errorf("Expected 16-QAM, got %s", TrasnformIntToModulation(0))
+	}
+
+}
