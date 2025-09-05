@@ -15,22 +15,6 @@ import (
 	"github.com/Kayres21/optical-mb-sim-go/pkg/plotter"
 )
 
-type SimulatorVariables struct {
-	NetworkPath     string
-	RoutesPath      string
-	CapacitiesPath  string
-	BitRatePath     string
-	Lambda          int
-	Mu              int
-	GoalConnections float64
-	Allocator       allocator.Allocator
-	NumberOfBands   int
-	LogsOn          bool
-	Title           string
-	XLabel          string
-	YLabel          string
-}
-
 type Simulator struct {
 	RandomVariable       randomvariable.RandomVariable
 	Network              infrastructure.Network
@@ -49,7 +33,6 @@ type Simulator struct {
 	startTime            time.Time
 	Results              []float64
 	Arrives              []float64
-	SimulatorVariables   SimulatorVariables
 }
 
 func (s *Simulator) GetResults() []float64 {

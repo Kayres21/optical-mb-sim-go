@@ -23,10 +23,7 @@ func main() {
 
 	logsOn := true
 
-	
-
 	var simulator simulator.Simulator
-
 
 	simulator.SimulatorInit(networkPath, routesPath, capacitiesPath, bitRatePath, lambda, mu, goalConnections, allocator.FirstFit, numberOfBands)
 	simulator.SimulatorStart(logsOn)
