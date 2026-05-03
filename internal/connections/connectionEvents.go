@@ -23,10 +23,6 @@ type EventsType string
 const ConnectionEventTypeArrive EventsType = "Arrive"
 const ConnectionEventTypeRelease EventsType = "Release"
 
-func (e *ConnectionEvent) GetTime() float64 {
-	return e.Time
-}
-
 func GenerateEvents(nodes_len int, randomVariable randomvariable.RandomVariable) []ConnectionEvent {
 
 	events := make([]ConnectionEvent, 0)

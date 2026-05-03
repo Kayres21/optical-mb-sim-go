@@ -13,18 +13,6 @@ type Link struct {
 	Capacities  Capacity `json:"-"`
 }
 
-func (l *Link) GetID() int {
-	return l.ID
-}
-
-func (l *Link) GetSource() int {
-	return l.Source
-}
-
-func (l *Link) GetDestination() int {
-	return l.Destination
-}
-
 func (l *Link) GetSlotsByBand(band int) []bool {
 	return l.Capacities.Bands[band].Slots
 }

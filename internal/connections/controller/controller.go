@@ -52,10 +52,10 @@ func (c *Controller) ReleaseConnection(connectionId string) error {
 		return fmt.Errorf("connection with ID %s not found", connectionId)
 	}
 
-	links := con.GetLinks()
+	links := con.Links
 
 	for _, link := range links {
-		link.ReleaseConnection(con.GetInitialSlot(), con.GetSlots(), con.GetBandSelected())
+		link.ReleaseConnection(con.InitialSlot, con.Slots, con.BandSelected)
 
 	}
 

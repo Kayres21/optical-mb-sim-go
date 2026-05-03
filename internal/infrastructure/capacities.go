@@ -17,45 +17,7 @@ type Band struct {
 	Slots    []bool `json:"-"`
 }
 
-func (c *Capacity) GetBands() []Band {
-	return c.Bands
-}
 
-func (c *Capacity) SetBands(bands []Band) {
-	c.Bands = bands
-}
-
-func (b *Band) GetID() string {
-	return b.ID
-}
-
-func (b *Band) GetSlotsLen() int {
-	return b.SlotsLen
-}
-
-func (b *Band) GetName() string {
-	return b.Name
-}
-
-func (b *Band) GetSlots() []bool {
-	return b.Slots
-}
-
-func (b *Band) SetSlots(slots []bool) {
-	b.Slots = slots
-}
-
-func (b *Band) SetSlotsLen(slotsLen int) {
-	b.SlotsLen = slotsLen
-}
-
-func (b *Band) SetName(name string) {
-	b.Name = name
-}
-
-func (b *Band) SetID(id string) {
-	b.ID = id
-}
 
 func ReadCapacityFile(capacityPath string) (Capacity, error) {
 	dataBytes, err := os.ReadFile(capacityPath)
@@ -75,9 +37,9 @@ func ReadCapacityFile(capacityPath string) (Capacity, error) {
 
 	for i := range capacities.Bands {
 
-		slots := make([]bool, capacities.Bands[i].GetSlotsLen())
+		slots := make([]bool, capacities.Bands[i].SlotsLen)
 
-		capacities.Bands[i].SetSlots(slots)
+		capacities.Bands[i].Slots = slots
 	}
 	return capacities, nil
 }

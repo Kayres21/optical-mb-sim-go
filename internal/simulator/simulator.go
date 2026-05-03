@@ -35,8 +35,6 @@ type Simulator struct {
 	Arrives              []float64
 }
 
-
-
 func (s *Simulator) AddNewConnectionEvent(event connections.ConnectionEvent) {
 	i := sort.Search(len(s.ConnectionsEvents), func(i int) bool {
 		return s.ConnectionsEvents[i].Time >= event.Time
@@ -57,8 +55,6 @@ func (s *Simulator) GetFirstEvent() connections.ConnectionEvent {
 
 	return firstElement
 }
-
-
 
 func (s *Simulator) getSlotgigabites(bitrate connections.BitRate, gigabites int) int {
 
@@ -138,8 +134,6 @@ func (s *Simulator) RandomVariableInit(lambda int, mu int, bitrate int, source i
 	s.RandomVariable = randomVariable
 
 }
-
-
 
 func (s *Simulator) connectionsEventsInit(nodeLen int, rv randomvariable.RandomVariable) {
 	connectionsEvents := connections.GenerateEvents(nodeLen, rv)
@@ -223,7 +217,7 @@ func (s *Simulator) Start(logOn bool) {
 	for i := 0; i <= int(s.GoalConnections); i++ {
 
 		event := s.GetFirstEvent()
-		time := event.GetTime()
+		time := event.Time
 
 		rv := s.RandomVariable
 

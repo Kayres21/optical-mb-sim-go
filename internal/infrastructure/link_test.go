@@ -4,22 +4,22 @@ import "testing"
 
 func TestLinkGetID(t *testing.T) {
 	link := Link{ID: 1}
-	if link.GetID() != 1 {
-		t.Errorf("Expected ID to be 1, got %d", link.GetID())
+	if link.ID != 1 {
+		t.Errorf("Expected ID to be 1, got %d", link.ID)
 	}
 }
 
 func TestLinkGetSource(t *testing.T) {
 	link := Link{Source: 2}
-	if link.GetSource() != 2 {
-		t.Errorf("Expected Source to be 2, got %d", link.GetSource())
+	if link.Source != 2 {
+		t.Errorf("Expected Source to be 2, got %d", link.Source)
 	}
 }
 
 func TestLinkGetDestination(t *testing.T) {
 	link := Link{Destination: 3}
-	if link.GetDestination() != 3 {
-		t.Errorf("Expected Destination to be 3, got %d", link.GetDestination())
+	if link.Destination != 3 {
+		t.Errorf("Expected Destination to be 3, got %d", link.Destination)
 	}
 }
 

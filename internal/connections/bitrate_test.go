@@ -9,7 +9,7 @@ func TestReadBirateFile(t *testing.T) {
 		t.Errorf("Expected no error, got %v", err)
 	}
 
-	if len(bitrate.GetBitRates()) != 2 {
+	if len(bitrate.BitRates) != 2 {
 		t.Errorf("Expected 2 bitrates, got %d", len(bitrate.BitRates))
 	}
 

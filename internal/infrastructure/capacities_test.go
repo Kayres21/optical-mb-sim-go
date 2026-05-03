@@ -5,48 +5,48 @@ import (
 	"testing"
 )
 
-func TestCapacityGetBands(t *testing.T) {
+func TestCapacityBands(t *testing.T) {
 	capacity := Capacity{
 		Bands: []Band{
 			{ID: "band1"},
 			{ID: "band2"},
 		},
 	}
-	bands := capacity.GetBands()
+	bands := capacity.Bands
 	if len(bands) != 2 {
 		t.Errorf("Expected 2 bands, got %d", len(bands))
 	}
-	if bands[0].GetID() != "band1" || bands[1].GetID() != "band2" {
+	if bands[0].ID != "band1" || bands[1].ID != "band2" {
 		t.Errorf("Band IDs do not match expected values")
 	}
 }
 
-func TestBandGetID(t *testing.T) {
+func TestBandID(t *testing.T) {
 	band := Band{ID: "test-band"}
-	if band.GetID() != "test-band" {
-		t.Errorf("Expected ID to be 'test-band', got '%s'", band.GetID())
+	if band.ID != "test-band" {
+		t.Errorf("Expected ID to be 'test-band', got '%s'", band.ID)
 	}
 }
 
-func TestBandGetSlotsLen(t *testing.T) {
+func TestBandSlotsLen(t *testing.T) {
 	band := Band{SlotsLen: 10}
-	if band.GetSlotsLen() != 10 {
-		t.Errorf("Expected SlotsLen to be 10, got %d", band.GetSlotsLen())
+	if band.SlotsLen != 10 {
+		t.Errorf("Expected SlotsLen to be 10, got %d", band.SlotsLen)
 	}
 }
 
-func TestBandGetName(t *testing.T) {
+func TestBandName(t *testing.T) {
 	band := Band{Name: "C-Band"}
-	if band.GetName() != "C-Band" {
-		t.Errorf("Expected Name to be 'C-Band', got '%s'", band.GetName())
+	if band.Name != "C-Band" {
+		t.Errorf("Expected Name to be 'C-Band', got '%s'", band.Name)
 	}
 }
 
-func TestBandGetAndSetSlots(t *testing.T) {
+func TestBandSlots(t *testing.T) {
 	band := Band{}
 	slots := []bool{false, true, false}
-	band.SetSlots(slots)
-	retrievedSlots := band.GetSlots()
+	band.Slots = slots
+	retrievedSlots := band.Slots
 	if len(retrievedSlots) != len(slots) {
 		t.Errorf("Expected slots length to be %d, got %d", len(slots), len(retrievedSlots))
 	}
@@ -65,7 +65,7 @@ func TestReadCapacityFile(t *testing.T) {
 	if err != nil {
 		t.Fatalf("Expected no error, got %v", err)
 	}
-	if len(capacity.GetBands()) == 0 {
+	if len(capacity.Bands) == 0 {
 		t.Errorf("Expected at least one band, got 0")
 	}
 	for _, band := range capacity.Bands {
@@ -76,15 +76,15 @@ func TestReadCapacityFile(t *testing.T) {
 
 	for i, band := range capacity.Bands {
 		expectedID := strconv.Itoa(i)
-		if band.GetID() != expectedID {
+		if band.ID != expectedID {
 			t.Errorf("Expected band ID to be '%s', got '%s'", expectedID, band.ID)
 		}
 
-		if band.GetSlotsLen() != 344 && band.GetSlotsLen() != 480 {
+		if band.SlotsLen != 344 && band.SlotsLen != 480 {
 			t.Errorf("Expected band SlotsLen to be 344 or 480, got %d", band.SlotsLen)
 		}
 
-		if band.GetName() != "C" && band.GetName() != "L" {
+		if band.Name != "C" && band.Name != "L" {
 			t.Errorf("Expected band Name to be 'C' or 'L', got '%s'", band.Name)
 		}
 	}
