@@ -2,7 +2,6 @@ package controller
 
 import (
 	"fmt"
-	"log"
 
 	"github.com/Kayres21/optical-mb-sim-go/internal/allocator"
 	"github.com/Kayres21/optical-mb-sim-go/internal/connections"
@@ -16,61 +15,24 @@ type Controller struct {
 	Allocator   allocator.Allocator
 }
 
-func (c *Controller) GetRoutes() connections.Routes {
-	return c.Routes
-}
 
-func (c *Controller) GetConnections() []connections.Connection {
-	return c.Connections
-}
-
-func (c *Controller) GetNetwork() infrastructure.Network {
-
-	return c.Network
-}
-
-func (c *Controller) SetRoutes(routes connections.Routes) {
-	c.Routes = routes
-}
-
-func (c *Controller) SetConnections(connections []connections.Connection) {
-	c.Connections = connections
-}
 
 func (c *Controller) AddConnection(connection connections.Connection) {
 	c.Connections = append(c.Connections, connection)
 }
 
-func (c *Controller) SetNetwork(network infrastructure.Network) {
-	c.Network = network
-}
-
-func (c *Controller) SetAllocator(allocator allocator.Allocator) {
-	c.Allocator = allocator
-}
-
-func (c *Controller) RoutesInit(pathToRoutes string) {
-
-	routes, err := c.Routes.ReadRoutesFile(pathToRoutes)
-
+func New(pathToRoutes string, network infrastructure.Network, allocator allocator.Allocator) (Controller, error) {
+	routes, err := connections.ReadRoutesFile(pathToRoutes)
 	if err != nil {
-		log.Fatalf("Error reading routes file: %v", err)
+		return Controller{}, err
 	}
 
-	c.SetRoutes(routes)
-}
-
-func (c *Controller) ConnectionsInit() {
-	var connections []connections.Connection
-	c.SetConnections(connections)
-}
-
-func (c *Controller) ControllerInit(pathToRoutes string, network infrastructure.Network, allocator allocator.Allocator) {
-	c.RoutesInit(pathToRoutes)
-	c.ConnectionsInit()
-	c.SetNetwork(network)
-	c.SetAllocator(allocator)
-
+	return Controller{
+		Routes:      routes,
+		Connections: []connections.Connection{},
+		Network:     network,
+		Allocator:   allocator,
+	}, nil
 }
 
 func (c *Controller) GetConnectionById(id string) (connections.Connection, bool) {
@@ -95,6 +57,13 @@ func (c *Controller) ReleaseConnection(connectionId string) error {
 	for _, link := range links {
 		link.ReleaseConnection(con.GetInitialSlot(), con.GetSlots(), con.GetBandSelected())
 
+	}
+
+	for i, connection := range c.Connections {
+		if connection.Id == connectionId {
+			c.Connections = append(c.Connections[:i], c.Connections[i+1:]...)
+			break
+		}
 	}
 
 	return nil

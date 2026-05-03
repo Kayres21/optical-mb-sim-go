@@ -4,29 +4,27 @@ import "testing"
 
 func TestReadRoutesFile(t *testing.T) {
 	routesFile := "../../files/routes/network_test_routes.json"
-	var routes Routes
-	routes, err := routes.ReadRoutesFile(routesFile)
+	routes, err := ReadRoutesFile(routesFile)
 	if err != nil {
 		t.Errorf("Expected no error, got %v", err)
 	}
 
-	if routes.GetName() != "network_test_routes" {
-		t.Errorf("Expected routes name to be 'network_test_routes', got '%s'", routes.GetName())
+	if routes.Name != "network_test_routes" {
+		t.Errorf("Expected routes name to be 'network_test_routes', got '%s'", routes.Name)
 	}
 
-	if routes.GetAlias() != "Test Routes" {
-		t.Errorf("Expected routes alias to be 'Test Routes', got '%s'", routes.GetAlias())
+	if routes.Alias != "Test Routes" {
+		t.Errorf("Expected routes alias to be 'Test Routes', got '%s'", routes.Alias)
 	}
 
-	if len(routes.GetPaths()) != 6 {
-		t.Errorf("Expected 6 paths, got %d", len(routes.GetPaths()))
+	if len(routes.Paths) != 6 {
+		t.Errorf("Expected 6 paths, got %d", len(routes.Paths))
 	}
 }
 
 func TestGetKshortestPath(t *testing.T) {
 	routesFile := "../../files/routes/network_test_routes.json"
-	var routes Routes
-	routes, err := routes.ReadRoutesFile(routesFile)
+	routes, err := ReadRoutesFile(routesFile)
 	if err != nil {
 		t.Errorf("Expected no error, got %v", err)
 	}
