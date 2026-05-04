@@ -22,7 +22,7 @@ func main() {
 	lambda := 50
 	mu := 1
 
-	numberOfBands := 4
+	numberOfBands := 1
 	goalConnections := 1e7
 	logsOn := true
 
@@ -30,3 +30,8 @@ func main() {
 	sim.Start(logsOn)
 	sim.Plot("FirstFit_UKNet-erlang-"+strconv.Itoa(lambda)+"_"+strconv.Itoa(numberOfBands), "Número de conexiones", "Probabilidad de bloqueo")
 }
+
+// 1 banda lambda 50 mu 1: 0.691100 00:03:12
+// 2 banda lambda 50 mu 1: 0.518561 00:07:18
+// 3 banda lambda 50 mu 1: 0.387534 00:28:43
+// 4 banda lambda 50 mu 1: 0.289309 00:33:41

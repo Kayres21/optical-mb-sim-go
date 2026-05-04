@@ -2,16 +2,9 @@ package randomvariable
 
 import (
 	"math"
-	"math/rand"
 )
 
-func (ev *ExponentialVariable) SetRng(rng *rand.Rand) {
-	ev.Rng = rng
-}
 
-func (ev *ExponentialVariable) SetParameter(parameter int) {
-	ev.Parameter = parameter
-}
 
 func (rv *RandomVariable) GetNetValueExponential(options string) float64 {
 

@@ -1,15 +1,5 @@
 package randomvariable
 
-import "math/rand"
-
-func (ev *UniformVariable) SetRng(rng *rand.Rand) {
-	ev.Rng = rng
-}
-
-func (ev *UniformVariable) SetParameter(parameter int) {
-	ev.Parameter = parameter
-}
-
 func (rv *RandomVariable) GetNetValueUniform(options string) int {
 	switch options {
 	case "bitrate":
@@ -26,5 +16,5 @@ func (rv *RandomVariable) GetNetValueUniform(options string) int {
 		return gigabitsArray[selected]
 	}
 
-	return -1 // Default case, should not happen
+	return -1
 }
