@@ -17,25 +17,25 @@ func (l *Link) GetSlotsByBand(band int) []bool {
 	return l.Capacities.Bands[band].Slots
 }
 
-func (l *Link) AssignConnection(initial_slot int, size int, band int) error {
+func (l *Link) AssignConnection(initialSlot, slotCount, band int) error {
 	capacity := l.GetSlotsByBand(band)
-	if initial_slot+size > len(capacity) {
-		slog.Error("Out of range")
+	if initialSlot+slotCount > len(capacity) {
+		slog.Error("AssignConnection: out of range", "initialSlot", initialSlot, "slotCount", slotCount)
 		return errors.New("out of range for assigning connection")
 	}
-	for i := initial_slot; i < initial_slot+size; i++ {
+	for i := initialSlot; i < initialSlot+slotCount; i++ {
 		capacity[i] = true
 	}
 	return nil
 }
 
-func (l *Link) ReleaseConnection(initial_slot int, size int, band int) error {
+func (l *Link) ReleaseConnection(initialSlot, slotCount, band int) error {
 	capacity := l.GetSlotsByBand(band)
-	if initial_slot+size > len(capacity) {
-		slog.Error("Out of range")
+	if initialSlot+slotCount > len(capacity) {
+		slog.Error("ReleaseConnection: out of range", "initialSlot", initialSlot, "slotCount", slotCount)
 		return errors.New("out of range for releasing connection")
 	}
-	for i := initial_slot; i < initial_slot+size; i++ {
+	for i := initialSlot; i < initialSlot+slotCount; i++ {
 		capacity[i] = false
 	}
 	return nil

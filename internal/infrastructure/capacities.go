@@ -2,7 +2,7 @@ package infrastructure
 
 import (
 	"encoding/json"
-	"log"
+	"fmt"
 	"os"
 )
 
@@ -17,29 +17,20 @@ type Band struct {
 	Slots    []bool `json:"-"`
 }
 
-
-
 func ReadCapacityFile(capacityPath string) (Capacity, error) {
 	dataBytes, err := os.ReadFile(capacityPath)
 	if err != nil {
-		log.Fatalf("Error opening file: %v", err)
-		return Capacity{}, err
+		return Capacity{}, fmt.Errorf("reading capacity file %q: %w", capacityPath, err)
 	}
 
 	var capacities Capacity
-
-	err = json.Unmarshal(dataBytes, &capacities)
-
-	if err != nil {
-		log.Fatalf("Error unmarshalling JSON: %v", err)
-		return Capacity{}, err
+	if err = json.Unmarshal(dataBytes, &capacities); err != nil {
+		return Capacity{}, fmt.Errorf("parsing capacity file %q: %w", capacityPath, err)
 	}
 
 	for i := range capacities.Bands {
-
-		slots := make([]bool, capacities.Bands[i].SlotsLen)
-
-		capacities.Bands[i].Slots = slots
+		capacities.Bands[i].Slots = make([]bool, capacities.Bands[i].SlotsLen)
 	}
+
 	return capacities, nil
 }

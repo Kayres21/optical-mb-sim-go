@@ -15,5 +15,3 @@ type Connection struct {
 	BandSelected int
 	Allocated    bool
 }
-
-

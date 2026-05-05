@@ -4,6 +4,28 @@ import (
 	"math/rand"
 )
 
+// ExponentialKey identifies which exponential random variable to sample.
+type ExponentialKey string
+
+// UniformKey identifies which uniform random variable to sample.
+type UniformKey string
+
+const (
+	KeyArrive    ExponentialKey = "arrive"
+	KeyDeparture ExponentialKey = "departure"
+)
+
+const (
+	KeyBitrate     UniformKey = "bitrate"
+	KeySource      UniformKey = "source"
+	KeyDestination UniformKey = "destination"
+	KeyBand        UniformKey = "band"
+	KeyGigabits    UniformKey = "gigabits"
+)
+
+// DefaultGigabitOptions lists the supported gigabit values for connection requests.
+var DefaultGigabitOptions = []int{10, 40, 100, 400, 1000}
+
 type RandomVariable struct {
 	Arrive                ExponentialVariable
 	Departure             ExponentialVariable

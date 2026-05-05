@@ -13,7 +13,7 @@ type ConnectionEvent struct {
 	Destination          int
 	Bitrate              int
 	GigabitsSelected     int
-	Event                EventsType // "Arrive",  "Release"
+	Event                EventsType // "Arrive", "Release"
 	Time                 float64
 	ConnectionAssignedId string
 }
@@ -23,28 +23,26 @@ type EventsType string
 const ConnectionEventTypeArrive EventsType = "Arrive"
 const ConnectionEventTypeRelease EventsType = "Release"
 
-func GenerateEvents(nodes_len int, randomVariable randomvariable.RandomVariable) []ConnectionEvent {
-
-	events := make([]ConnectionEvent, 0)
+func GenerateEvents(nodeCount int, randomVariable randomvariable.RandomVariable) []ConnectionEvent {
+	events := make([]ConnectionEvent, 0, nodeCount*nodeCount)
 	id := 0
 
-	for i := range nodes_len {
-		for j := range nodes_len {
+	for i := range nodeCount {
+		for j := range nodeCount {
 			if i != j {
 				event := ConnectionEvent{
 					Id:                   strconv.Itoa(id),
 					Source:               i,
 					Destination:          j,
-					Bitrate:              randomVariable.GetNetValueUniform("bitrate"),
-					Event:                "Arrive",
-					GigabitsSelected:     randomVariable.GetNetValueUniform("gigabits"),
-					Time:                 randomVariable.GetNetValueExponential("arrive"),
+					Bitrate:              randomVariable.GetNetValueUniform(randomvariable.KeyBitrate),
+					GigabitsSelected:     randomVariable.GetNetValueUniform(randomvariable.KeyGigabits),
+					Event:                ConnectionEventTypeArrive,
+					Time:                 randomVariable.GetNetValueExponential(randomvariable.KeyArrive),
 					ConnectionAssignedId: "",
 				}
 				events = append(events, event)
 				id++
 			}
-
 		}
 	}
 

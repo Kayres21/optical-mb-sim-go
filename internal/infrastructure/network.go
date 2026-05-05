@@ -2,7 +2,7 @@ package infrastructure
 
 import (
 	"encoding/json"
-	"log"
+	"fmt"
 	"os"
 )
 
@@ -14,20 +14,14 @@ type Network struct {
 }
 
 func ReadNetworkFile(networkPath string) (Network, error) {
-	dataBytesNetwork, err := os.ReadFile(networkPath)
-
+	data, err := os.ReadFile(networkPath)
 	if err != nil {
-		log.Fatalf("Error opening file: %v", err)
-		return Network{}, err
+		return Network{}, fmt.Errorf("reading network file %q: %w", networkPath, err)
 	}
 
 	var network Network
-
-	err = json.Unmarshal(dataBytesNetwork, &network)
-
-	if err != nil {
-		log.Fatalf("Error unmarshalling JSON: %v", err)
-		return Network{}, err
+	if err = json.Unmarshal(data, &network); err != nil {
+		return Network{}, fmt.Errorf("parsing network file %q: %w", networkPath, err)
 	}
 
 	return network, nil
@@ -44,17 +38,14 @@ func cloneCapacity(orig Capacity) Capacity {
 }
 
 func NetworkGenerate(networkPath string, capacityPath string) (Network, error) {
-
 	capacities, err := ReadCapacityFile(capacityPath)
-
 	if err != nil {
-		log.Fatalf("Error reading capacities file: %v", err)
+		return Network{}, fmt.Errorf("generating network: %w", err)
 	}
 
 	network, err := ReadNetworkFile(networkPath)
-
 	if err != nil {
-		log.Fatalf("Error reading network file: %v", err)
+		return Network{}, fmt.Errorf("generating network: %w", err)
 	}
 
 	for i := range network.Links {
@@ -72,6 +63,7 @@ func (n *Network) GetNodeByID(id int) *Node {
 	}
 	return nil
 }
+
 func (n *Network) GetLinkByID(id int) *Link {
 	for i := range n.Links {
 		if n.Links[i].ID == id {
@@ -84,16 +76,12 @@ func (n *Network) GetLinkByID(id int) *Link {
 func (n *Network) GetLinkByPath(ids []int) []*Link {
 	links := make([]*Link, 0, len(ids))
 	for i, id := range ids {
-
 		if i+1 < len(ids) {
-			src := id
-			dst := ids[i+1]
-			link := n.GetLinkBySourceDestination(src, dst)
+			link := n.GetLinkBySourceDestination(id, ids[i+1])
 			if link != nil {
 				links = append(links, link)
 			}
 		}
-
 	}
 	return links
 }

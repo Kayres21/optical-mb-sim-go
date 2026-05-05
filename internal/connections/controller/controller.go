@@ -10,15 +10,9 @@ import (
 
 type Controller struct {
 	Routes      connections.Routes
-	Connections []connections.Connection
+	Connections map[string]connections.Connection
 	Network     infrastructure.Network
 	Allocator   allocator.Allocator
-}
-
-
-
-func (c *Controller) AddConnection(connection connections.Connection) {
-	c.Connections = append(c.Connections, connection)
 }
 
 func New(pathToRoutes string, network infrastructure.Network, allocator allocator.Allocator) (Controller, error) {
@@ -29,46 +23,37 @@ func New(pathToRoutes string, network infrastructure.Network, allocator allocato
 
 	return Controller{
 		Routes:      routes,
-		Connections: []connections.Connection{},
+		Connections: make(map[string]connections.Connection),
 		Network:     network,
 		Allocator:   allocator,
 	}, nil
 }
 
+func (c *Controller) AddConnection(connection connections.Connection) {
+	c.Connections[connection.Id] = connection
+}
+
 func (c *Controller) GetConnectionById(id string) (connections.Connection, bool) {
-	for _, connection := range c.Connections {
-		if connection.Id == id {
-			return connection, true
-		}
-	}
-	return connections.Connection{}, false
+	con, ok := c.Connections[id]
+	return con, ok
 }
 
 func (c *Controller) ReleaseConnection(connectionId string) error {
-
-	con, valid := c.GetConnectionById(connectionId)
-
-	if !valid {
+	con, ok := c.Connections[connectionId]
+	if !ok {
 		return fmt.Errorf("connection with ID %s not found", connectionId)
 	}
 
-	links := con.Links
-
-	for _, link := range links {
+	for _, link := range con.Links {
 		link.ReleaseConnection(con.InitialSlot, con.Slots, con.BandSelected)
-
 	}
 
-	for i, connection := range c.Connections {
-		if connection.Id == connectionId {
-			c.Connections = append(c.Connections[:i], c.Connections[i+1:]...)
-			break
-		}
-	}
-
+	delete(c.Connections, connectionId)
 	return nil
 }
 
-func (c *Controller) ConectionAllocation(source, destination int, slot int, network infrastructure.Network, path connections.Routes, numberOfBands int, id string) (bool, connections.Connection) {
-	return c.Allocator(source, destination, slot, network, path, numberOfBands, id)
+// ConnectionAllocation delegates to the configured Allocator using the
+// controller's own Network and Routes — callers no longer need to pass them in.
+func (c *Controller) ConnectionAllocation(source, destination, slot, numberOfBands int, id string) (bool, connections.Connection) {
+	return c.Allocator(source, destination, slot, c.Network, c.Routes, numberOfBands, id)
 }

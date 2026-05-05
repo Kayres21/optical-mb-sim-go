@@ -9,7 +9,7 @@ import (
 
 func TestController_AddAndGetConnection(t *testing.T) {
 	c := Controller{
-		Connections: []connections.Connection{},
+		Connections: make(map[string]connections.Connection),
 	}
 
 	conn := connections.Connection{Id: "1", Source: 0, Destination: 1}
@@ -35,7 +35,7 @@ func TestController_AddAndGetConnection(t *testing.T) {
 
 func TestController_ReleaseConnection(t *testing.T) {
 	c := Controller{
-		Connections: []connections.Connection{},
+		Connections: make(map[string]connections.Connection),
 	}
 
 	conn := connections.Connection{Id: "1", Source: 0, Destination: 1, Allocated: true}
@@ -56,7 +56,7 @@ func TestController_ReleaseConnection(t *testing.T) {
 	}
 }
 
-func TestController_ConectionAllocation(t *testing.T) {
+func TestController_ConnectionAllocation(t *testing.T) {
 	// Dummy allocator
 	dummyAllocator := func(source, destination int, slot int, network infrastructure.Network, path connections.Routes, numberOfBands int, id string) (bool, connections.Connection) {
 		return true, connections.Connection{Id: id, Source: source, Destination: destination}
@@ -66,7 +66,7 @@ func TestController_ConectionAllocation(t *testing.T) {
 		Allocator: dummyAllocator,
 	}
 
-	success, conn := c.ConectionAllocation(0, 1, 1, infrastructure.Network{}, connections.Routes{}, 1, "test-id")
+	success, conn := c.ConnectionAllocation(0, 1, 1, 1, "test-id")
 	if !success {
 		t.Errorf("expected successful allocation")
 	}

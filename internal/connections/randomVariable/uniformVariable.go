@@ -1,20 +1,18 @@
 package randomvariable
 
-func (rv *RandomVariable) GetNetValueUniform(options string) int {
-	switch options {
-	case "bitrate":
+func (rv *RandomVariable) GetNetValueUniform(key UniformKey) int {
+	switch key {
+	case KeyBitrate:
 		return rv.BitrateSelect.Rng.Intn(rv.BitrateSelect.Parameter)
-	case "source":
+	case KeySource:
 		return rv.SourceNodeSelect.Rng.Intn(rv.SourceNodeSelect.Parameter)
-	case "destination":
+	case KeyDestination:
 		return rv.DestinationNodeSelect.Rng.Intn(rv.DestinationNodeSelect.Parameter)
-	case "band":
+	case KeyBand:
 		return rv.BandSelect.Rng.Intn(rv.BandSelect.Parameter)
-	case "gigabits":
-		var gigabitsArray [5]int = [5]int{10, 40, 100, 400, 1000}
+	case KeyGigabits:
 		selected := rv.GigabitsSelected.Rng.Intn(rv.GigabitsSelected.Parameter)
-		return gigabitsArray[selected]
+		return DefaultGigabitOptions[selected]
 	}
-
 	return -1
 }
