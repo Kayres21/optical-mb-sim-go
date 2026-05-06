@@ -2,8 +2,11 @@ package connections
 
 import (
 	"encoding/json"
+	"fmt"
 	"log"
-	"os"
+	"path/filepath"
+
+	"github.com/Kayres21/optical-mb-sim-go/pkg/validator"
 )
 
 type BitRateList struct {
@@ -32,20 +35,16 @@ type ReachPerBand struct {
 }
 
 func ReadBitRateFile(bitRatePath string) (BitRateList, error) {
-	dataBytesBitrate, err := os.ReadFile(bitRatePath)
-
+	schemaPath := filepath.Join(filepath.Dir(bitRatePath), "schema.json")
+	dataBytesBitrate, err := validator.ValidateFile(bitRatePath, schemaPath)
 	if err != nil {
-		log.Fatalf("Error opening file: %v", err)
-		return BitRateList{}, err
+		return BitRateList{}, fmt.Errorf("validating bitrate file: %w", err)
 	}
 
 	var bitrate BitRateList
 
-	err = json.Unmarshal(dataBytesBitrate, &bitrate)
-
-	if err != nil {
-		log.Fatalf("Error unmarshalling JSON: %v", err)
-		return BitRateList{}, err
+	if err = json.Unmarshal(dataBytesBitrate, &bitrate); err != nil {
+		return BitRateList{}, fmt.Errorf("parsing bitrate file %q: %w", bitRatePath, err)
 	}
 
 	return bitrate, nil

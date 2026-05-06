@@ -1,10 +1,8 @@
 {
   "bitrates": [
     {
-      "modulation": "BPSK",
       "slots": [
-        { "gigabits": "100", "slots": 5 },
-        { "gigabits": "400", "slots": 18 }
+        { "gigabits": 100, "slots": "invalid" }
       ],
       "reachs": [
         {

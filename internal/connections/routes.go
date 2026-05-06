@@ -2,8 +2,10 @@ package connections
 
 import (
 	"encoding/json"
-	"log"
-	"os"
+	"fmt"
+	"path/filepath"
+
+	"github.com/Kayres21/optical-mb-sim-go/pkg/validator"
 )
 
 type Routes struct {
@@ -18,20 +20,16 @@ type Path struct {
 }
 
 func ReadRoutesFile(routesPath string) (Routes, error) {
-	dataBytesNetwork, err := os.ReadFile(routesPath)
-
+	schemaPath := filepath.Join(filepath.Dir(routesPath), "schema.json")
+	dataBytesNetwork, err := validator.ValidateFile(routesPath, schemaPath)
 	if err != nil {
-		log.Fatalf("Error opening file: %v", err)
-		return Routes{}, err
+		return Routes{}, fmt.Errorf("validating routes file: %w", err)
 	}
 
 	var routes Routes
 
-	err = json.Unmarshal(dataBytesNetwork, &routes)
-
-	if err != nil {
-		log.Fatalf("Error unmarshalling JSON: %v", err)
-		return Routes{}, err
+	if err = json.Unmarshal(dataBytesNetwork, &routes); err != nil {
+		return Routes{}, fmt.Errorf("parsing routes file %q: %w", routesPath, err)
 	}
 
 	return routes, nil
