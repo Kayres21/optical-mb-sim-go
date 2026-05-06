@@ -1,0 +1,50 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "title": "Bitrate Schema",
+  "type": "object",
+  "properties": {
+    "bitrates": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "properties": {
+          "modulation": { "type": "string" },
+          "slots": {
+            "type": "array",
+            "items": {
+              "type": "object",
+              "properties": {
+                "gigabits": { "type": "string" },
+                "slots": { "type": "integer" }
+              },
+              "required": ["gigabits", "slots"]
+            }
+          },
+          "reach": {
+            "type": "array",
+            "items": {
+              "type": "object",
+              "properties": {
+                "number_of_bands": { "type": "integer" },
+                "reach": {
+                  "type": "array",
+                  "items": {
+                    "type": "object",
+                    "properties": {
+                      "band": { "type": "string" },
+                      "reach": { "type": "integer" }
+                    },
+                    "required": ["band", "reach"]
+                  }
+                }
+              },
+              "required": ["number_of_bands", "reach"]
+            }
+          }
+        },
+        "required": ["modulation", "slots", "reach"]
+      }
+    }
+  },
+  "required": ["bitrates"]
+}

@@ -1,0 +1,28 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "title": "Routes Schema",
+  "type": "object",
+  "properties": {
+    "alias": { "type": "string" },
+    "name": { "type": "string" },
+    "routes": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "properties": {
+          "src": { "type": "integer" },
+          "dst": { "type": "integer" },
+          "paths": {
+            "type": "array",
+            "items": {
+              "type": "array",
+              "items": { "type": "integer" }
+            }
+          }
+        },
+        "required": ["src", "dst", "paths"]
+      }
+    }
+  },
+  "required": ["alias", "name", "routes"]
+}

@@ -1,0 +1,19 @@
+{
+  "bitrates": [
+    {
+      "modulation": "BPSK",
+      "slots": [
+        { "gigabits": "100", "slots": 5 },
+        { "gigabits": "400", "slots": 18 }
+      ],
+      "reach": [
+        {
+          "number_of_bands": 1,
+          "reach": [
+            { "band": "C", "reach": 19900 }
+          ]
+        }
+      ]
+    }
+  ]
+}

@@ -1,0 +1,17 @@
+{
+  "alias": "GeneralNetwork",
+  "name": "General Network",
+  "nodes": [
+    { "id": 0 },
+    { "id": 1 },
+    { "id": 2 }
+  ],
+  "links": [
+    { "id": 0, "src": 0, "dst": 1, "length": 100 },
+    { "id": 1, "src": 1, "dst": 0, "length": 100 },
+    { "id": 2, "src": 1, "dst": 2, "length": 100 },
+    { "id": 3, "src": 2, "dst": 1, "length": 100 },
+    { "id": 4, "src": 0, "dst": 2, "length": 150 },
+    { "id": 5, "src": 2, "dst": 0, "length": 150 }
+  ]
+}

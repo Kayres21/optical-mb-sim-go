@@ -1,0 +1,21 @@
+{
+  "alias": "GeneralRoutes",
+  "name": "General Routes",
+  "routes": [
+    {
+      "src": 0,
+      "dst": 1,
+      "paths": [[0, 1], [0, 2, 1]]
+    },
+    {
+      "src": 0,
+      "dst": 2,
+      "paths": [[0, 2], [0, 1, 2]]
+    },
+    {
+      "src": 1,
+      "dst": 2,
+      "paths": [[1, 2], [1, 0, 2]]
+    }
+  ]
+}

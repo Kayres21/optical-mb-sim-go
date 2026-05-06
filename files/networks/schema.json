@@ -1,0 +1,33 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "title": "Network Schema",
+  "type": "object",
+  "properties": {
+    "alias": { "type": "string" },
+    "name": { "type": "string" },
+    "nodes": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "properties": {
+          "id": { "type": "integer" }
+        },
+        "required": ["id"]
+      }
+    },
+    "links": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "properties": {
+          "id": { "type": "integer" },
+          "src": { "type": "integer" },
+          "dst": { "type": "integer" },
+          "length": { "type": "number" }
+        },
+        "required": ["id", "src", "dst", "length"]
+      }
+    }
+  },
+  "required": ["alias", "name", "nodes", "links"]
+}
