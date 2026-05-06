@@ -43,12 +43,7 @@ func main() {
 	}
 }
 
-// 1 banda lambda 50 mu 1: 0.691100 00:03:12 1e7
-// 2 banda lambda 50 mu 1: 0.518561 00:07:18 1e7
-// 3 banda lambda 50 mu 1: 0.387534 00:28:43 1e7
-// 4 banda lambda 50 mu 1: 0.289309 00:33:41 1e7
-
-// 1 banda lambda 50 mu 1: 0.690986 00:40:19 1e8
-// 2 banda lambda 50 mu 1: 0.518540 01:05:49 1e8
-// 3 banda lambda 50 mu 1: 0.387696 04:19:01 1e8
-// 4 banda lambda 50 mu 1:  1e8
+// 1 banda lambda 50 mu 1: 0.690986 00:04:02 1e8
+// 2 banda lambda 50 mu 1: 0.518540 00:06:22 1e8
+// 3 banda lambda 50 mu 1: 0.387696 00:08:42 1e8
+// 4 banda lambda 50 mu 1: 0.289625 00:09:46 1e8
