@@ -3,7 +3,9 @@ package infrastructure
 import (
 	"encoding/json"
 	"fmt"
-	"os"
+	"path/filepath"
+
+	"github.com/Kayres21/optical-mb-sim-go/pkg/validator"
 )
 
 type Capacity struct {
@@ -18,9 +20,10 @@ type Band struct {
 }
 
 func ReadCapacityFile(capacityPath string) (Capacity, error) {
-	dataBytes, err := os.ReadFile(capacityPath)
+	schemaPath := filepath.Join(filepath.Dir(capacityPath), "schema.json")
+	dataBytes, err := validator.ValidateFile(capacityPath, schemaPath)
 	if err != nil {
-		return Capacity{}, fmt.Errorf("reading capacity file %q: %w", capacityPath, err)
+		return Capacity{}, fmt.Errorf("validating capacity file: %w", err)
 	}
 
 	var capacities Capacity

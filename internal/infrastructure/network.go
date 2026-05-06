@@ -3,7 +3,9 @@ package infrastructure
 import (
 	"encoding/json"
 	"fmt"
-	"os"
+	"path/filepath"
+
+	"github.com/Kayres21/optical-mb-sim-go/pkg/validator"
 )
 
 type Network struct {
@@ -14,9 +16,10 @@ type Network struct {
 }
 
 func ReadNetworkFile(networkPath string) (Network, error) {
-	data, err := os.ReadFile(networkPath)
+	schemaPath := filepath.Join(filepath.Dir(networkPath), "schema.json")
+	data, err := validator.ValidateFile(networkPath, schemaPath)
 	if err != nil {
-		return Network{}, fmt.Errorf("reading network file %q: %w", networkPath, err)
+		return Network{}, fmt.Errorf("validating network file: %w", err)
 	}
 
 	var network Network
