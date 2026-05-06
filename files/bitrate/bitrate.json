@@ -25,10 +25,10 @@
                     "slots": 44
                 }
             ],
-            "reach": [
+            "reachs": [
                 {
                     "number_of_bands": 1,
-                    "reach": [
+                    "reachs_per_band": [
                         {
                             "band": "C",
                             "reach": 19900
@@ -37,7 +37,7 @@
                 },
                 {
                     "number_of_bands": 2,
-                    "reach": [
+                    "reachs_per_band": [
                         {
                             "band": "C",
                             "reach": 19700
@@ -50,7 +50,7 @@
                 },
                 {
                     "number_of_bands": 3,
-                    "reach": [
+                    "reachs_per_band": [
                         {
                             "band": "C",
                             "reach": 17400
@@ -67,7 +67,7 @@
                 },
                 {
                     "number_of_bands": 4,
-                    "reach": [
+                    "reachs_per_band": [
                         {
                             "band": "C",
                             "reach": 13000
@@ -112,10 +112,10 @@
                     "slots": 22
                 }
             ],
-            "reach": [
+            "reachs": [
                 {
                     "number_of_bands": 1,
-                    "reach": [
+                    "reachs_per_band": [
                         {
                             "band": "C",
                             "reach": 9900
@@ -124,7 +124,7 @@
                 },
                 {
                     "number_of_bands": 2,
-                    "reach": [
+                    "reachs_per_band": [
                         {
                             "band": "C",
                             "reach": 9900
@@ -137,7 +137,7 @@
                 },
                 {
                     "number_of_bands": 3,
-                    "reach": [
+                    "reachs_per_band": [
                         {
                             "band": "C",
                             "reach": 8700
@@ -154,7 +154,7 @@
                 },
                 {
                     "number_of_bands": 4,
-                    "reach": [
+                    "reachs_per_band": [
                         {
                             "band": "C",
                             "reach": 6500
@@ -199,10 +199,10 @@
                     "slots": 15
                 }
             ],
-            "reach": [
+            "reachs": [
                 {
                     "number_of_bands": 1,
-                    "reach": [
+                    "reachs_per_band": [
                         {
                             "band": "C",
                             "reach": 5400
@@ -211,7 +211,7 @@
                 },
                 {
                     "number_of_bands": 2,
-                    "reach": [
+                    "reachs_per_band": [
                         {
                             "band": "C",
                             "reach": 5400
@@ -224,7 +224,7 @@
                 },
                 {
                     "number_of_bands": 3,
-                    "reach": [
+                    "reachs_per_band": [
                         {
                             "band": "C",
                             "reach": 4700
@@ -241,7 +241,7 @@
                 },
                 {
                     "number_of_bands": 4,
-                    "reach": [
+                    "reachs_per_band": [
                         {
                             "band": "C",
                             "reach": 3500
@@ -286,10 +286,10 @@
                     "slots": 11
                 }
             ],
-            "reach": [
+            "reachs": [
                 {
                     "number_of_bands": 1,
-                    "reach": [
+                    "reachs_per_band": [
                         {
                             "band": "C",
                             "reach": 2700
@@ -298,7 +298,7 @@
                 },
                 {
                     "number_of_bands": 2,
-                    "reach": [
+                    "reachs_per_band": [
                         {
                             "band": "C",
                             "reach": 1400
@@ -311,7 +311,7 @@
                 },
                 {
                     "number_of_bands": 3,
-                    "reach": [
+                    "reachs_per_band": [
                         {
                             "band": "C",
                             "reach": 2300
@@ -328,7 +328,7 @@
                 },
                 {
                     "number_of_bands": 4,
-                    "reach": [
+                    "reachs_per_band": [
                         {
                             "band": "C",
                             "reach": 1700

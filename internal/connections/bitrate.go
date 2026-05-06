@@ -13,7 +13,7 @@ type BitRateList struct {
 type BitRate struct {
 	Modulation string  `json:"modulation"`
 	Slots      []Slots `json:"slots"`
-	Reachs     []Reach `json:"reach"`
+	Reachs     []Reach `json:"reachs"`
 }
 
 type Slots struct {
@@ -23,7 +23,7 @@ type Slots struct {
 
 type Reach struct {
 	NumberOfBands int            `json:"number_of_bands"`
-	Reach         []ReachPerBand `json:"reach"`
+	Reach         []ReachPerBand `json:"reachs_per_band"`
 }
 
 type ReachPerBand struct {

@@ -6,10 +6,10 @@
         { "gigabits": "100", "slots": 5 },
         { "gigabits": "400", "slots": 18 }
       ],
-      "reach": [
+      "reachs": [
         {
           "number_of_bands": 1,
-          "reach": [
+          "reachs_per_band": [
             { "band": "C", "reach": 19900 }
           ]
         }

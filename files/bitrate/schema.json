@@ -20,13 +20,13 @@
               "required": ["gigabits", "slots"]
             }
           },
-          "reach": {
+          "reachs": {
             "type": "array",
             "items": {
               "type": "object",
               "properties": {
                 "number_of_bands": { "type": "integer" },
-                "reach": {
+                "reachs_per_band": {
                   "type": "array",
                   "items": {
                     "type": "object",
@@ -38,11 +38,11 @@
                   }
                 }
               },
-              "required": ["number_of_bands", "reach"]
+              "required": ["number_of_bands", "reachs_per_band"]
             }
           }
         },
-        "required": ["modulation", "slots", "reach"]
+        "required": ["modulation", "slots", "reachs"]
       }
     }
   },
