@@ -11,8 +11,8 @@ This simulator is a performance evaluation tool for optical multiband networks, 
 
 1. Clone the repository:
    ```bash
-   git clone <repository-url>
-   cd simulador
+   git clone https://github.com/Kayres21/optical-mb-sim-go.git
+   cd optical-mb-sim-go
    ```
 
 2. Install dependencies:
