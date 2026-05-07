@@ -13,9 +13,14 @@ func FirstFit(source int, destination int, slot int, network infrastructure.Netw
 
 	links := network.GetLinkByPath(pathSelected)
 
+	if len(links) == 0 {
+		return false, connections.Connection{}
+	}
+
 	for band := range numberOfBands {
 
 		bandCapacity := links[0].GetSlotsByBand(band)
+
 		capacityTotal := make([]bool, len(bandCapacity))
 
 		for _, link := range links {
