@@ -97,12 +97,12 @@ func (s *Simulator) addArrive(arrive float64) {
 	s.arrives = append(s.arrives, arrive)
 }
 
-func (s *Simulator) printBlockingTable(i int, logOn bool) {
+func (s *Simulator) printBlockingTable(logOn bool) {
 	if !logOn {
 		return
 	}
 
-	if i == 0 {
+	if s.totalConnections == 0 {
 		fmt.Println("+----------+----------+----------+----------+")
 		fmt.Println("| progress |  arrives | blocking |  time(s) |")
 		fmt.Println("+----------+----------+----------+----------+")
@@ -114,9 +114,9 @@ func (s *Simulator) printBlockingTable(i int, logOn bool) {
 		step = 1
 	}
 
-	if i%int(step) == 0 {
+	if s.totalConnections%int(step) == 0 {
 		blockingProbability := helpers.ComputeBlockingProbabilities(s.assignedConnections, s.totalConnections)
-		progress := (float64(i) / float64(s.GoalConnections)) * 100
+		progress := (float64(s.totalConnections) / float64(s.GoalConnections)) * 100
 		elapsed := time.Since(s.startTime)
 		timeFormatted := fmt.Sprintf("%02d:%02d:%02d",
 			int(elapsed.Hours()),
@@ -124,10 +124,10 @@ func (s *Simulator) printBlockingTable(i int, logOn bool) {
 			int(elapsed.Seconds())%60,
 		)
 
-		fmt.Printf("|%8.1f %%|%10d|%10.6f|%10s|\n", progress, i, blockingProbability, timeFormatted)
+		fmt.Printf("|%8.1f %%|%10d|%10.6f|%10s|\n", progress, s.totalConnections, blockingProbability, timeFormatted)
 		fmt.Println("+----------+----------+----------+----------+")
 		s.addResult(blockingProbability)
-		s.addArrive(float64(i))
+		s.addArrive(float64(s.totalConnections))
 	}
 }
 
@@ -236,15 +236,16 @@ func (s *Simulator) Start(logOn bool) {
 	countRelease := 0
 
 	fmt.Println("Starting simulation...")
+	s.printBlockingTable(logOn) // Print header
 
-	for i := 0; i <= int(s.GoalConnections); i++ {
+	for s.totalConnections < int(s.GoalConnections) {
 		event := s.popEvent()
+		s.Time = event.Time
 		rv := s.RandomVariable
-
-		s.printBlockingTable(i, logOn)
 
 		if event.Event == connections.ConnectionEventTypeArrive {
 			s.totalConnections++
+			s.printBlockingTable(logOn)
 
 			// Schedule the next arrival for this traffic stream.
 			nextArrive := connections.ConnectionEvent{
@@ -259,8 +260,9 @@ func (s *Simulator) Start(logOn bool) {
 			}
 			s.pushEvent(nextArrive)
 
-			slot := s.getSlotsByGigabits(s.BitRateList.BitRates[event.Bitrate], event.GigabitsSelected)
-			assigned, con := s.Controller.ConnectionAllocation(event.Source, event.Destination, slot, s.NumberOfBands, strconv.Itoa(i))
+			selectedBitrate := s.BitRateList.BitRates[event.Bitrate]
+			slot := s.getSlotsByGigabits(selectedBitrate, event.GigabitsSelected)
+			assigned, con := s.Controller.ConnectionAllocation(event.Source, event.Destination, slot, s.NumberOfBands, strconv.Itoa(s.totalConnections))
 
 			if assigned {
 				s.Controller.AddConnection(con)
@@ -274,7 +276,7 @@ func (s *Simulator) Start(logOn bool) {
 					GigabitsSelected:     event.GigabitsSelected,
 					Event:                connections.ConnectionEventTypeRelease,
 					Time:                 event.Time + rv.GetNetValueExponential(randomvariable.KeyDeparture),
-					ConnectionAssignedId: strconv.Itoa(i),
+					ConnectionAssignedId: strconv.Itoa(s.totalConnections),
 				}
 				s.pushEvent(departure)
 			}
