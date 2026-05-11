@@ -20,8 +20,9 @@ type BitRate struct {
 }
 
 type Slots struct {
-	Gigabits string `json:"gigabits"`
-	Slots    int    `json:"slots"`
+	Gigabits     string         `json:"gigabits"`
+	Slots        int            `json:"slots"`
+	SlotsPerBand map[string]int `json:"slots_per_band,omitempty"`
 }
 
 type Reach struct {

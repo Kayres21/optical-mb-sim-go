@@ -79,14 +79,14 @@ func (s *Simulator) popEvent() connections.ConnectionEvent {
 	return heap.Pop(&s.events).(connections.ConnectionEvent)
 }
 
-func (s *Simulator) getSlotsByGigabits(bitrate connections.BitRate, gigabits int) int {
+func (s *Simulator) getSlotsByGigabits(bitrate connections.BitRate, gigabits int) connections.Slots {
 	key := fmt.Sprint(gigabits)
 	for _, slot := range bitrate.Slots {
 		if slot.Gigabits == key {
-			return slot.Slots
+			return slot
 		}
 	}
-	return 0
+	return connections.Slots{}
 }
 
 func (s *Simulator) addResult(result float64) {
@@ -158,23 +158,13 @@ func (s *Simulator) initConnectionEvents() {
 	heap.Init(&s.events)
 }
 
-func (s *Simulator) initNetwork(networkPath, capacitiesPath string) error {
-	network, err := infrastructure.NetworkGenerate(networkPath, capacitiesPath)
-	if err != nil {
-		return fmt.Errorf("initializing network: %w", err)
-	}
+func (s *Simulator) initNetwork(network infrastructure.Network) {
 	fmt.Println("Network Name:", network.Name)
 	s.Network = network
-	return nil
 }
 
-func (s *Simulator) initBitRate(bitRatePath string) error {
-	bitRate, err := connections.ReadBitRateFile(bitRatePath)
-	if err != nil {
-		return fmt.Errorf("initializing bitrates: %w", err)
-	}
+func (s *Simulator) initBitRate(bitRate connections.BitRateList) {
 	s.BitRateList = bitRate
-	return nil
 }
 
 func (s *Simulator) initVariableNumbers(numberOfBands int) {
@@ -197,7 +187,9 @@ func (s *Simulator) initVariableNumbers(numberOfBands int) {
 // New constructs and initialises a Simulator. Returns an error if any
 // resource file cannot be loaded or the controller cannot be created.
 func New(
-	networkPath, routesPath, capacitiesPath, bitRatePath string,
+	network infrastructure.Network,
+	bitRate connections.BitRateList,
+	routes connections.Routes,
 	lambda, mu int,
 	goalConnections float64,
 	alloc allocator.Allocator,
@@ -205,13 +197,8 @@ func New(
 ) (*Simulator, error) {
 	s := &Simulator{}
 
-	if err := s.initNetwork(networkPath, capacitiesPath); err != nil {
-		return nil, err
-	}
-
-	if err := s.initBitRate(bitRatePath); err != nil {
-		return nil, err
-	}
+	s.initNetwork(network)
+	s.initBitRate(bitRate)
 
 	s.initVariableNumbers(numberOfBands)
 	s.initRandomVariable(lambda, mu)
@@ -221,9 +208,11 @@ func New(
 
 	s.initConnectionEvents()
 
-	con, err := controller.New(routesPath, s.Network, alloc)
-	if err != nil {
-		return nil, fmt.Errorf("initializing controller: %w", err)
+	con := controller.Controller{
+		Routes:      routes,
+		Connections: make(map[string]connections.Connection),
+		Network:     s.Network,
+		Allocator:   alloc,
 	}
 	s.Controller = con
 
@@ -261,8 +250,17 @@ func (s *Simulator) Start(logOn bool) {
 			s.pushEvent(nextArrive)
 
 			selectedBitrate := s.BitRateList.BitRates[event.Bitrate]
-			slot := s.getSlotsByGigabits(selectedBitrate, event.GigabitsSelected)
-			assigned, con := s.Controller.ConnectionAllocation(event.Source, event.Destination, slot, s.NumberOfBands, strconv.Itoa(s.totalConnections))
+			slotsConfig := s.getSlotsByGigabits(selectedBitrate, event.GigabitsSelected)
+
+			getSlot := func(bandIndex int) int {
+				band := s.Network.Links[0].Capacities.Bands[bandIndex]
+				if sVal, ok := slotsConfig.SlotsPerBand[band.Name]; ok {
+					return sVal
+				}
+				return slotsConfig.Slots
+			}
+
+			assigned, con := s.Controller.ConnectionAllocation(event.Source, event.Destination, getSlot, s.NumberOfBands, strconv.Itoa(s.totalConnections))
 
 			if assigned {
 				s.Controller.AddConnection(con)

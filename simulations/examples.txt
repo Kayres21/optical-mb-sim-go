@@ -1,0 +1,48 @@
+make run LEGACY=true \
+  NETWORK=legacy_files/networks/NSFNet.json \
+  ROUTES=legacy_files/routes/NSFNet_routes.json \
+  BITRATE=legacy_files/bitrates/bitrate.json \
+  LAMBDA=50 \
+  MU=1 \
+  BANDS=1
+
+
+make run LEGACY=true \
+  NETWORK=legacy_files/networks/UKNet.json \
+  ROUTES=legacy_files/routes/UKNet_routes.json \
+  BITRATE=legacy_files/bitrates/bitrate.json \
+  BANDS=1
+
+make run LEGACY=false \
+  BITRATE=files/bitrate/bitrate_legacy.json \
+  CAPACITIES=files/capacities/capacities_legacy.json \
+  BANDS=1
+
+make run LEGACY=true \
+  NETWORK=legacy_files/networks/NSFNet.json \
+  ROUTES=legacy_files/routes/NSFNet_routes.json \
+  BITRATE=legacy_files/bitrates/bitrate.json \
+  LAMBDA=1 \
+  MU=50 \
+  BANDS=1
+
+make run LEGACY=true \
+  NETWORK=legacy_files/networks/ARPANet.json \
+  ROUTES=legacy_files/routes/ARPANet_routes.json \
+  BITRATE=legacy_files/bitrates/bitrate.json \
+  BANDS=1
+
+make run LEGACY=true \
+  NETWORK=legacy_files/networks/EON.json \
+  ROUTES=legacy_files/routes/EON_routes.json \
+  BITRATE=legacy_files/bitrates/bitrate.json \
+  BANDS=1
+
+make run LEGACY=true \
+  NETWORK=legacy_files/networks/NSFNet_mb.json \
+  ROUTES=legacy_files/routes/NSFNet_routes.json \
+  BITRATE=legacy_files/bitrates/bitrate_mb.json \
+  BANDS=4
+
+make run LEGACY=false \
+  BANDS=4

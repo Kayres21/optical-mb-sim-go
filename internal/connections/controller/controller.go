@@ -54,6 +54,6 @@ func (c *Controller) ReleaseConnection(connectionId string) error {
 
 // ConnectionAllocation delegates to the configured Allocator using the
 // controller's own Network and Routes — callers no longer need to pass them in.
-func (c *Controller) ConnectionAllocation(source, destination, slot, numberOfBands int, id string) (bool, connections.Connection) {
-	return c.Allocator(source, destination, slot, c.Network, c.Routes, numberOfBands, id)
+func (c *Controller) ConnectionAllocation(source, destination int, getSlot func(band int) int, numberOfBands int, id string) (bool, connections.Connection) {
+	return c.Allocator(source, destination, getSlot, c.Network, c.Routes, numberOfBands, id)
 }

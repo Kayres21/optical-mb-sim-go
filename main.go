@@ -7,6 +7,7 @@ import (
 	"strconv"
 
 	"github.com/Kayres21/optical-mb-sim-go/internal/allocator"
+	"github.com/Kayres21/optical-mb-sim-go/internal/loader"
 	"github.com/Kayres21/optical-mb-sim-go/internal/simulator"
 )
 
@@ -20,10 +21,33 @@ func main() {
 	numberOfBands := flag.Int("bands", 1, "Number of frequency bands (1–4)")
 	goalConns := flag.Float64("goal", 1e8, "Number of connection requests to simulate")
 	logsOn := flag.Bool("logs", true, "Enable progress logging")
+	legacyOn := flag.Bool("legacy", false, "Use legacy file formats")
 	flag.Parse()
 
+	var resLoader loader.ResourceLoader
+	if *legacyOn {
+		resLoader = &loader.LegacyLoader{}
+	} else {
+		resLoader = &loader.StandardLoader{}
+	}
+
+	network, err := resLoader.LoadNetwork(*networkPath, *capacitiesPath)
+	if err != nil {
+		log.Fatalf("Failed to load network: %v", err)
+	}
+
+	bitRate, err := resLoader.LoadBitRate(*bitRatePath)
+	if err != nil {
+		log.Fatalf("Failed to load bitrate: %v", err)
+	}
+
+	routes, err := resLoader.LoadRoutes(*routesPath)
+	if err != nil {
+		log.Fatalf("Failed to load routes: %v", err)
+	}
+
 	sim, err := simulator.New(
-		*networkPath, *routesPath, *capacitiesPath, *bitRatePath,
+		network, bitRate, routes,
 		*lambda, *mu, *goalConns,
 		allocator.FirstFit,
 		*numberOfBands,
@@ -34,7 +58,8 @@ func main() {
 
 	sim.Start(*logsOn)
 
-	title := fmt.Sprintf("FirstFit_UKNet-erlang-%s_%s",
+	title := fmt.Sprintf("FirstFit_%s-erlang-%s_%s",
+		network.Alias,
 		strconv.Itoa(*lambda),
 		strconv.Itoa(*numberOfBands),
 	)
@@ -43,7 +68,7 @@ func main() {
 	}
 }
 
-// 1 banda lambda 50 mu 1: 0.690986 00:04:02 1e8
-// 2 banda lambda 50 mu 1: 0.518540 00:06:22 1e8
-// 3 banda lambda 50 mu 1: 0.387696 00:08:42 1e8
-// 4 banda lambda 50 mu 1: 0.289625 00:09:46 1e8
+// 1 banda lambda 50 mu 1: 0.690987 00:04:02 1e8
+// 2 banda lambda 50 mu 1: 0.518572 00:07:09 1e8
+// 3 banda lambda 50 mu 1: 0.387643 00:10:18 1e8
+// 4 banda lambda 50 mu 1: 0.289645 00:15:34 1e8

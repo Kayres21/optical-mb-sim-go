@@ -13,6 +13,7 @@ MU         ?= 1
 BANDS      ?= 1
 GOAL       ?= 1e8
 LOGS       ?= true
+LEGACY     ?= false
 
 all: test build
 
@@ -30,14 +31,15 @@ build: clean
 	@go build -o $(BIN_DIR)/$(APP_NAME) .
 
 run: build
-	@echo "Running $(APP_NAME) (λ=$(LAMBDA) μ=$(MU) bands=$(BANDS) goal=$(GOAL))..."
+	@echo "Running $(APP_NAME) (λ=$(LAMBDA) μ=$(MU) bands=$(BANDS) goal=$(GOAL) legacy=$(LEGACY))..."
 	@./$(BIN_DIR)/$(APP_NAME) \
-		-network    "$(NETWORK)"    \
-		-routes     "$(ROUTES)"     \
-		-capacities "$(CAPACITIES)" \
-		-bitrate    "$(BITRATE)"    \
-		-lambda     $(LAMBDA)       \
-		-mu         $(MU)           \
-		-bands      $(BANDS)        \
-		-goal       $(GOAL)         \
-		-logs       $(LOGS)
+		-network="$(NETWORK)" \
+		-routes="$(ROUTES)" \
+		-capacities="$(CAPACITIES)" \
+		-bitrate="$(BITRATE)" \
+		-lambda=$(LAMBDA) \
+		-mu=$(MU) \
+		-bands=$(BANDS) \
+		-goal=$(GOAL) \
+		-logs=$(LOGS) \
+		-legacy=$(LEGACY)

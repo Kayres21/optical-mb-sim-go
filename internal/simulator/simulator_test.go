@@ -52,16 +52,16 @@ func TestSimulator_getSlotsByGigabits(t *testing.T) {
 		},
 	}
 
-	if slots := s.getSlotsByGigabits(br, 100); slots != 2 {
-		t.Errorf("expected 2 slots, got %d", slots)
+	if slot := s.getSlotsByGigabits(br, 100); slot.Slots != 2 {
+		t.Errorf("expected 2 slots, got %d", slot.Slots)
 	}
 
-	if slots := s.getSlotsByGigabits(br, 200); slots != 4 {
-		t.Errorf("expected 4 slots, got %d", slots)
+	if slot := s.getSlotsByGigabits(br, 200); slot.Slots != 4 {
+		t.Errorf("expected 4 slots, got %d", slot.Slots)
 	}
 
-	if slots := s.getSlotsByGigabits(br, 300); slots != 0 {
-		t.Errorf("expected 0 slots for unknown gigabits, got %d", slots)
+	if slot := s.getSlotsByGigabits(br, 300); slot.Slots != 0 {
+		t.Errorf("expected 0 slots for unknown gigabits, got %d", slot.Slots)
 	}
 }
 
