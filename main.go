@@ -16,12 +16,13 @@ func main() {
 	routesPath := flag.String("routes", "files/routes/UKNet_routes.json", "Path to routes JSON file")
 	capacitiesPath := flag.String("capacities", "files/capacities/capacities.json", "Path to capacities JSON file")
 	bitRatePath := flag.String("bitrate", "files/bitrate/bitrate.json", "Path to bitrate JSON file")
-	lambda := flag.Int("lambda", 50, "Arrival rate λ")
-	mu := flag.Int("mu", 1, "Service rate μ")
+	lambda := flag.Float64("lambda", 50, "Arrival rate λ")
+	mu := flag.Float64("mu", 1, "Service rate μ")
 	numberOfBands := flag.Int("bands", 1, "Number of frequency bands (1–4)")
 	goalConns := flag.Float64("goal", 1e8, "Number of connection requests to simulate")
 	logsOn := flag.Bool("logs", true, "Enable progress logging")
 	legacyOn := flag.Bool("legacy", false, "Use legacy file formats")
+	mode := flag.String("mode", string(simulator.ModeFinite), "Simulation mode: 'finite' (default) or 'infinite'")
 	flag.Parse()
 
 	var resLoader loader.ResourceLoader
@@ -51,6 +52,7 @@ func main() {
 		*lambda, *mu, *goalConns,
 		allocator.FirstFit,
 		*numberOfBands,
+		simulator.SimulationMode(*mode),
 	)
 	if err != nil {
 		log.Fatalf("Failed to initialise simulator: %v", err)
@@ -60,7 +62,7 @@ func main() {
 
 	title := fmt.Sprintf("FirstFit_%s-erlang-%s_%s",
 		network.Alias,
-		strconv.Itoa(*lambda),
+		fmt.Sprintf("%.1f", *lambda),
 		strconv.Itoa(*numberOfBands),
 	)
 	if err := sim.Plot(title, "Número de conexiones", "Probabilidad de bloqueo"); err != nil {

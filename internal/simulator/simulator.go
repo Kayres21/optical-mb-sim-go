@@ -16,6 +16,13 @@ import (
 	"github.com/Kayres21/optical-mb-sim-go/pkg/plotter"
 )
 
+type SimulationMode string
+
+const (
+	ModeFinite   SimulationMode = "finite"
+	ModeInfinite SimulationMode = "infinite"
+)
+
 // Default seeds for reproducible simulation runs.
 const (
 	defaultSeedArrive      int64 = 1
@@ -62,6 +69,7 @@ type Simulator struct {
 	NumberOfBitrates int
 	NumberOfNodes    int
 	NumberOfGigabits int
+	Mode             SimulationMode
 
 	events              eventHeap
 	assignedConnections int
@@ -131,10 +139,18 @@ func (s *Simulator) printBlockingTable(logOn bool) {
 	}
 }
 
-func (s *Simulator) initRandomVariable(lambda, mu int) {
+func (s *Simulator) initRandomVariable(lambda, mu float64) {
 	var rv randomvariable.RandomVariable
+	effectiveLambda := lambda
+	if s.Mode == ModeFinite {
+		numPairs := s.NumberOfNodes * (s.NumberOfNodes - 1)
+		if numPairs > 0 {
+			effectiveLambda = lambda / float64(numPairs)
+		}
+	}
+
 	rv.SetParameters(
-		lambda, mu,
+		effectiveLambda, mu,
 		s.NumberOfBitrates,
 		s.NumberOfNodes, s.NumberOfNodes,
 		s.NumberOfBands,
@@ -153,7 +169,14 @@ func (s *Simulator) initRandomVariable(lambda, mu int) {
 }
 
 func (s *Simulator) initConnectionEvents() {
-	raw := connections.GenerateEvents(s.NumberOfNodes, s.RandomVariable)
+	var raw []connections.ConnectionEvent
+	if s.Mode == ModeInfinite {
+		raw = []connections.ConnectionEvent{
+			s.createRandomArrival(0, "0"),
+		}
+	} else {
+		raw = connections.GenerateEvents(s.NumberOfNodes, s.RandomVariable)
+	}
 	s.events = eventHeap(raw)
 	heap.Init(&s.events)
 }
@@ -190,12 +213,15 @@ func New(
 	network infrastructure.Network,
 	bitRate connections.BitRateList,
 	routes connections.Routes,
-	lambda, mu int,
+	lambda, mu float64,
 	goalConnections float64,
 	alloc allocator.Allocator,
 	numberOfBands int,
+	mode SimulationMode,
 ) (*Simulator, error) {
-	s := &Simulator{}
+	s := &Simulator{
+		Mode: mode,
+	}
 
 	s.initNetwork(network)
 	s.initBitRate(bitRate)
@@ -221,6 +247,26 @@ func New(
 	return s, nil
 }
 
+func (s *Simulator) createRandomArrival(currentTime float64, id string) connections.ConnectionEvent {
+	rv := s.RandomVariable
+	source := rv.GetNetValueUniform(randomvariable.KeySource)
+	destination := rv.GetNetValueUniform(randomvariable.KeyDestination)
+	for source == destination {
+		destination = rv.GetNetValueUniform(randomvariable.KeyDestination)
+	}
+
+	return connections.ConnectionEvent{
+		Id:                   id,
+		Source:               source,
+		Destination:          destination,
+		Bitrate:              rv.GetNetValueUniform(randomvariable.KeyBitrate),
+		GigabitsSelected:     rv.GetNetValueUniform(randomvariable.KeyGigabits),
+		Event:                connections.ConnectionEventTypeArrive,
+		Time:                 currentTime + rv.GetNetValueExponential(randomvariable.KeyArrive),
+		ConnectionAssignedId: "",
+	}
+}
+
 func (s *Simulator) Start(logOn bool) {
 	countRelease := 0
 
@@ -236,16 +282,21 @@ func (s *Simulator) Start(logOn bool) {
 			s.totalConnections++
 			s.printBlockingTable(logOn)
 
-			// Schedule the next arrival for this traffic stream.
-			nextArrive := connections.ConnectionEvent{
-				Id:                   event.Id,
-				Source:               event.Source,
-				Destination:          event.Destination,
-				Bitrate:              event.Bitrate,
-				GigabitsSelected:     event.GigabitsSelected,
-				Event:                connections.ConnectionEventTypeArrive,
-				Time:                 event.Time + rv.GetNetValueExponential(randomvariable.KeyArrive),
-				ConnectionAssignedId: "",
+			// Schedule the next arrival.
+			var nextArrive connections.ConnectionEvent
+			if s.Mode == ModeInfinite {
+				nextArrive = s.createRandomArrival(event.Time, event.Id)
+			} else {
+				nextArrive = connections.ConnectionEvent{
+					Id:                   event.Id,
+					Source:               event.Source,
+					Destination:          event.Destination,
+					Bitrate:              event.Bitrate,
+					GigabitsSelected:     event.GigabitsSelected,
+					Event:                connections.ConnectionEventTypeArrive,
+					Time:                 event.Time + rv.GetNetValueExponential(randomvariable.KeyArrive),
+					ConnectionAssignedId: "",
+				}
 			}
 			s.pushEvent(nextArrive)
 
@@ -288,7 +339,7 @@ func (s *Simulator) Start(logOn bool) {
 		}
 	}
 
-	fmt.Printf("Simulation completed. Releases processed: %d\n", countRelease)
+	fmt.Printf("Simulation completed. Releases processed: %d, Total simulated time: %.2f\n", countRelease, s.Time)
 }
 
 func (s *Simulator) Plot(title, xLabel, yLabel string) error {

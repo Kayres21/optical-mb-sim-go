@@ -14,6 +14,7 @@ BANDS      ?= 1
 GOAL       ?= 1e8
 LOGS       ?= true
 LEGACY     ?= false
+MODE       ?= finite
 
 all: test build
 
@@ -42,4 +43,5 @@ run: build
 		-bands=$(BANDS) \
 		-goal=$(GOAL) \
 		-logs=$(LOGS) \
-		-legacy=$(LEGACY)
+		-legacy=$(LEGACY) \
+		-mode=$(MODE)

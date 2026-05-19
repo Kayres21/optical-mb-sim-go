@@ -1,0 +1,102 @@
+{
+    "10": [
+        {
+            "16QAM": {
+                "slots": 1,
+                "reach": 2700
+            },
+            "8QAM": {
+                "slots": 1,
+                "reach": 5400
+            },
+            "QPSK": {
+                "slots": 1,
+                "reach": 9900
+            },
+            "BPSK": {
+                "slots": 1,
+                "reach": 19900
+            }
+        }
+    ],
+    "40": [
+        {
+            "16QAM": {
+                "slots": 1,
+                "reach": 2700
+            },
+            "8QAM": {
+                "slots": 1,
+                "reach": 5400
+            },
+            "QPSK": {
+                "slots": 1,
+                "reach": 9900
+            },
+            "BPSK": {
+                "slots": 2,
+                "reach": 19900
+            }
+        }
+    ],
+    "100": [
+        {
+            "16QAM": {
+                "slots": 2,
+                "reach": 2700
+            },
+            "8QAM": {
+                "slots": 2,
+                "reach": 5400
+            },
+            "QPSK": {
+                "slots": 3,
+                "reach": 9900
+            },
+            "BPSK": {
+                "slots": 5,
+                "reach": 19900
+            }
+        }
+    ],
+    "400": [
+        {
+            "16QAM": {
+                "slots": 5,
+                "reach": 2700
+            },
+            "8QAM": {
+                "slots": 6,
+                "reach": 5400
+            },
+            "QPSK": {
+                "slots": 9,
+                "reach": 9900
+            },
+            "BPSK": {
+                "slots": 18,
+                "reach": 19900
+            }
+        }
+    ],
+    "1000": [
+        {
+            "16QAM": {
+                "slots": 11,
+                "reach": 2700
+            },
+            "8QAM": {
+                "slots": 15,
+                "reach": 5400
+            },
+            "QPSK": {
+                "slots": 22,
+                "reach": 9900
+            },
+            "BPSK": {
+                "slots": 44,
+                "reach": 19900
+            }
+        }
+    ]
+}
