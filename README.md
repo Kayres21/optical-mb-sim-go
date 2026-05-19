@@ -79,7 +79,6 @@ make test
     - `bitrates/`: Legacy bitrate configurations.
     - `networks/`: Legacy network configurations and capacity.
     - `routes/`: Legacy route configurations.
-
 - `result/`: Directory where generated plots and results are saved.
 - `bin/`: Compiled binaries.
 
