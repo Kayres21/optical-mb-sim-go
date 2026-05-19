@@ -1,6 +1,5 @@
 {
     "bitrates": [
-
         {
             "modulation": "BPSK",
             "slots": [
@@ -275,7 +274,7 @@
                 },
                 {
                     "gigabits": "100",
-                    "slots": 5
+                    "slots": 2
                 },
                 {
                     "gigabits": "400",

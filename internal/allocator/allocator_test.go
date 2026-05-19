@@ -35,7 +35,7 @@ func TestFirstFit_Success(t *testing.T) {
 	}
 	network := infrastructure.Network{Links: links}
 
-	allocated, conn := FirstFit(0, 1, 2, network, routes, 1, "test-id")
+	allocated, conn := FirstFit(0, 1, func(int) int { return 2 }, network, routes, 1, "test-id")
 
 	if !allocated {
 		t.Fatalf("expected allocation to succeed")
@@ -80,7 +80,7 @@ func TestFirstFit_FailNoCapacity(t *testing.T) {
 	}
 	network := infrastructure.Network{Links: links}
 
-	allocated, _ := FirstFit(0, 1, 2, network, routes, 1, "test-id")
+	allocated, _ := FirstFit(0, 1, func(int) int { return 2 }, network, routes, 1, "test-id")
 
 	if allocated {
 		t.Fatalf("expected allocation to fail due to lack of capacity")
@@ -113,7 +113,7 @@ func TestFirstFit_FailContiguity(t *testing.T) {
 	}
 	network := infrastructure.Network{Links: links}
 
-	allocated, _ := FirstFit(0, 1, 2, network, routes, 1, "test-id")
+	allocated, _ := FirstFit(0, 1, func(int) int { return 2 }, network, routes, 1, "test-id")
 
 	if allocated {
 		t.Fatalf("expected allocation to fail due to lack of contiguous capacity")

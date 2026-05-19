@@ -5,9 +5,9 @@ import (
 	"github.com/Kayres21/optical-mb-sim-go/internal/infrastructure"
 )
 
-type Allocator func(source, destination int, slot int, network infrastructure.Network, path connections.Routes, numberOfBands int, id string) (bool, connections.Connection)
+type Allocator func(source, destination int, getSlot func(band int) int, network infrastructure.Network, path connections.Routes, numberOfBands int, id string) (bool, connections.Connection)
 
-func FirstFit(source int, destination int, slot int, network infrastructure.Network, path connections.Routes, numberOfBands int, id string) (bool, connections.Connection) {
+func FirstFit(source int, destination int, getSlot func(band int) int, network infrastructure.Network, path connections.Routes, numberOfBands int, id string) (bool, connections.Connection) {
 
 	pathSelected := path.GetKshortestPath(0, source, destination)
 
@@ -35,6 +35,11 @@ func FirstFit(source int, destination int, slot int, network infrastructure.Netw
 			}
 		}
 
+		slotCount := getSlot(band)
+		if slotCount == 0 {
+			continue
+		}
+
 		continousSlots := 0
 		currentSlotIndex := 0
 
@@ -46,9 +51,9 @@ func FirstFit(source int, destination int, slot int, network infrastructure.Netw
 				currentSlotIndex = i + 1
 			}
 
-			if continousSlots == slot {
+			if continousSlots == slotCount {
 				for _, link := range links {
-					link.AssignConnection(currentSlotIndex, slot, band)
+					link.AssignConnection(currentSlotIndex, slotCount, band)
 				}
 
 				return true, connections.Connection{
@@ -56,9 +61,9 @@ func FirstFit(source int, destination int, slot int, network infrastructure.Netw
 					Source:       source,
 					Destination:  destination,
 					Links:        links,
-					Slots:        slot,
+					Slots:        slotCount,
 					InitialSlot:  currentSlotIndex,
-					FinalSlot:    currentSlotIndex + slot - 1,
+					FinalSlot:    currentSlotIndex + slotCount - 1,
 					BandSelected: band,
 					Allocated:    true,
 				}

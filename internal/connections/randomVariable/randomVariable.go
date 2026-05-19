@@ -37,7 +37,7 @@ type RandomVariable struct {
 }
 
 type ExponentialVariable struct {
-	Parameter int
+	Parameter float64
 	Rng       *rand.Rand
 }
 
@@ -56,7 +56,7 @@ func (rv *RandomVariable) SetSeeds(seedArrive, seedDeparture, seedBitrate, seedS
 	rv.GigabitsSelected.Rng = rand.New(rand.NewSource(seedGigabits))
 }
 
-func (rv *RandomVariable) SetParameters(lambda, mu, bitrateSelect, sourceNodeSelect, destinationNodeSelect, bandSelect, gigabits int) {
+func (rv *RandomVariable) SetParameters(lambda, mu float64, bitrateSelect, sourceNodeSelect, destinationNodeSelect, bandSelect, gigabits int) {
 	rv.Arrive.Parameter = lambda
 	rv.Departure.Parameter = mu
 	rv.BitrateSelect.Parameter = bitrateSelect

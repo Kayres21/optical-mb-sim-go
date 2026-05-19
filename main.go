@@ -7,6 +7,7 @@ import (
 	"strconv"
 
 	"github.com/Kayres21/optical-mb-sim-go/internal/allocator"
+	"github.com/Kayres21/optical-mb-sim-go/internal/loader"
 	"github.com/Kayres21/optical-mb-sim-go/internal/simulator"
 )
 
@@ -15,18 +16,43 @@ func main() {
 	routesPath := flag.String("routes", "files/routes/UKNet_routes.json", "Path to routes JSON file")
 	capacitiesPath := flag.String("capacities", "files/capacities/capacities.json", "Path to capacities JSON file")
 	bitRatePath := flag.String("bitrate", "files/bitrate/bitrate.json", "Path to bitrate JSON file")
-	lambda := flag.Int("lambda", 50, "Arrival rate λ")
-	mu := flag.Int("mu", 1, "Service rate μ")
+	lambda := flag.Float64("lambda", 50, "Arrival rate λ")
+	mu := flag.Float64("mu", 1, "Service rate μ")
 	numberOfBands := flag.Int("bands", 1, "Number of frequency bands (1–4)")
 	goalConns := flag.Float64("goal", 1e8, "Number of connection requests to simulate")
 	logsOn := flag.Bool("logs", true, "Enable progress logging")
+	legacyOn := flag.Bool("legacy", false, "Use legacy file formats")
+	mode := flag.String("mode", string(simulator.ModeFinite), "Simulation mode: 'finite' (default) or 'infinite'")
 	flag.Parse()
 
+	var resLoader loader.ResourceLoader
+	if *legacyOn {
+		resLoader = &loader.LegacyLoader{}
+	} else {
+		resLoader = &loader.StandardLoader{}
+	}
+
+	network, err := resLoader.LoadNetwork(*networkPath, *capacitiesPath)
+	if err != nil {
+		log.Fatalf("Failed to load network: %v", err)
+	}
+
+	bitRate, err := resLoader.LoadBitRate(*bitRatePath)
+	if err != nil {
+		log.Fatalf("Failed to load bitrate: %v", err)
+	}
+
+	routes, err := resLoader.LoadRoutes(*routesPath)
+	if err != nil {
+		log.Fatalf("Failed to load routes: %v", err)
+	}
+
 	sim, err := simulator.New(
-		*networkPath, *routesPath, *capacitiesPath, *bitRatePath,
+		network, bitRate, routes,
 		*lambda, *mu, *goalConns,
 		allocator.FirstFit,
 		*numberOfBands,
+		simulator.SimulationMode(*mode),
 	)
 	if err != nil {
 		log.Fatalf("Failed to initialise simulator: %v", err)
@@ -34,8 +60,9 @@ func main() {
 
 	sim.Start(*logsOn)
 
-	title := fmt.Sprintf("FirstFit_UKNet-erlang-%s_%s",
-		strconv.Itoa(*lambda),
+	title := fmt.Sprintf("FirstFit_%s-erlang-%s_%s",
+		network.Alias,
+		fmt.Sprintf("%.1f", *lambda),
 		strconv.Itoa(*numberOfBands),
 	)
 	if err := sim.Plot(title, "Número de conexiones", "Probabilidad de bloqueo"); err != nil {
@@ -43,7 +70,7 @@ func main() {
 	}
 }
 
-// 1 banda lambda 50 mu 1: 0.690986 00:04:02 1e8
-// 2 banda lambda 50 mu 1: 0.518540 00:06:22 1e8
-// 3 banda lambda 50 mu 1: 0.387696 00:08:42 1e8
-// 4 banda lambda 50 mu 1: 0.289625 00:09:46 1e8
+// 1 banda lambda 50 mu 1: 0.690987 00:04:02 1e8
+// 2 banda lambda 50 mu 1: 0.518572 00:07:09 1e8
+// 3 banda lambda 50 mu 1: 0.387643 00:10:18 1e8
+// 4 banda lambda 50 mu 1: 0.289645 00:15:34 1e8

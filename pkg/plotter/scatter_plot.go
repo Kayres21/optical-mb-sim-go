@@ -122,6 +122,41 @@ func GenerateLinePlot(xData, yData []float64, title, xLabel, yLabel string, cfg 
 	return nil
 }
 
+// GenerateHistogram produces a polished histogram plot and saves it as PNG.
+func GenerateHistogram(data []float64, bins int, title, xLabel, yLabel string) error {
+	if len(data) == 0 {
+		return fmt.Errorf("no data points to plot")
+	}
+
+	p := gplot.New()
+	p.Title.Text = title
+	p.X.Label.Text = xLabel
+	p.Y.Label.Text = yLabel
+
+	// Create a histogram of our values.
+	v := make(plotter.Values, len(data))
+	copy(v, data)
+
+	h, err := plotter.NewHist(v, bins)
+	if err != nil {
+		return fmt.Errorf("creating histogram: %w", err)
+	}
+	h.Color = color.RGBA{R: 30, G: 120, B: 255, A: 255}
+	p.Add(h)
+
+	// Save the plot.
+	timestamp := time.Now().Format("20060102_150405")
+	filename := fmt.Sprintf("%s_%s.png", title, timestamp)
+	filePath := filepath.Join(defaultConfig.OutputDir, filename)
+
+	if err := p.Save(defaultConfig.Width, defaultConfig.Height, filePath); err != nil {
+		return fmt.Errorf("saving plot to %q: %w", filePath, err)
+	}
+
+	fmt.Printf("Histogram saved → %s\n", filePath)
+	return nil
+}
+
 // ── helpers ──────────────────────────────────────────────────────────────────
 
 func minMax(data []float64) (min, max float64) {

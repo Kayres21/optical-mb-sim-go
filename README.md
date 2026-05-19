@@ -56,6 +56,8 @@ go run main.go -bands 4 -lambda 100 -goal 1000000
 | Bands | `BANDS` | `-bands` | `1` | Number of frequency bands (1–4) |
 | Goal | `GOAL` | `-goal` | `1e8` | Number of connections to simulate |
 | Logs | `LOGS` | `-logs` | `true` | Enable real-time progress logging |
+| Legacy | `LEGACY` | `-legacy` | `false` | Enable legacy file configurations |
+| Mode | `MODE` | `-mode` | `finite` | Simulation mode: `finite` or `infinite` |
 
 ## Testing
 
@@ -73,6 +75,11 @@ make test
     - `simulator/`: Main simulation engine.
 - `pkg/`: Utility packages for plotting and validation.
 - `files/`: Input configuration files in JSON format.
+- `legacy_files/`: Legacy file configurations.
+    - `bitrates/`: Legacy bitrate configurations.
+    - `networks/`: Legacy network configurations and capacity.
+    - `routes/`: Legacy route configurations.
+
 - `result/`: Directory where generated plots and results are saved.
 - `bin/`: Compiled binaries.
 
