@@ -75,6 +75,11 @@ make test
     - `simulator/`: Main simulation engine.
 - `pkg/`: Utility packages for plotting and validation.
 - `files/`: Input configuration files in JSON format.
+- `legacy_files/`: Legacy file configurations.
+    - `bitrates/`: Legacy bitrate configurations.
+    - `networks/`: Legacy network configurations and capacity.
+    - `routes/`: Legacy route configurations.
+
 - `result/`: Directory where generated plots and results are saved.
 - `bin/`: Compiled binaries.
 
