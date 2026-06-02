@@ -4,17 +4,25 @@ APP_NAME := simulador
 BIN_DIR  := bin
 
 # ── Simulation parameters (override with: make run BANDS=4 LAMBDA=100) ────────
+LEGACY     ?= false
+
+ifeq ($(LEGACY),true)
+NETWORK    ?= legacy_files/networks/UKNet.json
+ROUTES     ?= legacy_files/routes/UKNet_routes.json
+CAPACITIES ?=
+BITRATE    ?= legacy_files/bitrates/bitrate.json
+else
 NETWORK    ?= files/networks/UKNet_BDM.json
 ROUTES     ?= files/routes/UKNet_routes.json
 CAPACITIES ?= files/capacities/capacities.json
 BITRATE    ?= files/bitrate/bitrate.json
+endif
+
 LAMBDA     ?= 50
 MU         ?= 1
 BANDS      ?= 1
 GOAL       ?= 1e8
 LOGS       ?= true
-LEGACY     ?= false
-MODE       ?= finite
 
 all: test build
 
@@ -43,5 +51,4 @@ run: build
 		-bands=$(BANDS) \
 		-goal=$(GOAL) \
 		-logs=$(LOGS) \
-		-legacy=$(LEGACY) \
-		-mode=$(MODE)
+		-legacy=$(LEGACY)

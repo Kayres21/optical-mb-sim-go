@@ -22,8 +22,41 @@ func main() {
 	goalConns := flag.Float64("goal", 1e8, "Number of connection requests to simulate")
 	logsOn := flag.Bool("logs", true, "Enable progress logging")
 	legacyOn := flag.Bool("legacy", false, "Use legacy file formats")
-	mode := flag.String("mode", string(simulator.ModeFinite), "Simulation mode: 'finite' (default) or 'infinite'")
+
 	flag.Parse()
+
+	networkSet := false
+	routesSet := false
+	capacitiesSet := false
+	bitrateSet := false
+
+	flag.Visit(func(f *flag.Flag) {
+		switch f.Name {
+		case "network":
+			networkSet = true
+		case "routes":
+			routesSet = true
+		case "capacities":
+			capacitiesSet = true
+		case "bitrate":
+			bitrateSet = true
+		}
+	})
+
+	if *legacyOn {
+		if !networkSet {
+			*networkPath = "legacy_files/networks/UKNet.json"
+		}
+		if !routesSet {
+			*routesPath = "legacy_files/routes/UKNet_routes.json"
+		}
+		if !bitrateSet {
+			*bitRatePath = "legacy_files/bitrates/bitrate_iroBand_C.json"
+		}
+		if !capacitiesSet {
+			*capacitiesPath = ""
+		}
+	}
 
 	var resLoader loader.ResourceLoader
 	if *legacyOn {
@@ -52,7 +85,6 @@ func main() {
 		*lambda, *mu, *goalConns,
 		allocator.FirstFit,
 		*numberOfBands,
-		simulator.SimulationMode(*mode),
 	)
 	if err != nil {
 		log.Fatalf("Failed to initialise simulator: %v", err)

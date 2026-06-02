@@ -16,12 +16,7 @@ import (
 	"github.com/Kayres21/optical-mb-sim-go/pkg/plotter"
 )
 
-type SimulationMode string
 
-const (
-	ModeFinite   SimulationMode = "finite"
-	ModeInfinite SimulationMode = "infinite"
-)
 
 // Default seeds for reproducible simulation runs.
 const (
@@ -69,7 +64,6 @@ type Simulator struct {
 	NumberOfBitrates int
 	NumberOfNodes    int
 	NumberOfGigabits int
-	Mode             SimulationMode
 
 	events              eventHeap
 	assignedConnections int
@@ -141,16 +135,8 @@ func (s *Simulator) printBlockingTable(logOn bool) {
 
 func (s *Simulator) initRandomVariable(lambda, mu float64) {
 	var rv randomvariable.RandomVariable
-	effectiveLambda := lambda
-	if s.Mode == ModeFinite {
-		numPairs := s.NumberOfNodes * (s.NumberOfNodes - 1)
-		if numPairs > 0 {
-			effectiveLambda = lambda / float64(numPairs)
-		}
-	}
-
 	rv.SetParameters(
-		effectiveLambda, mu,
+		lambda, mu,
 		s.NumberOfBitrates,
 		s.NumberOfNodes, s.NumberOfNodes,
 		s.NumberOfBands,
@@ -169,13 +155,8 @@ func (s *Simulator) initRandomVariable(lambda, mu float64) {
 }
 
 func (s *Simulator) initConnectionEvents() {
-	var raw []connections.ConnectionEvent
-	if s.Mode == ModeInfinite {
-		raw = []connections.ConnectionEvent{
-			s.createRandomArrival(0, "0"),
-		}
-	} else {
-		raw = connections.GenerateEvents(s.NumberOfNodes, s.RandomVariable)
+	raw := []connections.ConnectionEvent{
+		s.createRandomArrival(0, "0"),
 	}
 	s.events = eventHeap(raw)
 	heap.Init(&s.events)
@@ -217,11 +198,8 @@ func New(
 	goalConnections float64,
 	alloc allocator.Allocator,
 	numberOfBands int,
-	mode SimulationMode,
 ) (*Simulator, error) {
-	s := &Simulator{
-		Mode: mode,
-	}
+	s := &Simulator{}
 
 	s.initNetwork(network)
 	s.initBitRate(bitRate)
@@ -283,21 +261,7 @@ func (s *Simulator) Start(logOn bool) {
 			s.printBlockingTable(logOn)
 
 			// Schedule the next arrival.
-			var nextArrive connections.ConnectionEvent
-			if s.Mode == ModeInfinite {
-				nextArrive = s.createRandomArrival(event.Time, event.Id)
-			} else {
-				nextArrive = connections.ConnectionEvent{
-					Id:                   event.Id,
-					Source:               event.Source,
-					Destination:          event.Destination,
-					Bitrate:              event.Bitrate,
-					GigabitsSelected:     event.GigabitsSelected,
-					Event:                connections.ConnectionEventTypeArrive,
-					Time:                 event.Time + rv.GetNetValueExponential(randomvariable.KeyArrive),
-					ConnectionAssignedId: "",
-				}
-			}
+			nextArrive := s.createRandomArrival(event.Time, event.Id)
 			s.pushEvent(nextArrive)
 
 			selectedBitrate := s.BitRateList.BitRates[event.Bitrate]
