@@ -5,7 +5,6 @@ import (
 	"fmt"
 	"log"
 	"strconv"
-
 	"github.com/Kayres21/optical-mb-sim-go/internal/allocator"
 	"github.com/Kayres21/optical-mb-sim-go/internal/loader"
 	"github.com/Kayres21/optical-mb-sim-go/internal/simulator"
@@ -106,3 +105,5 @@ func main() {
 // 2 banda lambda 50 mu 1: 0.518572 00:07:09 1e8
 // 3 banda lambda 50 mu 1: 0.387643 00:10:18 1e8
 // 4 banda lambda 50 mu 1: 0.289645 00:15:34 1e8
+
+

@@ -173,7 +173,11 @@ func (s *Simulator) initBitRate(bitRate connections.BitRateList) {
 
 func (s *Simulator) initVariableNumbers(numberOfBands int) {
 	s.NumberOfNodes = len(s.Network.Nodes)
-	s.NumberOfBitrates = len(s.BitRateList.BitRates)
+	if len(s.BitRateList.BitRates) > 0 {
+		s.NumberOfBitrates = len(s.BitRateList.BitRates) * len(s.BitRateList.BitRates[0].Slots)
+	} else {
+		s.NumberOfBitrates = 0
+	}
 	s.NumberOfGigabits = len(randomvariable.DefaultGigabitOptions)
 
 	switch {
@@ -233,12 +237,27 @@ func (s *Simulator) createRandomArrival(currentTime float64, id string) connecti
 		destination = rv.GetNetValueUniform(randomvariable.KeyDestination)
 	}
 
+	unifiedIndex := rv.GetNetValueUniform(randomvariable.KeyBitrate)
+	var modulationIndex, gigabits int
+
+	if len(s.BitRateList.BitRates) > 0 && len(s.BitRateList.BitRates[0].Slots) > 0 {
+		slotsCount := len(s.BitRateList.BitRates[0].Slots)
+		modulationIndex = unifiedIndex / slotsCount
+		slotIndex := unifiedIndex % slotsCount
+
+		gigaStr := s.BitRateList.BitRates[modulationIndex].Slots[slotIndex].Gigabits
+		gigabits, _ = strconv.Atoi(gigaStr)
+	} else {
+		modulationIndex = 0
+		gigabits = 10
+	}
+
 	return connections.ConnectionEvent{
 		Id:                   id,
 		Source:               source,
 		Destination:          destination,
-		Bitrate:              rv.GetNetValueUniform(randomvariable.KeyBitrate),
-		GigabitsSelected:     rv.GetNetValueUniform(randomvariable.KeyGigabits),
+		Bitrate:              modulationIndex,
+		GigabitsSelected:     gigabits,
 		Event:                connections.ConnectionEventTypeArrive,
 		Time:                 currentTime + rv.GetNetValueExponential(randomvariable.KeyArrive),
 		ConnectionAssignedId: "",
