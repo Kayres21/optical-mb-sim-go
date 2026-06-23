@@ -7,6 +7,16 @@ make run LEGACY=true \
   BANDS=1 \
   GOAL=1e5
 
+make run LEGACY=true \
+  NETWORK=legacy_files/networks/UKNet.json \
+  ROUTES=legacy_files/routes/UKNet_routes.json \
+  BITRATE=legacy_files/bitrates/bitrate_bpsk.json \
+  LAMBDA=400 \
+  MU=1 \
+  BANDS=1 \
+  GOAL=1e5
+
+
   make run LEGACY=false \
   BANDS=1 \
   GOAL=1e5 \

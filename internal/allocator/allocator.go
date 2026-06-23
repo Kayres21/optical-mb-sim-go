@@ -9,69 +9,73 @@ type Allocator func(source, destination int, getSlot func(band int) int, network
 
 func FirstFit(source int, destination int, getSlot func(band int) int, network infrastructure.Network, path connections.Routes, numberOfBands int, id string) (bool, connections.Connection) {
 
-	pathSelected := path.GetKshortestPath(0, source, destination)
+	paths := path.GetPaths(source, destination)
 
-	links := network.GetLinkByPath(pathSelected)
-
-	if len(links) == 0 {
-		return false, connections.Connection{}
-	}
-
-	for band := range numberOfBands {
-
-		bandCapacity := links[0].GetSlotsByBand(band)
-
-		capacityTotal := make([]bool, len(bandCapacity))
-
-		for _, link := range links {
-			capacity := link.GetSlotsByBand(band)
-
-			if len(capacity) != len(capacityTotal) {
-				return false, connections.Connection{}
-			}
-
-			for i := range capacity {
-				capacityTotal[i] = capacityTotal[i] || capacity[i]
-			}
-		}
-
-		slotCount := getSlot(band)
-		if slotCount == 0 {
+	for _, pathSelected := range paths {
+		links := network.GetLinkByPath(pathSelected)
+		if len(links) == 0 {
 			continue
 		}
 
-		continousSlots := 0
-		currentSlotIndex := 0
+		for band := 0; band < numberOfBands; band++ {
+			bandCapacity := links[0].GetSlotsByBand(band)
+			capacityTotal := make([]bool, len(bandCapacity))
+			validBand := true
 
-		for i := range capacityTotal {
-			if !capacityTotal[i] {
-				continousSlots++
-			} else {
-				continousSlots = 0
-				currentSlotIndex = i + 1
-			}
-
-			if continousSlots == slotCount {
-				for _, link := range links {
-					link.AssignConnection(currentSlotIndex, slotCount, band)
+			for _, link := range links {
+				capacity := link.GetSlotsByBand(band)
+				if len(capacity) != len(capacityTotal) {
+					validBand = false
+					break
 				}
 
-				return true, connections.Connection{
-					Id:           id,
-					Source:       source,
-					Destination:  destination,
-					Links:        links,
-					Slots:        slotCount,
-					InitialSlot:  currentSlotIndex,
-					FinalSlot:    currentSlotIndex + slotCount - 1,
-					BandSelected: band,
-					Allocated:    true,
+				for i := range capacity {
+					capacityTotal[i] = capacityTotal[i] || capacity[i]
+				}
+			}
+
+			if !validBand {
+				continue
+			}
+
+			slotCount := getSlot(band)
+			if slotCount == 0 {
+				continue
+			}
+
+			continousSlots := 0
+			currentSlotIndex := 0
+
+			for i := range capacityTotal {
+				if !capacityTotal[i] {
+					continousSlots++
+				} else {
+					continousSlots = 0
+					currentSlotIndex = i + 1
+				}
+
+				if continousSlots == slotCount {
+					for _, link := range links {
+						if err := link.AssignConnection(currentSlotIndex, slotCount, band); err != nil {
+							return false, connections.Connection{}
+						}
+					}
+
+					return true, connections.Connection{
+						Id:           id,
+						Source:       source,
+						Destination:  destination,
+						Links:        links,
+						Slots:        slotCount,
+						InitialSlot:  currentSlotIndex,
+						FinalSlot:    currentSlotIndex + slotCount - 1,
+						BandSelected: band,
+						Allocated:    true,
+					}
 				}
 			}
 		}
 	}
 
-	connection := connections.Connection{}
-
-	return false, connection
+	return false, connections.Connection{}
 }

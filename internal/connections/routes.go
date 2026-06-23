@@ -42,8 +42,21 @@ func (r *Routes) GetKshortestPath(kShortestPath, src, dst int) []int {
 
 	for _, path := range r.Paths {
 		if path.Source == src && path.Destination == dst {
+			if kShortestPath < 0 || kShortestPath >= len(path.PathLinks) {
+				return []int{}
+			}
 			return path.PathLinks[kShortestPath]
 		}
 	}
 	return []int{}
+}
+
+func (r *Routes) GetPaths(src, dst int) [][]int {
+	paths := make([][]int, 0)
+	for _, path := range r.Paths {
+		if path.Source == src && path.Destination == dst {
+			paths = append(paths, path.PathLinks...)
+		}
+	}
+	return paths
 }

@@ -1,0 +1,13 @@
+{
+  "network": "legacy_files/networks/UKNet.json",
+  "routes": "legacy_files/routes/UKNet_routes.json",
+  "capacities": "files/capacities/capacities.json",
+  "bitrate": "legacy_files/bitrates/bitrate_iroBand_C.json",
+  "lambda": 400,
+  "mu": 1,
+  "bands": 1,
+  "goal": 1e5,
+  "logs": true,
+  "legacy": true,
+  "defrag_mode": "none"
+}

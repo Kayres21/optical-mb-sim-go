@@ -3,26 +3,7 @@
 APP_NAME := simulador
 BIN_DIR  := bin
 
-# ── Simulation parameters (override with: make run BANDS=4 LAMBDA=100) ────────
-LEGACY     ?= false
-
-ifeq ($(LEGACY),true)
-NETWORK    ?= legacy_files/networks/UKNet.json
-ROUTES     ?= legacy_files/routes/UKNet_routes.json
-CAPACITIES ?=
-BITRATE    ?= legacy_files/bitrates/bitrate.json
-else
-NETWORK    ?= files/networks/UKNet_BDM.json
-ROUTES     ?= files/routes/UKNet_routes.json
-CAPACITIES ?= files/capacities/capacities.json
-BITRATE    ?= files/bitrate/bitrate.json
-endif
-
-LAMBDA     ?= 50
-MU         ?= 1
-BANDS      ?= 1
-GOAL       ?= 1e8
-LOGS       ?= true
+CONFIG ?= files/config.json
 
 all: test build
 
@@ -40,15 +21,5 @@ build: clean
 	@go build -o $(BIN_DIR)/$(APP_NAME) .
 
 run: build
-	@echo "Running $(APP_NAME) (λ=$(LAMBDA) μ=$(MU) bands=$(BANDS) goal=$(GOAL) legacy=$(LEGACY))..."
-	@./$(BIN_DIR)/$(APP_NAME) \
-		-network="$(NETWORK)" \
-		-routes="$(ROUTES)" \
-		-capacities="$(CAPACITIES)" \
-		-bitrate="$(BITRATE)" \
-		-lambda=$(LAMBDA) \
-		-mu=$(MU) \
-		-bands=$(BANDS) \
-		-goal=$(GOAL) \
-		-logs=$(LOGS) \
-		-legacy=$(LEGACY)
+	@echo "Running $(APP_NAME) using config=$(CONFIG)..."
+	@./$(BIN_DIR)/$(APP_NAME) -config="$(CONFIG)"

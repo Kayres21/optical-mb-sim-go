@@ -11,12 +11,11 @@ import (
 	"github.com/Kayres21/optical-mb-sim-go/internal/connections"
 	"github.com/Kayres21/optical-mb-sim-go/internal/connections/controller"
 	randomvariable "github.com/Kayres21/optical-mb-sim-go/internal/connections/randomVariable"
+	"github.com/Kayres21/optical-mb-sim-go/internal/defragmentator"
 	"github.com/Kayres21/optical-mb-sim-go/internal/infrastructure"
 	"github.com/Kayres21/optical-mb-sim-go/pkg/helpers"
 	"github.com/Kayres21/optical-mb-sim-go/pkg/plotter"
 )
-
-
 
 // Default seeds for reproducible simulation runs.
 const (
@@ -39,10 +38,10 @@ const (
 
 type eventHeap []connections.ConnectionEvent
 
-func (h eventHeap) Len() int            { return len(h) }
-func (h eventHeap) Less(i, j int) bool  { return h[i].Time < h[j].Time }
-func (h eventHeap) Swap(i, j int)       { h[i], h[j] = h[j], h[i] }
-func (h *eventHeap) Push(x any)         { *h = append(*h, x.(connections.ConnectionEvent)) }
+func (h eventHeap) Len() int           { return len(h) }
+func (h eventHeap) Less(i, j int) bool { return h[i].Time < h[j].Time }
+func (h eventHeap) Swap(i, j int)      { h[i], h[j] = h[j], h[i] }
+func (h *eventHeap) Push(x any)        { *h = append(*h, x.(connections.ConnectionEvent)) }
 func (h *eventHeap) Pop() any {
 	old := *h
 	n := len(old)
@@ -64,6 +63,9 @@ type Simulator struct {
 	NumberOfBitrates int
 	NumberOfNodes    int
 	NumberOfGigabits int
+	DefragMode       string
+	DefragDecision   defragmentator.DecisionFunc
+	DefragAction     defragmentator.ActionFunc
 
 	events              eventHeap
 	assignedConnections int
@@ -91,6 +93,17 @@ func (s *Simulator) getSlotsByGigabits(bitrate connections.BitRate, gigabits int
 	return connections.Slots{}
 }
 
+func (s *Simulator) shouldRunDefragment(event connections.ConnectionEvent) bool {
+	return s.DefragMode != defragmentator.DefragNone && s.DefragDecision(s.Network, s.Controller.Connections, event, s.NumberOfBands)
+}
+
+func (s *Simulator) runDefragment() error {
+	if s.DefragMode == defragmentator.DefragNone {
+		return nil
+	}
+	return s.DefragAction(s.Network, s.Controller.Connections, s.Controller.Routes, s.Controller.Allocator, s.NumberOfBands)
+}
+
 func (s *Simulator) addResult(result float64) {
 	s.results = append(s.results, result)
 }
@@ -105,9 +118,17 @@ func (s *Simulator) printBlockingTable(logOn bool) {
 	}
 
 	if s.totalConnections == 0 {
-		fmt.Println("+----------+----------+----------+----------+")
-		fmt.Println("| progress |  arrives | blocking |  time(s) |")
-		fmt.Println("+----------+----------+----------+----------+")
+		fmt.Println("+----------+----------+----------+----------+-------------------+-------------------+-------------------+")
+		fmt.Printf("|%10s|%10s|%10s|%10s|%19s|%19s|%19s|\n",
+			"progress",
+			"arrives",
+			"blocking",
+			"time(s)",
+			"Wald CI",
+			"A-C. CI",
+			"Wilson CI",
+		)
+		fmt.Println("+----------+----------+----------+----------+-------------------+-------------------+-------------------+")
 		return
 	}
 
@@ -118,6 +139,9 @@ func (s *Simulator) printBlockingTable(logOn bool) {
 
 	if s.totalConnections%int(step) == 0 {
 		blockingProbability := helpers.ComputeBlockingProbabilities(s.assignedConnections, s.totalConnections)
+		waldLower, waldUpper := helpers.WaldConfidenceInterval(s.assignedConnections, s.totalConnections)
+		acLower, acUpper := helpers.AgrestiCoullConfidenceInterval(s.assignedConnections, s.totalConnections)
+		wilsonLower, wilsonUpper := helpers.WilsonConfidenceInterval(s.assignedConnections, s.totalConnections)
 		progress := (float64(s.totalConnections) / float64(s.GoalConnections)) * 100
 		elapsed := time.Since(s.startTime)
 		timeFormatted := fmt.Sprintf("%02d:%02d:%02d",
@@ -126,8 +150,20 @@ func (s *Simulator) printBlockingTable(logOn bool) {
 			int(elapsed.Seconds())%60,
 		)
 
-		fmt.Printf("|%8.1f %%|%10d|%10.6f|%10s|\n", progress, s.totalConnections, blockingProbability, timeFormatted)
-		fmt.Println("+----------+----------+----------+----------+")
+		waldCI := fmt.Sprintf("[%7.5f,%7.5f]", waldLower, waldUpper)
+		acCI := fmt.Sprintf("[%7.5f,%7.5f]", acLower, acUpper)
+		wilsonCI := fmt.Sprintf("[%7.5f,%7.5f]", wilsonLower, wilsonUpper)
+
+		fmt.Printf("|%8.1f %%|%10d|%10.6f|%10s|%19s|%19s|%19s|\n",
+			progress,
+			s.totalConnections,
+			blockingProbability,
+			timeFormatted,
+			waldCI,
+			acCI,
+			wilsonCI,
+		)
+		fmt.Println("+----------+----------+----------+----------+-------------------+-------------------+-------------------+")
 		s.addResult(blockingProbability)
 		s.addArrive(float64(s.totalConnections))
 	}
@@ -173,7 +209,11 @@ func (s *Simulator) initBitRate(bitRate connections.BitRateList) {
 
 func (s *Simulator) initVariableNumbers(numberOfBands int) {
 	s.NumberOfNodes = len(s.Network.Nodes)
-	s.NumberOfBitrates = len(s.BitRateList.BitRates)
+	if len(s.BitRateList.BitRates) > 0 {
+		s.NumberOfBitrates = len(s.BitRateList.BitRates) * len(s.BitRateList.BitRates[0].Slots)
+	} else {
+		s.NumberOfBitrates = 0
+	}
 	s.NumberOfGigabits = len(randomvariable.DefaultGigabitOptions)
 
 	switch {
@@ -198,6 +238,9 @@ func New(
 	goalConnections float64,
 	alloc allocator.Allocator,
 	numberOfBands int,
+	defragMode string,
+	defragDecision defragmentator.DecisionFunc,
+	defragAction defragmentator.ActionFunc,
 ) (*Simulator, error) {
 	s := &Simulator{}
 
@@ -209,6 +252,15 @@ func New(
 
 	s.GoalConnections = goalConnections
 	s.Time = 0
+	s.DefragMode = defragMode
+	if defragDecision == nil {
+		defragDecision = defragmentator.DefaultDecision
+	}
+	if defragAction == nil {
+		defragAction = defragmentator.DefaultAction
+	}
+	s.DefragDecision = defragDecision
+	s.DefragAction = defragAction
 
 	s.initConnectionEvents()
 
@@ -233,12 +285,27 @@ func (s *Simulator) createRandomArrival(currentTime float64, id string) connecti
 		destination = rv.GetNetValueUniform(randomvariable.KeyDestination)
 	}
 
+	unifiedIndex := rv.GetNetValueUniform(randomvariable.KeyBitrate)
+	var modulationIndex, gigabits int
+
+	if len(s.BitRateList.BitRates) > 0 && len(s.BitRateList.BitRates[0].Slots) > 0 {
+		slotsCount := len(s.BitRateList.BitRates[0].Slots)
+		modulationIndex = unifiedIndex / slotsCount
+		slotIndex := unifiedIndex % slotsCount
+
+		gigaStr := s.BitRateList.BitRates[modulationIndex].Slots[slotIndex].Gigabits
+		gigabits, _ = strconv.Atoi(gigaStr)
+	} else {
+		modulationIndex = 0
+		gigabits = 10
+	}
+
 	return connections.ConnectionEvent{
 		Id:                   id,
 		Source:               source,
 		Destination:          destination,
-		Bitrate:              rv.GetNetValueUniform(randomvariable.KeyBitrate),
-		GigabitsSelected:     rv.GetNetValueUniform(randomvariable.KeyGigabits),
+		Bitrate:              modulationIndex,
+		GigabitsSelected:     gigabits,
 		Event:                connections.ConnectionEventTypeArrive,
 		Time:                 currentTime + rv.GetNetValueExponential(randomvariable.KeyArrive),
 		ConnectionAssignedId: "",
@@ -260,6 +327,12 @@ func (s *Simulator) Start(logOn bool) {
 			s.totalConnections++
 			s.printBlockingTable(logOn)
 
+			if s.DefragMode == defragmentator.DefragBeforeArrival && s.shouldRunDefragment(event) {
+				if err := s.runDefragment(); err != nil {
+					slog.Warn("defragmentation failed before arrival", "err", err)
+				}
+			}
+
 			// Schedule the next arrival.
 			nextArrive := s.createRandomArrival(event.Time, event.Id)
 			s.pushEvent(nextArrive)
@@ -277,9 +350,23 @@ func (s *Simulator) Start(logOn bool) {
 
 			assigned, con := s.Controller.ConnectionAllocation(event.Source, event.Destination, getSlot, s.NumberOfBands, strconv.Itoa(s.totalConnections))
 
+			if !assigned && s.DefragMode == defragmentator.DefragAfterBlock && s.shouldRunDefragment(event) {
+				if err := s.runDefragment(); err != nil {
+					slog.Warn("defragmentation failed after block", "err", err)
+				} else {
+					assigned, con = s.Controller.ConnectionAllocation(event.Source, event.Destination, getSlot, s.NumberOfBands, strconv.Itoa(s.totalConnections))
+				}
+			}
+
 			if assigned {
 				s.Controller.AddConnection(con)
 				s.assignedConnections++
+
+				if s.DefragMode == defragmentator.DefragAfterAssign && s.shouldRunDefragment(event) {
+					if err := s.runDefragment(); err != nil {
+						slog.Warn("defragmentation failed after assign", "err", err)
+					}
+				}
 
 				departure := connections.ConnectionEvent{
 					Id:                   event.Id,
