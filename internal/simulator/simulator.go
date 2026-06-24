@@ -4,6 +4,7 @@ import (
 	"container/heap"
 	"fmt"
 	"log/slog"
+	"math"
 	"strconv"
 	"time"
 
@@ -73,6 +74,19 @@ type Simulator struct {
 	startTime           time.Time
 	results             []float64
 	arrives             []float64
+
+	// Seeds (optional). If zero, defaults will be used.
+	SeedArrive      int64
+	SeedDeparture   int64
+	SeedBitrate     int64
+	SeedSource      int64
+	SeedDestination int64
+	SeedBand        int64
+	SeedGigabits    int64
+
+	// For CI calculations (port from C++ implementation)
+	zScore     float64
+	zScoreEven float64
 }
 
 func (s *Simulator) pushEvent(event connections.ConnectionEvent) {
@@ -139,9 +153,11 @@ func (s *Simulator) printBlockingTable(logOn bool) {
 
 	if s.totalConnections%int(step) == 0 {
 		blockingProbability := helpers.ComputeBlockingProbabilities(s.assignedConnections, s.totalConnections)
-		waldLower, waldUpper := helpers.WaldConfidenceInterval(s.assignedConnections, s.totalConnections)
-		acLower, acUpper := helpers.AgrestiCoullConfidenceInterval(s.assignedConnections, s.totalConnections)
-		wilsonLower, wilsonUpper := helpers.WilsonConfidenceInterval(s.assignedConnections, s.totalConnections)
+		// Compute metrics
+		// Use half-widths (z * sd) like the C++ implementation for parity
+		waldHalf := s.waldCIHalfWidth()
+		acHalf := s.agrestiCIHalfWidth()
+		wilsonHalf := s.wilsonCIHalfWidth()
 		progress := (float64(s.totalConnections) / float64(s.GoalConnections)) * 100
 		elapsed := time.Since(s.startTime)
 		timeFormatted := fmt.Sprintf("%02d:%02d:%02d",
@@ -150,9 +166,10 @@ func (s *Simulator) printBlockingTable(logOn bool) {
 			int(elapsed.Seconds())%60,
 		)
 
-		waldCI := fmt.Sprintf("[%7.5f,%7.5f]", waldLower, waldUpper)
-		acCI := fmt.Sprintf("[%7.5f,%7.5f]", acLower, acUpper)
-		wilsonCI := fmt.Sprintf("[%7.5f,%7.5f]", wilsonLower, wilsonUpper)
+		// Format as single half-width values (scientific, one decimal) to match C++ output
+		waldCI := fmt.Sprintf("%9.1e", waldHalf)
+		acCI := fmt.Sprintf("%9.1e", acHalf)
+		wilsonCI := fmt.Sprintf("%9.1e", wilsonHalf)
 
 		fmt.Printf("|%8.1f %%|%10d|%10.6f|%10s|%19s|%19s|%19s|\n",
 			progress,
@@ -169,7 +186,7 @@ func (s *Simulator) printBlockingTable(logOn bool) {
 	}
 }
 
-func (s *Simulator) initRandomVariable(lambda, mu float64) {
+func (s *Simulator) initRandomVariable(lambda, mu float64, seedArrive, seedDeparture, seedBitrate, seedSource, seedDestination, seedBand, seedGigabits int64) {
 	var rv randomvariable.RandomVariable
 	rv.SetParameters(
 		lambda, mu,
@@ -178,14 +195,38 @@ func (s *Simulator) initRandomVariable(lambda, mu float64) {
 		s.NumberOfBands,
 		s.NumberOfGigabits,
 	)
+
+	// If any provided seed is zero, fall back to defaults.
+	if seedArrive == 0 {
+		seedArrive = defaultSeedArrive
+	}
+	if seedDeparture == 0 {
+		seedDeparture = defaultSeedDeparture
+	}
+	if seedBitrate == 0 {
+		seedBitrate = defaultSeedBitrate
+	}
+	if seedSource == 0 {
+		seedSource = defaultSeedSource
+	}
+	if seedDestination == 0 {
+		seedDestination = defaultSeedDestination
+	}
+	if seedBand == 0 {
+		seedBand = defaultSeedBand
+	}
+	if seedGigabits == 0 {
+		seedGigabits = defaultSeedGigabits
+	}
+
 	rv.SetSeeds(
-		defaultSeedArrive,
-		defaultSeedDeparture,
-		defaultSeedBitrate,
-		defaultSeedSource,
-		defaultSeedDestination,
-		defaultSeedBand,
-		defaultSeedGigabits,
+		seedArrive,
+		seedDeparture,
+		seedBitrate,
+		seedSource,
+		seedDestination,
+		seedBand,
+		seedGigabits,
 	)
 	s.RandomVariable = rv
 }
@@ -242,13 +283,59 @@ func New(
 	defragDecision defragmentator.DecisionFunc,
 	defragAction defragmentator.ActionFunc,
 ) (*Simulator, error) {
+	// Delegate to NewWithSeeds using default seeds (preserves API compatibility)
+	return NewWithSeeds(
+		network,
+		bitRate,
+		routes,
+		lambda,
+		mu,
+		goalConnections,
+		alloc,
+		numberOfBands,
+		defragMode,
+		defragDecision,
+		defragAction,
+		defaultSeedArrive,
+		defaultSeedDeparture,
+		defaultSeedBitrate,
+		defaultSeedSource,
+		defaultSeedDestination,
+		defaultSeedBand,
+		defaultSeedGigabits,
+	)
+}
+
+// NewWithSeeds constructs and initialises a Simulator and allows providing explicit RNG seeds.
+func NewWithSeeds(
+	network infrastructure.Network,
+	bitRate connections.BitRateList,
+	routes connections.Routes,
+	lambda, mu float64,
+	goalConnections float64,
+	alloc allocator.Allocator,
+	numberOfBands int,
+	defragMode string,
+	defragDecision defragmentator.DecisionFunc,
+	defragAction defragmentator.ActionFunc,
+	seedArrive, seedDeparture, seedBitrate, seedSource, seedDestination, seedBand, seedGigabits int64,
+) (*Simulator, error) {
 	s := &Simulator{}
 
 	s.initNetwork(network)
 	s.initBitRate(bitRate)
 
 	s.initVariableNumbers(numberOfBands)
-	s.initRandomVariable(lambda, mu)
+	// store seeds in struct for later introspection
+	s.SeedArrive = seedArrive
+	s.SeedDeparture = seedDeparture
+	s.SeedBitrate = seedBitrate
+	s.SeedSource = seedSource
+	s.SeedDestination = seedDestination
+	s.SeedBand = seedBand
+	s.SeedGigabits = seedGigabits
+
+	s.initRandomVariable(lambda, mu, seedArrive, seedDeparture, seedBitrate, seedSource, seedDestination, seedBand, seedGigabits)
 
 	s.GoalConnections = goalConnections
 	s.Time = 0
@@ -273,8 +360,89 @@ func New(
 	s.Controller = con
 
 	s.startTime = time.Now()
+	// Initialize z-score values for CI calculations (mirroring C++ behavior)
+	s.initZScore()
+	s.initZScoreEven()
 
 	return s, nil
+}
+
+func (s *Simulator) getAllocatedProbability() float64 {
+	if s.totalConnections == 0 {
+		return 0.0
+	}
+	return float64(s.assignedConnections) / float64(s.totalConnections)
+}
+
+func (s *Simulator) waldCIHalfWidth() float64 {
+	np := s.getAllocatedProbability()
+	p := 1.0 - np
+	n := float64(s.totalConnections)
+	if n <= 0.0 {
+		return 0.0
+	}
+	sd := math.Sqrt((np * p) / n)
+	return s.zScore * sd
+}
+
+func (s *Simulator) agrestiCIHalfWidth() float64 {
+	np := s.getAllocatedProbability()
+	n := float64(s.totalConnections)
+	if n <= 0.0 {
+		return 0.0
+	}
+
+	adjusted := np * ((n * (float64(s.assignedConnections) + (s.zScoreEven / 2.0))) / (float64(s.assignedConnections) * (n + s.zScoreEven)))
+	p := 1.0 - adjusted
+	sd := math.Sqrt((adjusted * p) / (n + s.zScoreEven))
+	return s.zScore * sd
+}
+
+func (s *Simulator) wilsonCIHalfWidth() float64 {
+	np := s.getAllocatedProbability()
+	p := 1.0 - np
+	n := float64(s.totalConnections)
+	if n <= 0.0 {
+		return 0.0
+	}
+
+	denom := (1 + (math.Pow(s.zScore, 2) / n))
+	sd := math.Sqrt(((np * p) / n) + ((math.Pow(s.zScore, 2)) / (4 * math.Pow(n, 2))))
+	return (s.zScore * sd) / denom
+}
+
+func (s *Simulator) initZScore() {
+	actual := 0.0
+	step := 1.0
+	covered := 0.0
+	objective := 0.95
+	if s.GoalConnections > 0 {
+	}
+	epsilon := 1e-6
+
+	for math.Abs(objective-covered) > epsilon {
+		if objective > covered {
+			actual += step
+			covered = ((1 + math.Erf(actual/math.Sqrt(2))) - (1 + math.Erf(-actual/math.Sqrt(2)))) / 2
+			if covered > objective {
+				step /= 2
+			}
+		} else {
+			actual -= step
+			covered = ((1 + math.Erf(actual/math.Sqrt(2))) - (1 + math.Erf(-actual/math.Sqrt(2)))) / 2
+			if covered < objective {
+				step /= 2
+			}
+		}
+	}
+	s.zScore = actual
+}
+
+func (s *Simulator) initZScoreEven() {
+	zEven := math.Pow(s.zScore, 2)
+	zEven = math.Floor(zEven*1000.0) / 1000.0
+	zEven = math.Ceil(zEven/2.0) * 2.0
+	s.zScoreEven = zEven
 }
 
 func (s *Simulator) createRandomArrival(currentTime float64, id string) connections.ConnectionEvent {
@@ -369,14 +537,17 @@ func (s *Simulator) Start(logOn bool) {
 				}
 
 				departure := connections.ConnectionEvent{
-					Id:                   event.Id,
-					Source:               event.Source,
-					Destination:          event.Destination,
-					Bitrate:              event.Bitrate,
-					GigabitsSelected:     event.GigabitsSelected,
-					Event:                connections.ConnectionEventTypeRelease,
-					Time:                 event.Time + rv.GetNetValueExponential(randomvariable.KeyDeparture),
-					ConnectionAssignedId: strconv.Itoa(s.totalConnections),
+					Id:                     event.Id,
+					Source:                 event.Source,
+					Destination:            event.Destination,
+					Bitrate:                event.Bitrate,
+					GigabitsSelected:       event.GigabitsSelected,
+					Event:                  connections.ConnectionEventTypeRelease,
+					Time:                   event.Time + rv.GetNetValueExponential(randomvariable.KeyDeparture),
+					ConnectionAssignedId:   strconv.Itoa(s.totalConnections),
+					ConnectionInitialSlot:  con.InitialSlot,
+					ConnectionSlots:        con.Slots,
+					ConnectionBandSelected: con.BandSelected,
 				}
 				s.pushEvent(departure)
 			}
@@ -384,7 +555,13 @@ func (s *Simulator) Start(logOn bool) {
 
 		if event.Event == connections.ConnectionEventTypeRelease {
 			countRelease++
-			if err := s.Controller.ReleaseConnection(event.ConnectionAssignedId); err != nil {
+			connection, ok := s.Controller.GetConnectionByAllocation(event.Source, event.Destination, event.ConnectionInitialSlot, event.ConnectionSlots, event.ConnectionBandSelected)
+			if !ok {
+				slog.Warn("failed to release connection: not found by allocation details", "source", event.Source, "destination", event.Destination, "initialSlot", event.ConnectionInitialSlot, "slots", event.ConnectionSlots, "band", event.ConnectionBandSelected)
+				continue
+			}
+
+			if err := s.Controller.ReleaseConnection(connection, event.Time); err != nil {
 				slog.Warn("failed to release connection", "id", event.ConnectionAssignedId, "err", err)
 			}
 		}
@@ -395,4 +572,78 @@ func (s *Simulator) Start(logOn bool) {
 
 func (s *Simulator) Plot(title, xLabel, yLabel string) error {
 	return plotter.GenerateScatterPlot(s.arrives, s.results, title, xLabel, yLabel)
+}
+
+func (s *Simulator) SetSeeds(seedArrive, seedDeparture, seedBitrate, seedSource, seedDestination, seedBand, seedGigabits int64) {
+	s.SeedArrive = seedArrive
+	s.SeedDeparture = seedDeparture
+	s.SeedBitrate = seedBitrate
+	s.SeedSource = seedSource
+	s.SeedDestination = seedDestination
+	s.SeedBand = seedBand
+	s.SeedGigabits = seedGigabits
+
+	if (s.RandomVariable != randomvariable.RandomVariable{}) {
+		s.RandomVariable.SetSeeds(seedArrive, seedDeparture, seedBitrate, seedSource, seedDestination, seedBand, seedGigabits)
+	}
+}
+
+func (s *Simulator) SetSeedArrive(seed int64) {
+	s.SetSeeds(seed, s.SeedDeparture, s.SeedBitrate, s.SeedSource, s.SeedDestination, s.SeedBand, s.SeedGigabits)
+}
+
+func (s *Simulator) SetSeedDeparture(seed int64) {
+	s.SetSeeds(s.SeedArrive, seed, s.SeedBitrate, s.SeedSource, s.SeedDestination, s.SeedBand, s.SeedGigabits)
+}
+
+func (s *Simulator) SetSeedBitrate(seed int64) {
+	s.SetSeeds(s.SeedArrive, s.SeedDeparture, seed, s.SeedSource, s.SeedDestination, s.SeedBand, s.SeedGigabits)
+}
+
+func (s *Simulator) SetSeedSource(seed int64) {
+	s.SetSeeds(s.SeedArrive, s.SeedDeparture, s.SeedBitrate, seed, s.SeedDestination, s.SeedBand, s.SeedGigabits)
+}
+
+func (s *Simulator) SetSeedDestination(seed int64) {
+	s.SetSeeds(s.SeedArrive, s.SeedDeparture, s.SeedBitrate, s.SeedSource, seed, s.SeedBand, s.SeedGigabits)
+}
+
+func (s *Simulator) SetSeedBand(seed int64) {
+	s.SetSeeds(s.SeedArrive, s.SeedDeparture, s.SeedBitrate, s.SeedSource, s.SeedDestination, seed, s.SeedGigabits)
+}
+
+func (s *Simulator) SetSeedGigabits(seed int64) {
+	s.SetSeeds(s.SeedArrive, s.SeedDeparture, s.SeedBitrate, s.SeedSource, s.SeedDestination, s.SeedBand, seed)
+}
+
+// SetAllocator allows replacing the allocator after constructing the Simulator.
+func (s *Simulator) SetAllocator(alloc allocator.Allocator) {
+	s.Controller.Allocator = alloc
+}
+
+func (s *Simulator) SetDefragDecision(dec defragmentator.DecisionFunc) {
+	if dec == nil {
+		dec = defragmentator.DefaultDecision
+	}
+	s.DefragDecision = dec
+}
+
+func (s *Simulator) SetDefragAction(act defragmentator.ActionFunc) {
+	if act == nil {
+		act = defragmentator.DefaultAction
+	}
+	s.DefragAction = act
+}
+
+func (s *Simulator) SetDefragMode(mode string) {
+	s.DefragMode = mode
+}
+
+// Unassign callback setters to mirror C++ API
+func (s *Simulator) SetUnassignCallback(cb func(connections.Connection, float64, infrastructure.Network)) {
+	s.Controller.SetUnassignCallback(cb)
+}
+
+func (s *Simulator) SetUnassignMB() {
+	s.Controller.SetUnassignMB()
 }

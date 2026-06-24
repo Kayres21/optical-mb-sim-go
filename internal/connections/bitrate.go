@@ -51,6 +51,40 @@ func ReadBitRateFile(bitRatePath string) (BitRateList, error) {
 	return bitrate, nil
 }
 
+// SelectBitrateMethod mirrors the C++ BitRate::selectBitrateMethod behaviour:
+// - If fileName is empty, return a set of default bitrates.
+// - Otherwise read the bitrate JSON file.
+func SelectBitrateMethod(fileName string, networkType int) (BitRateList, error) {
+	if fileName == "" {
+		return defaultBitRates(), nil
+	}
+	// For now, networkType is not used to change parsing behaviour; rely on
+	// ReadBitRateFile which supports both structures via JSON schema validation.
+	return ReadBitRateFile(fileName)
+}
+
+func defaultBitRates() BitRateList {
+	// Defaults: 10, 40, 100, 400, 1000 with slots 1,4,8,32,80 and BPSK modulation
+	rates := BitRateList{}
+	defaults := []struct {
+		gb   string
+		slots int
+	}{
+		{"10", 1},
+		{"40", 4},
+		{"100", 8},
+		{"400", 32},
+		{"1000", 80},
+	}
+
+	for _, d := range defaults {
+		br := BitRate{Modulation: "BPSK"}
+		br.Slots = []Slots{{Gigabits: d.gb, Slots: d.slots}}
+		rates.BitRates = append(rates.BitRates, br)
+	}
+	return rates
+}
+
 func TrasnformIntToModulation(modulation int) string {
 	switch modulation {
 	case 0:

@@ -3,7 +3,7 @@
   "routes": "files/routes/UKNet_routes.json",
   "capacities": "files/capacities/capacities.json",
   "bitrate": "files/bitrate/bitrate.json",
-  "lambda": 50,
+  "lambda": 400,
   "mu": 1,
   "bands": 1,
   "goal": 1e8,

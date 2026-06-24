@@ -41,7 +41,7 @@ func TestController_ReleaseConnection(t *testing.T) {
 	conn := connections.Connection{Id: "1", Source: 0, Destination: 1, Allocated: true}
 	c.AddConnection(conn)
 
-	err := c.ReleaseConnection("1")
+	err := c.ReleaseConnection(conn, 0)
 	if err != nil {
 		t.Errorf("expected no error on release, got %v", err)
 	}
@@ -50,7 +50,7 @@ func TestController_ReleaseConnection(t *testing.T) {
 		t.Errorf("expected 0 connections after release, got %d", len(c.Connections))
 	}
 
-	err = c.ReleaseConnection("1")
+	err = c.ReleaseConnection(conn, 0)
 	if err == nil {
 		t.Errorf("expected error when releasing non-existent connection")
 	}

@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"image/color"
 	"math"
+	"os"
 	"path/filepath"
 	"time"
 
@@ -114,6 +115,10 @@ func GenerateLinePlot(xData, yData []float64, title, xLabel, yLabel string, cfg 
 	filename := fmt.Sprintf("%s_%s.png", title, timestamp)
 	filePath := filepath.Join(cfg.OutputDir, filename)
 
+	if err := os.MkdirAll(cfg.OutputDir, 0o755); err != nil {
+		return fmt.Errorf("creating output directory %q: %w", cfg.OutputDir, err)
+	}
+
 	if err := p.Save(cfg.Width, cfg.Height, filePath); err != nil {
 		return fmt.Errorf("saving plot to %q: %w", filePath, err)
 	}
@@ -148,6 +153,10 @@ func GenerateHistogram(data []float64, bins int, title, xLabel, yLabel string) e
 	timestamp := time.Now().Format("20060102_150405")
 	filename := fmt.Sprintf("%s_%s.png", title, timestamp)
 	filePath := filepath.Join(defaultConfig.OutputDir, filename)
+
+	if err := os.MkdirAll(defaultConfig.OutputDir, 0o755); err != nil {
+		return fmt.Errorf("creating output directory %q: %w", defaultConfig.OutputDir, err)
+	}
 
 	if err := p.Save(defaultConfig.Width, defaultConfig.Height, filePath); err != nil {
 		return fmt.Errorf("saving plot to %q: %w", filePath, err)

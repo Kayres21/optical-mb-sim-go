@@ -8,14 +8,17 @@ import (
 )
 
 type ConnectionEvent struct {
-	Id                   string
-	Source               int
-	Destination          int
-	Bitrate              int
-	GigabitsSelected     int
-	Event                EventsType // "Arrive", "Release"
-	Time                 float64
-	ConnectionAssignedId string
+	Id                     string
+	Source                 int
+	Destination            int
+	Bitrate                int
+	GigabitsSelected       int
+	Event                  EventsType // "Arrive", "Release"
+	Time                   float64
+	ConnectionAssignedId   string
+	ConnectionInitialSlot  int
+	ConnectionSlots        int
+	ConnectionBandSelected int
 }
 
 type EventsType string
