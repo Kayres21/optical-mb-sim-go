@@ -1,12 +1,12 @@
 {
-  "network": "files/networks/UKNet_BDM.json",
+  "network": "files/networks/UKNet_legacy_newformat.json",
   "routes": "files/routes/UKNet_routes.json",
   "capacities": "files/capacities/capacities.json",
-  "bitrate": "files/bitrate/bitrate.json",
+  "bitrate": "files/bitrate/bitrate_legacy_newformat.json",
   "lambda": 400,
   "mu": 1,
   "bands": 1,
-  "goal": 1e5,
+  "goal": 1e6,
   "logs": true,
   "legacy": false,
   "defrag_mode": "none"

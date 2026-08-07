@@ -80,6 +80,25 @@ func TestSimulator_AddResultsAndArrives(t *testing.T) {
 	}
 }
 
+func TestSimulator_RecordEventDisabledByDefault(t *testing.T) {
+	s := &Simulator{}
+	s.recordEvent(connections.ConnectionEvent{Id: "1"})
+
+	if len(s.generatedEvents) != 0 {
+		t.Fatalf("expected no events recorded when disabled, got %d", len(s.generatedEvents))
+	}
+}
+
+func TestSimulator_RecordEventEnabled(t *testing.T) {
+	s := &Simulator{}
+	s.SetRecordEvents(true)
+	s.recordEvent(connections.ConnectionEvent{Id: "1"})
+
+	if len(s.generatedEvents) != 1 {
+		t.Fatalf("expected 1 event recorded when enabled, got %d", len(s.generatedEvents))
+	}
+}
+
 func TestSimulator_ResolveConnectionID(t *testing.T) {
 	s := &Simulator{}
 	event := connections.ConnectionEvent{Id: "42", ConnectionAssignedId: "99"}

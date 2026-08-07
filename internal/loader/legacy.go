@@ -6,6 +6,7 @@ import (
 	"os"
 	"sort"
 	"strconv"
+	"strings"
 
 	"github.com/Kayres21/optical-mb-sim-go/internal/connections"
 	"github.com/Kayres21/optical-mb-sim-go/internal/infrastructure"
@@ -98,6 +99,8 @@ func (l *LegacyLoader) LoadNetwork(networkPath, capacitiesPath string) (infrastr
 			}
 		}
 
+		link.UpdateAllFragmentationRatios()
+
 		network.Links = append(network.Links, link)
 	}
 
@@ -117,15 +120,38 @@ func (l *LegacyLoader) LoadBitRate(bitRatePath string) (connections.BitRateList,
 		return connections.BitRateList{}, fmt.Errorf("parsing legacy bitrate JSON: %w", err)
 	}
 
-	modMap := make(map[string]*connections.BitRate)
+	bitrateByKey := make(map[string]*connections.BitRate)
+	keys := make([]string, 0, len(raw))
+	for gigabits := range raw {
+		keys = append(keys, gigabits)
+	}
+	sort.Slice(keys, func(i, j int) bool {
+		left, _ := strconv.Atoi(keys[i])
+		right, _ := strconv.Atoi(keys[j])
+		return left < right
+	})
 
-	for gigabits, entries := range raw {
+	for _, gigabits := range keys {
+		entries := raw[gigabits]
+		br, ok := bitrateByKey[gigabits]
+		if !ok {
+			br = &connections.BitRate{}
+			bitrateByKey[gigabits] = br
+		}
+
 		for _, entry := range entries {
-			for modulation, configRaw := range entry {
-				br, ok := modMap[modulation]
-				if !ok {
-					br = &connections.BitRate{Modulation: modulation}
-					modMap[modulation] = br
+			modulations := make([]string, 0, len(entry))
+			for modulation := range entry {
+				modulations = append(modulations, modulation)
+			}
+			sort.Slice(modulations, func(i, j int) bool {
+				return modulationSortKey(modulations[i]) < modulationSortKey(modulations[j])
+			})
+
+			for _, modulation := range modulations {
+				configRaw := entry[modulation]
+				if br.Modulation == "" {
+					br.Modulation = modulation
 				}
 
 				// Check if configRaw is a single config or a band map
@@ -151,7 +177,7 @@ func (l *LegacyLoader) LoadBitRate(bitRatePath string) (connections.BitRateList,
 						mainSlots := 0
 						slotsPerBand := make(map[string]int)
 						numBands := len(bandConfigs)
-						
+
 						for _, bc := range bandConfigs {
 							for bandName, v := range bc {
 								if mainSlots == 0 || bandName == "C" {
@@ -174,11 +200,28 @@ func (l *LegacyLoader) LoadBitRate(bitRatePath string) (connections.BitRateList,
 	}
 
 	var res connections.BitRateList
-	for _, br := range modMap {
+	for _, gigabits := range keys {
+		br := bitrateByKey[gigabits]
 		res.BitRates = append(res.BitRates, *br)
 	}
 
 	return res, nil
+}
+
+func modulationSortKey(modulation string) int {
+	normalized := strings.ToUpper(strings.ReplaceAll(modulation, "-", ""))
+	switch normalized {
+	case "BPSK":
+		return 0
+	case "QPSK":
+		return 1
+	case "8QAM":
+		return 2
+	case "16QAM":
+		return 3
+	default:
+		return 1000
+	}
 }
 
 func addReach(br *connections.BitRate, numBands int, bandName string, reachVal int) {

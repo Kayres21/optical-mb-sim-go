@@ -161,6 +161,7 @@ func main() {
 	if err != nil {
 		log.Fatalf("Failed to initialise simulator: %v", err)
 	}
+	sim.SetRecordEvents(cfg.EventsCSV != "")
 
 	sim.Start(*cfg.Logs)
 

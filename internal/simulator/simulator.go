@@ -78,6 +78,7 @@ type Simulator struct {
 	results             []float64
 	arrives             []float64
 	generatedEvents     []connections.ConnectionEvent
+	recordEvents        bool
 
 	// Seeds (optional). If zero, defaults will be used.
 	SeedArrive      int64
@@ -135,6 +136,9 @@ func (s *Simulator) addArrive(arrive float64) {
 }
 
 func (s *Simulator) recordEvent(event connections.ConnectionEvent) {
+	if !s.recordEvents {
+		return
+	}
 	s.generatedEvents = append(s.generatedEvents, event)
 }
 
@@ -183,7 +187,7 @@ func (s *Simulator) printBlockingTable(logOn bool) {
 		acCI := fmt.Sprintf("%9.1e", acHalf)
 		wilsonCI := fmt.Sprintf("%9.1e", wilsonHalf)
 
-		fmt.Printf("|%8.1f %%|%10d|%10.6f|%10s|%19s|%19s|%19s|\n",
+		fmt.Printf("|%8.1f %%|%10d|%10.3e|%10s|%19s|%19s|%19s|\n",
 			progress,
 			s.totalConnections,
 			blockingProbability,
@@ -200,12 +204,29 @@ func (s *Simulator) printBlockingTable(logOn bool) {
 
 func (s *Simulator) initRandomVariable(lambda, mu float64, seedArrive, seedDeparture, seedBitrate, seedSource, seedDestination, seedBand, seedGigabits int64) {
 	var rv randomvariable.RandomVariable
+	bitrateParam := s.NumberOfBitrates - 1
+	if bitrateParam < 0 {
+		bitrateParam = 0
+	}
+	sourceParam := s.NumberOfNodes - 1
+	if sourceParam < 0 {
+		sourceParam = 0
+	}
+	bandParam := s.NumberOfBands - 1
+	if bandParam < 0 {
+		bandParam = 0
+	}
+	gigabitsParam := s.NumberOfGigabits - 1
+	if gigabitsParam < 0 {
+		gigabitsParam = 0
+	}
+
 	rv.SetParameters(
 		lambda, mu,
-		s.NumberOfBitrates,
-		s.NumberOfNodes, s.NumberOfNodes,
-		s.NumberOfBands,
-		s.NumberOfGigabits,
+		bitrateParam,
+		sourceParam, sourceParam,
+		bandParam,
+		gigabitsParam,
 	)
 
 	// If any provided seed is zero, fall back to defaults.
@@ -701,6 +722,11 @@ func (s *Simulator) SetDefragAction(act defragmentator.ActionFunc) {
 
 func (s *Simulator) SetDefragMode(mode string) {
 	s.DefragMode = mode
+}
+
+// SetRecordEvents toggles in-memory event capture used by SaveEventsCSV.
+func (s *Simulator) SetRecordEvents(enabled bool) {
+	s.recordEvents = enabled
 }
 
 // Unassign callback setters to mirror C++ API

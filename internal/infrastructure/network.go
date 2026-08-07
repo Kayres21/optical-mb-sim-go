@@ -53,6 +53,7 @@ func NetworkGenerate(networkPath string, capacityPath string) (Network, error) {
 
 	for i := range network.Links {
 		network.Links[i].Capacities = cloneCapacity(capacities)
+		network.Links[i].UpdateAllFragmentationRatios()
 	}
 
 	return network, nil

@@ -1,0 +1,148 @@
+{
+    "bitrates": [
+        {
+            "modulation": "16QAM",
+            "slots": [
+                {
+                    "gigabits": "10",
+                    "slots": 1
+                },
+                {
+                    "gigabits": "40",
+                    "slots": 1
+                },
+                {
+                    "gigabits": "100",
+                    "slots": 2
+                },
+                {
+                    "gigabits": "400",
+                    "slots": 5
+                },
+                {
+                    "gigabits": "1000",
+                    "slots": 11
+                }
+            ],
+            "reachs": [
+                {
+                    "number_of_bands": 1,
+                    "reachs_per_band": [
+                        {
+                            "band": "C",
+                            "reach": 2700
+                        }
+                    ]
+                }
+            ]
+        },
+        {
+            "modulation": "8QAM",
+            "slots": [
+                {
+                    "gigabits": "10",
+                    "slots": 1
+                },
+                {
+                    "gigabits": "40",
+                    "slots": 1
+                },
+                {
+                    "gigabits": "100",
+                    "slots": 2
+                },
+                {
+                    "gigabits": "400",
+                    "slots": 6
+                },
+                {
+                    "gigabits": "1000",
+                    "slots": 15
+                }
+            ],
+            "reachs": [
+                {
+                    "number_of_bands": 1,
+                    "reachs_per_band": [
+                        {
+                            "band": "C",
+                            "reach": 5400
+                        }
+                    ]
+                }
+            ]
+        },
+        {
+            "modulation": "BPSK",
+            "slots": [
+                {
+                    "gigabits": "10",
+                    "slots": 1
+                },
+                {
+                    "gigabits": "40",
+                    "slots": 2
+                },
+                {
+                    "gigabits": "100",
+                    "slots": 5
+                },
+                {
+                    "gigabits": "400",
+                    "slots": 18
+                },
+                {
+                    "gigabits": "1000",
+                    "slots": 44
+                }
+            ],
+            "reachs": [
+                {
+                    "number_of_bands": 1,
+                    "reachs_per_band": [
+                        {
+                            "band": "C",
+                            "reach": 19900
+                        }
+                    ]
+                }
+            ]
+        },
+        {
+            "modulation": "QPSK",
+            "slots": [
+                {
+                    "gigabits": "10",
+                    "slots": 1
+                },
+                {
+                    "gigabits": "40",
+                    "slots": 1
+                },
+                {
+                    "gigabits": "100",
+                    "slots": 3
+                },
+                {
+                    "gigabits": "400",
+                    "slots": 9
+                },
+                {
+                    "gigabits": "1000",
+                    "slots": 22
+                }
+            ],
+            "reachs": [
+                {
+                    "number_of_bands": 1,
+                    "reachs_per_band": [
+                        {
+                            "band": "C",
+                            "reach": 9900
+                        }
+                    ]
+                }
+            ]
+        }
+    ]
+}

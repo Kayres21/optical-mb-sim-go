@@ -56,6 +56,8 @@ func (rv *RandomVariable) SetSeeds(seedArrive, seedDeparture, seedBitrate, seedS
 	rv.GigabitsSelected.Rng = rand.New(rand.NewSource(seedGigabits))
 }
 
+// Parameters are interpreted as inclusive upper bounds, matching the C++
+// simulator's uniform distributions (range [0, parameter]).
 func (rv *RandomVariable) SetParameters(lambda, mu float64, bitrateSelect, sourceNodeSelect, destinationNodeSelect, bandSelect, gigabits int) {
 	rv.Arrive.Parameter = lambda
 	rv.Departure.Parameter = mu

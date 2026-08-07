@@ -34,8 +34,23 @@ func TestRandomVariable_GetNetValueUniform(t *testing.T) {
 
 	for i := 0; i < 100; i++ {
 		val := rv.GetNetValueUniform(KeyBitrate)
-		if val < 0 || val >= 3 {
+		if val < 0 || val > 3 {
 			t.Errorf("bitrate uniform value out of bounds: %v", val)
 		}
+	}
+}
+
+func TestRandomVariable_GetNetValueUniformIncludesUpperBound(t *testing.T) {
+	var rv RandomVariable
+	rv.SetParameters(10, 5, 3, 2, 2, 1, 4)
+	rv.SetSeeds(1, 2, 3, 4, 5, 6, 7)
+
+	seen := make(map[int]bool)
+	for i := 0; i < 200; i++ {
+		seen[rv.GetNetValueUniform(KeyBitrate)] = true
+	}
+
+	if !seen[3] {
+		t.Fatalf("expected uniform sampler to reach upper bound 3, got values: %#v", seen)
 	}
 }
