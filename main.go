@@ -26,6 +26,7 @@ type AppConfig struct {
 	Logs       *bool    `json:"logs"`
 	Legacy     *bool    `json:"legacy"`
 	DefragMode string   `json:"defrag_mode"`
+	EventsCSV  string   `json:"events_csv"`
 }
 
 func loadConfig(path string) (AppConfig, error) {
@@ -101,12 +102,17 @@ func applyDefaults(cfg AppConfig) AppConfig {
 	if cfg.DefragMode == "" {
 		cfg.DefragMode = defaults.DefragMode
 	}
+	if cfg.EventsCSV == "" {
+		cfg.EventsCSV = ""
+	}
 
 	return cfg
 }
 
 func main() {
 	configPath := flag.String("config", "files/config.json", "Path to JSON configuration file")
+	eventsCSV := flag.String("events-csv", "", "Path to write the generated events CSV after the simulation")
+	logs := flag.Bool("logs", true, "Enable progress logging")
 	flag.Parse()
 
 	cfg, err := loadConfig(*configPath)
@@ -114,6 +120,12 @@ func main() {
 		log.Fatalf("Failed to load config: %v", err)
 	}
 	cfg = applyDefaults(cfg)
+	if *eventsCSV != "" {
+		cfg.EventsCSV = *eventsCSV
+	}
+	if cfg.Logs == nil || *cfg.Logs != *logs {
+		cfg.Logs = logs
+	}
 
 	var resLoader loader.ResourceLoader
 	if *cfg.Legacy {
@@ -151,6 +163,12 @@ func main() {
 	}
 
 	sim.Start(*cfg.Logs)
+
+	if cfg.EventsCSV != "" {
+		if err := sim.SaveEventsCSV(cfg.EventsCSV); err != nil {
+			log.Fatalf("Failed to save events CSV: %v", err)
+		}
+	}
 
 	title := fmt.Sprintf("FirstFit_%s-erlang-%s_%s",
 		network.Alias,

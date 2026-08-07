@@ -16,9 +16,16 @@ type ConnectionEvent struct {
 	Event                  EventsType // "Arrive", "Release"
 	Time                   float64
 	ConnectionAssignedId   string
-	ConnectionInitialSlot  int
-	ConnectionSlots        int
-	ConnectionBandSelected int
+	ConnectionInitialSlot  *int
+	ConnectionSlots        *int
+	ConnectionBandSelected *int
+}
+
+func (e ConnectionEvent) ConnectionID() string {
+	if e.Id != "" {
+		return e.Id
+	}
+	return e.ConnectionAssignedId
 }
 
 type EventsType string

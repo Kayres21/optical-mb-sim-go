@@ -1,6 +1,7 @@
 package simulator
 
 import (
+	"os"
 	"testing"
 
 	"github.com/Kayres21/optical-mb-sim-go/internal/connections"
@@ -76,5 +77,38 @@ func TestSimulator_AddResultsAndArrives(t *testing.T) {
 	s.addArrive(10.0)
 	if len(s.arrives) != 1 || s.arrives[0] != 10.0 {
 		t.Errorf("expected arrives to have [10.0], got %v", s.arrives)
+	}
+}
+
+func TestSimulator_ResolveConnectionID(t *testing.T) {
+	s := &Simulator{}
+	event := connections.ConnectionEvent{Id: "42", ConnectionAssignedId: "99"}
+
+	if got := s.resolveConnectionID(event); got != "42" {
+		t.Fatalf("expected event ID to be used as the connection identifier, got %s", got)
+	}
+}
+
+func TestSimulator_SaveEventsCSV(t *testing.T) {
+	s := &Simulator{}
+	s.generatedEvents = []connections.ConnectionEvent{
+		{Id: "1", Source: 3, Destination: 7, Bitrate: 2, Event: connections.ConnectionEventTypeArrive, Time: 0.25, ConnectionAssignedId: "1"},
+		{Id: "1", Event: connections.ConnectionEventTypeRelease, Time: 0.42, ConnectionAssignedId: "1"},
+	}
+
+	path := t.TempDir() + "/events.csv"
+	if err := s.SaveEventsCSV(path); err != nil {
+		t.Fatalf("SaveEventsCSV returned error: %v", err)
+	}
+
+	data, err := os.ReadFile(path)
+	if err != nil {
+		t.Fatalf("reading generated CSV: %v", err)
+	}
+
+	got := string(data)
+	want := "ID,Tiempo,Evento,Source,Destination,BitRate\r\n1,0.25,ARRIVE,3,7,2\r\n1,0.42,DEPARTURE,0,0,0\r\n"
+	if got != want {
+		t.Fatalf("unexpected CSV content:\n got: %q\nwant: %q", got, want)
 	}
 }

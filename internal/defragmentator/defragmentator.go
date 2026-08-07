@@ -79,6 +79,7 @@ func DefaultAction(network infrastructure.Network, connectionsMap map[string]con
 	updated := make(map[string]connections.Connection, len(original))
 	for _, entry := range entries {
 		connection := entry.conn
+		var reallocated connections.Connection
 		getSlot := func(band int) int {
 			if band == connection.BandSelected {
 				return connection.Slots
@@ -86,7 +87,18 @@ func DefaultAction(network infrastructure.Network, connectionsMap map[string]con
 			return 0
 		}
 
-		assigned, newConn := alloc(connection.Source, connection.Destination, getSlot, network, routes, numberOfBands, connection.Id)
+		assigned := alloc(
+			connection.Source,
+			connection.Destination,
+			getSlot,
+			network,
+			routes,
+			numberOfBands,
+			connection.Id,
+			func(conn connections.Connection) {
+				reallocated = conn
+			},
+		)
 		if !assigned {
 			for _, conn := range original {
 				for _, link := range conn.Links {
@@ -99,7 +111,10 @@ func DefaultAction(network infrastructure.Network, connectionsMap map[string]con
 			return fmt.Errorf("failed to reallocate connection %s during defragmentation", entry.id)
 		}
 
-		updated[entry.id] = newConn
+		if reallocated.Id == "" {
+			reallocated = connection
+		}
+		updated[entry.id] = reallocated
 	}
 
 	for id, conn := range updated {

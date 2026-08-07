@@ -22,41 +22,71 @@ This simulator is a performance evaluation tool for optical multiband networks, 
 
 ## Running the Simulator
 
-The recommended way to run the simulator is using the `Makefile`.
+The recommended way to run the simulator is using the Makefile.
 
 ### Using Make (Recommended)
 
-Run the simulation with default parameters:
+Run the simulation using the default config file:
 ```bash
 make run
 ```
 
-You can override any parameter directly from the command line:
+Run with a custom config file:
 ```bash
-make run BANDS=4 LAMBDA=100 GOAL=1e6
+make run CONFIG=files/config-legacy.json
 ```
 
 ### Using Go directly
 
-If you prefer to use `go run`, you can pass the flags manually:
+You can run the binary directly with the supported flags:
 ```bash
-go run main.go -bands 4 -lambda 100 -goal 1000000
+go run main.go -config files/config.json
+```
+
+Optional flags:
+```bash
+go run main.go -config files/config.json -logs=false
+go run main.go -config files/config.json -events-csv files/sim_events.csv
 ```
 
 ## Configuration Parameters
 
-| Parameter | Makefile Variable | Flag | Default | Description |
-|-----------|-------------------|------|---------|-------------|
-| Network | `NETWORK` | `-network` | `files/networks/UKNet_BDM.json` | Path to network topology |
-| Routes | `ROUTES` | `-routes` | `files/routes/UKNet_routes.json` | Path to pre-calculated routes |
-| Capacities| `CAPACITIES` | `-capacities` | `files/capacities/capacities.json`| Path to band capacities |
-| Bitrate | `BITRATE` | `-bitrate` | `files/bitrate/bitrate.json` | Path to bitrate configurations|
-| Lambda | `LAMBDA` | `-lambda` | `50` | Arrival rate $\lambda$ |
-| Mu | `MU` | `-mu` | `1` | Service rate $\mu$ |
-| Bands | `BANDS` | `-bands` | `1` | Number of frequency bands (1–4) |
-| Goal | `GOAL` | `-goal` | `1e8` | Number of connections to simulate |
-| Logs | `LOGS` | `-logs` | `true` | Enable real-time progress logging |
-| Legacy | `LEGACY` | `-legacy` | `false` | Enable legacy file configurations |
+Configuration is provided via JSON. The default file is `files/config.json`:
+
+```json
+{
+    "network": "files/networks/UKNet_BDM.json",
+    "routes": "files/routes/UKNet_routes.json",
+    "capacities": "files/capacities/capacities.json",
+    "bitrate": "files/bitrate/bitrate.json",
+    "lambda": 400,
+    "mu": 1,
+    "bands": 1,
+    "goal": 1e5,
+    "logs": true,
+    "legacy": false,
+    "defrag_mode": "none"
+}
+```
+
+| Key | Type | Default in files/config.json | Description |
+|-----|------|-------------------------------|-------------|
+| `network` | string | `files/networks/UKNet_BDM.json` | Path to network topology |
+| `routes` | string | `files/routes/UKNet_routes.json` | Path to pre-calculated routes |
+| `capacities` | string | `files/capacities/capacities.json` | Path to band capacities |
+| `bitrate` | string | `files/bitrate/bitrate.json` | Path to bitrate configuration |
+| `lambda` | number | `400` | Arrival rate $\lambda$ |
+| `mu` | number | `1` | Service rate $\mu$ |
+| `bands` | integer | `1` | Number of frequency bands |
+| `goal` | number | `1e5` | Number of connections to simulate |
+| `logs` | boolean | `true` | Enable progress logging |
+| `legacy` | boolean | `false` | Use legacy file loaders |
+| `defrag_mode` | string | `none` | Defragmentation mode (`none`, `before_arrival`, `after_block`, `after_assign`) |
+| `events_csv` | string | empty | Optional path to save generated event CSV |
+
+Notes:
+- CLI flag `-logs` overrides the `logs` value from config.
+- CLI flag `-events-csv` overrides `events_csv` from config.
 
 ## Testing
 
@@ -64,6 +94,13 @@ To run the unit tests and verify the implementation:
 ```bash
 make test
 ```
+
+## Makefile Targets
+
+- `make test`: run all tests (`go test -v ./...`).
+- `make build`: clean and build `bin/simulador`.
+- `make run`: build and execute `bin/simulador` with `-config="$(CONFIG)"`.
+- `make clean`: remove build output under `bin/`.
 
 ## Project Structure
 

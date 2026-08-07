@@ -56,21 +56,59 @@ func TestController_ReleaseConnection(t *testing.T) {
 	}
 }
 
+func TestController_ReleaseConnectionUsesStoredConnectionByID(t *testing.T) {
+	c := Controller{
+		Connections: make(map[string]connections.Connection),
+	}
+
+	link := &infrastructure.Link{
+		Capacities: infrastructure.Capacity{Bands: []infrastructure.Band{{Slots: []bool{false, false, false, false, false}}}},
+	}
+	stored := connections.Connection{
+		Id:           "1",
+		Source:       0,
+		Destination:  1,
+		InitialSlot:  1,
+		Slots:        2,
+		BandSelected: 0,
+		Links:        []*infrastructure.Link{link},
+	}
+	c.AddConnection(stored)
+
+	request := connections.Connection{Id: "1", InitialSlot: 100, Slots: 2, BandSelected: 0}
+	if err := c.ReleaseConnection(request, 0); err != nil {
+		t.Fatalf("expected release to succeed using stored connection details, got %v", err)
+	}
+}
+
 func TestController_ConnectionAllocation(t *testing.T) {
 	// Dummy allocator
-	dummyAllocator := func(source, destination int, getSlot func(int) int, network infrastructure.Network, path connections.Routes, numberOfBands int, id string) (bool, connections.Connection) {
-		return true, connections.Connection{Id: id, Source: source, Destination: destination}
+	dummyAllocator := func(source, destination int, getSlot func(int) int, network infrastructure.Network, path connections.Routes, numberOfBands int, id string, addConnection func(connections.Connection)) bool {
+		if addConnection != nil {
+			addConnection(connections.Connection{Id: id, Source: source, Destination: destination})
+		}
+		return true
 	}
 
 	c := Controller{
-		Allocator: dummyAllocator,
+		Connections: make(map[string]connections.Connection),
+		Allocator:   dummyAllocator,
 	}
 
-	success, conn := c.ConnectionAllocation(0, 1, func(int) int { return 1 }, 1, "test-id")
+	success := c.ConnectionAllocation(0, 1, func(int) int { return 1 }, 1, "test-id")
 	if !success {
 		t.Errorf("expected successful allocation")
 	}
-	if conn.Id != "test-id" {
-		t.Errorf("expected connection id test-id, got %v", conn.Id)
+
+	if len(c.Connections) != 1 {
+		t.Fatalf("expected connection to be added to controller after allocation")
+	}
+
+	stored, found := c.GetConnectionById("test-id")
+	if !found {
+		t.Fatalf("expected connection to exist in controller")
+	}
+	if stored.Source != 0 || stored.Destination != 1 {
+		t.Errorf("unexpected stored connection details: %+v", stored)
 	}
 }

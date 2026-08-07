@@ -6,7 +6,7 @@
   "lambda": 400,
   "mu": 1,
   "bands": 1,
-  "goal": 1e8,
+  "goal": 1e5,
   "logs": true,
   "legacy": false,
   "defrag_mode": "none"

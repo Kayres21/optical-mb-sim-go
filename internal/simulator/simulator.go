@@ -2,9 +2,12 @@ package simulator
 
 import (
 	"container/heap"
+	"encoding/csv"
 	"fmt"
 	"log/slog"
 	"math"
+	"os"
+	"path/filepath"
 	"strconv"
 	"time"
 
@@ -74,6 +77,7 @@ type Simulator struct {
 	startTime           time.Time
 	results             []float64
 	arrives             []float64
+	generatedEvents     []connections.ConnectionEvent
 
 	// Seeds (optional). If zero, defaults will be used.
 	SeedArrive      int64
@@ -107,6 +111,10 @@ func (s *Simulator) getSlotsByGigabits(bitrate connections.BitRate, gigabits int
 	return connections.Slots{}
 }
 
+func (s *Simulator) resolveConnectionID(event connections.ConnectionEvent) string {
+	return event.ConnectionID()
+}
+
 func (s *Simulator) shouldRunDefragment(event connections.ConnectionEvent) bool {
 	return s.DefragMode != defragmentator.DefragNone && s.DefragDecision(s.Network, s.Controller.Connections, event, s.NumberOfBands)
 }
@@ -124,6 +132,10 @@ func (s *Simulator) addResult(result float64) {
 
 func (s *Simulator) addArrive(arrive float64) {
 	s.arrives = append(s.arrives, arrive)
+}
+
+func (s *Simulator) recordEvent(event connections.ConnectionEvent) {
+	s.generatedEvents = append(s.generatedEvents, event)
 }
 
 func (s *Simulator) printBlockingTable(logOn bool) {
@@ -493,6 +505,7 @@ func (s *Simulator) Start(logOn bool) {
 
 		if event.Event == connections.ConnectionEventTypeArrive {
 			s.totalConnections++
+			s.recordEvent(event)
 			s.printBlockingTable(logOn)
 
 			if s.DefragMode == defragmentator.DefragBeforeArrival && s.shouldRunDefragment(event) {
@@ -501,8 +514,8 @@ func (s *Simulator) Start(logOn bool) {
 				}
 			}
 
-			// Schedule the next arrival.
-			nextArrive := s.createRandomArrival(event.Time, event.Id)
+			// Schedule the next arrival with the next connection-style identifier, matching the C++ simulator.
+			nextArrive := s.createRandomArrival(event.Time, fmt.Sprintf("%d", s.totalConnections))
 			s.pushEvent(nextArrive)
 
 			selectedBitrate := s.BitRateList.BitRates[event.Bitrate]
@@ -516,18 +529,18 @@ func (s *Simulator) Start(logOn bool) {
 				return slotsConfig.Slots
 			}
 
-			assigned, con := s.Controller.ConnectionAllocation(event.Source, event.Destination, getSlot, s.NumberOfBands, strconv.Itoa(s.totalConnections))
+			assigned := s.Controller.ConnectionAllocation(event.Source, event.Destination, getSlot, s.NumberOfBands, s.resolveConnectionID(event))
 
 			if !assigned && s.DefragMode == defragmentator.DefragAfterBlock && s.shouldRunDefragment(event) {
 				if err := s.runDefragment(); err != nil {
 					slog.Warn("defragmentation failed after block", "err", err)
 				} else {
-					assigned, con = s.Controller.ConnectionAllocation(event.Source, event.Destination, getSlot, s.NumberOfBands, strconv.Itoa(s.totalConnections))
+					assigned = s.Controller.ConnectionAllocation(event.Source, event.Destination, getSlot, s.NumberOfBands, s.resolveConnectionID(event))
 				}
 			}
 
 			if assigned {
-				s.Controller.AddConnection(con)
+
 				s.assignedConnections++
 
 				if s.DefragMode == defragmentator.DefragAfterAssign && s.shouldRunDefragment(event) {
@@ -537,17 +550,17 @@ func (s *Simulator) Start(logOn bool) {
 				}
 
 				departure := connections.ConnectionEvent{
-					Id:                     event.Id,
+					Id:                     s.resolveConnectionID(event),
 					Source:                 event.Source,
 					Destination:            event.Destination,
 					Bitrate:                event.Bitrate,
 					GigabitsSelected:       event.GigabitsSelected,
 					Event:                  connections.ConnectionEventTypeRelease,
 					Time:                   event.Time + rv.GetNetValueExponential(randomvariable.KeyDeparture),
-					ConnectionAssignedId:   strconv.Itoa(s.totalConnections),
-					ConnectionInitialSlot:  con.InitialSlot,
-					ConnectionSlots:        con.Slots,
-					ConnectionBandSelected: con.BandSelected,
+					ConnectionAssignedId:   s.resolveConnectionID(event),
+					ConnectionInitialSlot:  nil,
+					ConnectionSlots:        nil,
+					ConnectionBandSelected: nil,
 				}
 				s.pushEvent(departure)
 			}
@@ -555,14 +568,16 @@ func (s *Simulator) Start(logOn bool) {
 
 		if event.Event == connections.ConnectionEventTypeRelease {
 			countRelease++
-			connection, ok := s.Controller.GetConnectionByAllocation(event.Source, event.Destination, event.ConnectionInitialSlot, event.ConnectionSlots, event.ConnectionBandSelected)
+			s.recordEvent(event)
+			connectionID := s.resolveConnectionID(event)
+			connection, ok := s.Controller.GetConnectionById(connectionID)
 			if !ok {
-				slog.Warn("failed to release connection: not found by allocation details", "source", event.Source, "destination", event.Destination, "initialSlot", event.ConnectionInitialSlot, "slots", event.ConnectionSlots, "band", event.ConnectionBandSelected)
+				slog.Warn("failed to release connection: not found by ID", "id", connectionID)
 				continue
 			}
 
 			if err := s.Controller.ReleaseConnection(connection, event.Time); err != nil {
-				slog.Warn("failed to release connection", "id", event.ConnectionAssignedId, "err", err)
+				slog.Warn("failed to release connection", "id", connectionID, "err", err)
 			}
 		}
 	}
@@ -572,6 +587,55 @@ func (s *Simulator) Start(logOn bool) {
 
 func (s *Simulator) Plot(title, xLabel, yLabel string) error {
 	return plotter.GenerateScatterPlot(s.arrives, s.results, title, xLabel, yLabel)
+}
+
+func (s *Simulator) SaveEventsCSV(path string) error {
+	if path == "" {
+		return nil
+	}
+
+	if dir := filepath.Dir(path); dir != "." && dir != "" {
+		if err := os.MkdirAll(dir, 0o755); err != nil {
+			return fmt.Errorf("creating output directory: %w", err)
+		}
+	}
+
+	file, err := os.Create(path)
+	if err != nil {
+		return fmt.Errorf("creating event CSV: %w", err)
+	}
+	defer file.Close()
+
+	writer := csv.NewWriter(file)
+	writer.UseCRLF = true
+	if err := writer.Write([]string{"ID", "Tiempo", "Evento", "Source", "Destination", "BitRate"}); err != nil {
+		return fmt.Errorf("writing CSV header: %w", err)
+	}
+
+	for _, event := range s.generatedEvents {
+		id := event.ConnectionAssignedId
+		if id == "" {
+			id = event.Id
+		}
+		if id == "" {
+			id = "-"
+		}
+
+		row := []string{id, strconv.FormatFloat(event.Time, 'f', -1, 64), "ARRIVE", strconv.Itoa(event.Source), strconv.Itoa(event.Destination), strconv.Itoa(event.Bitrate)}
+		if event.Event == connections.ConnectionEventTypeRelease {
+			row = []string{id, strconv.FormatFloat(event.Time, 'f', -1, 64), "DEPARTURE", strconv.Itoa(event.Source), strconv.Itoa(event.Destination), strconv.Itoa(event.Bitrate)}
+		}
+		if err := writer.Write(row); err != nil {
+			return fmt.Errorf("writing CSV row: %w", err)
+		}
+	}
+
+	writer.Flush()
+	if err := writer.Error(); err != nil {
+		return fmt.Errorf("flushing CSV writer: %w", err)
+	}
+
+	return nil
 }
 
 func (s *Simulator) SetSeeds(seedArrive, seedDeparture, seedBitrate, seedSource, seedDestination, seedBand, seedGigabits int64) {

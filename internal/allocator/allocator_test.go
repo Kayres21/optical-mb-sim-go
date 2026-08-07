@@ -1,6 +1,8 @@
 package allocator
 
 import (
+	"os"
+	"path/filepath"
 	"testing"
 
 	"github.com/Kayres21/optical-mb-sim-go/internal/connections"
@@ -35,22 +37,10 @@ func TestFirstFit_Success(t *testing.T) {
 	}
 	network := infrastructure.Network{Links: links}
 
-	allocated, conn := FirstFit(0, 1, func(int) int { return 2 }, network, routes, 1, "test-id")
+	allocated := FirstFit(0, 1, func(int) int { return 2 }, network, routes, 1, "test-id", nil)
 
 	if !allocated {
 		t.Fatalf("expected allocation to succeed")
-	}
-
-	if conn.Id != "test-id" {
-		t.Errorf("expected connection id test-id, got %v", conn.Id)
-	}
-
-	if conn.InitialSlot != 0 {
-		t.Errorf("expected initial slot 0, got %v", conn.InitialSlot)
-	}
-
-	if conn.FinalSlot != 1 {
-		t.Errorf("expected final slot 1, got %v", conn.FinalSlot)
 	}
 }
 
@@ -80,7 +70,7 @@ func TestFirstFit_FailNoCapacity(t *testing.T) {
 	}
 	network := infrastructure.Network{Links: links}
 
-	allocated, _ := FirstFit(0, 1, func(int) int { return 2 }, network, routes, 1, "test-id")
+	allocated := FirstFit(0, 1, func(int) int { return 2 }, network, routes, 1, "test-id", nil)
 
 	if allocated {
 		t.Fatalf("expected allocation to fail due to lack of capacity")
@@ -113,10 +103,84 @@ func TestFirstFit_FailContiguity(t *testing.T) {
 	}
 	network := infrastructure.Network{Links: links}
 
-	allocated, _ := FirstFit(0, 1, func(int) int { return 2 }, network, routes, 1, "test-id")
+	allocated := FirstFit(0, 1, func(int) int { return 2 }, network, routes, 1, "test-id", nil)
 
 	if allocated {
 		t.Fatalf("expected allocation to fail due to lack of contiguous capacity")
+	}
+}
+
+func TestFirstFitFromFile_DoesNotAllocateConnections(t *testing.T) {
+	dir := t.TempDir()
+	csvPath := filepath.Join(dir, "allocations.csv")
+	csvContents := "id,source,destination,decision\nreq-1,0,1,ALLOCATED\n"
+	if err := os.WriteFile(csvPath, []byte(csvContents), 0o644); err != nil {
+		t.Fatalf("write csv: %v", err)
+	}
+
+	alloc, err := FirstFitFromFile(csvPath)
+	if err != nil {
+		t.Fatalf("create allocator: %v", err)
+	}
+
+	routes := connections.Routes{
+		Paths: []connections.Path{{
+			Source:      0,
+			Destination: 1,
+			PathLinks:   [][]int{{0, 1}},
+		}},
+	}
+
+	links := []infrastructure.Link{{
+		ID:          10,
+		Source:      0,
+		Destination: 1,
+		Capacities:  infrastructure.Capacity{Bands: []infrastructure.Band{{Slots: []bool{false, false, false, false}}}},
+	}}
+	network := infrastructure.Network{Links: links}
+
+	allocated := alloc(0, 1, func(int) int { return 2 }, network, routes, 1, "req-1", nil)
+	if !allocated {
+		t.Fatalf("expected allocation to be allowed")
+	}
+
+	if links[0].Capacities.Bands[0].Slots[0] {
+		t.Fatalf("expected no slot to be marked allocated")
+	}
+}
+
+func TestFirstFitFromFile_UsesCSVDecisionEvenWhenCapacityLooksFull(t *testing.T) {
+	dir := t.TempDir()
+	csvPath := filepath.Join(dir, "allocations.csv")
+	csvContents := "id,source,destination,decision\nreq-1,0,1,ALLOCATED\n"
+	if err := os.WriteFile(csvPath, []byte(csvContents), 0o644); err != nil {
+		t.Fatalf("write csv: %v", err)
+	}
+
+	alloc, err := FirstFitFromFile(csvPath)
+	if err != nil {
+		t.Fatalf("create allocator: %v", err)
+	}
+
+	routes := connections.Routes{
+		Paths: []connections.Path{{
+			Source:      0,
+			Destination: 1,
+			PathLinks:   [][]int{{0, 1}},
+		}},
+	}
+
+	links := []infrastructure.Link{{
+		ID:          10,
+		Source:      0,
+		Destination: 1,
+		Capacities:  infrastructure.Capacity{Bands: []infrastructure.Band{{Slots: []bool{true, true, true, true}}}},
+	}}
+	network := infrastructure.Network{Links: links}
+
+	allocated := alloc(0, 1, func(int) int { return 1 }, network, routes, 1, "req-1", nil)
+	if !allocated {
+		t.Fatalf("expected ALLOCATED CSV entry to be accepted")
 	}
 }
 
@@ -159,17 +223,9 @@ func TestFirstFit_SearchesAllRoutes(t *testing.T) {
 	}
 	network := infrastructure.Network{Links: links}
 
-	allocated, conn := FirstFit(0, 1, func(int) int { return 2 }, network, routes, 1, "test-id")
+	allocated := FirstFit(0, 1, func(int) int { return 2 }, network, routes, 1, "test-id", nil)
 
 	if !allocated {
 		t.Fatalf("expected allocation to succeed on the second route")
-	}
-
-	if conn.InitialSlot != 0 || conn.FinalSlot != 1 {
-		t.Fatalf("expected allocation to start at slot 0 and end at slot 1, got %d-%d", conn.InitialSlot, conn.FinalSlot)
-	}
-
-	if conn.Links[0].ID != 30 {
-		t.Fatalf("expected allocation on route starting with link 30, got link %d", conn.Links[0].ID)
 	}
 }

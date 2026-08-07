@@ -9,14 +9,12 @@ import (
 )
 
 type Controller struct {
-	Routes      connections.Routes
-	Connections map[string]connections.Connection
-	Network     infrastructure.Network
-	Allocator   allocator.Allocator
-	// Optional unassign callback invoked when a connection is released.
+	Routes           connections.Routes
+	Connections      map[string]connections.Connection
+	Network          infrastructure.Network
+	Allocator        allocator.Allocator
 	UnassignCallback func(connections.Connection, float64, infrastructure.Network)
-	// If true, use MB-style unassign behavior (no callback).
-	UseUnassignMB bool
+	UseUnassignMB    bool
 }
 
 func New(pathToRoutes string, network infrastructure.Network, allocator allocator.Allocator) (Controller, error) {
@@ -52,26 +50,27 @@ func (c *Controller) GetConnectionByAllocation(source, destination, initialSlot,
 }
 
 func (c *Controller) ReleaseConnection(connection connections.Connection, t float64) error {
-	if connection.Id != "" {
-		if _, ok := c.Connections[connection.Id]; !ok {
-			return fmt.Errorf("connection with ID %s not found", connection.Id)
-		}
+	if connection.Id == "" {
+		return fmt.Errorf("connection ID is required")
 	}
 
-	for _, link := range connection.Links {
-		if err := link.ReleaseConnection(connection.InitialSlot, connection.Slots, connection.BandSelected); err != nil {
+	stored, ok := c.Connections[connection.Id]
+	if !ok {
+		return fmt.Errorf("connection with ID %s not found", connection.Id)
+	}
+
+	for _, link := range stored.Links {
+		if err := link.ReleaseConnection(stored.InitialSlot, stored.Slots, stored.BandSelected); err != nil {
 			return err
 		}
 	}
 
 	// If there's a callback and MB mode is not enabled, call it
 	if c.UnassignCallback != nil && !c.UseUnassignMB {
-		c.UnassignCallback(connection, t, c.Network)
+		c.UnassignCallback(stored, t, c.Network)
 	}
 
-	if connection.Id != "" {
-		delete(c.Connections, connection.Id)
-	}
+	delete(c.Connections, connection.Id)
 	return nil
 }
 
@@ -89,6 +88,6 @@ func (c *Controller) SetUnassignMB() {
 
 // ConnectionAllocation delegates to the configured Allocator using the
 // controller's own Network and Routes — callers no longer need to pass them in.
-func (c *Controller) ConnectionAllocation(source, destination int, getSlot func(band int) int, numberOfBands int, id string) (bool, connections.Connection) {
-	return c.Allocator(source, destination, getSlot, c.Network, c.Routes, numberOfBands, id)
+func (c *Controller) ConnectionAllocation(source, destination int, getSlot func(band int) int, numberOfBands int, id string) bool {
+	return c.Allocator(source, destination, getSlot, c.Network, c.Routes, numberOfBands, id, c.AddConnection)
 }
