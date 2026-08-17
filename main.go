@@ -139,7 +139,7 @@ func main() {
 		log.Fatalf("Failed to load network: %v", err)
 	}
 
-	bitRate, err := resLoader.LoadBitRate(cfg.Bitrate)
+	bitRate, err := resLoader.LoadBitRate(cfg.Bitrate, *cfg.Bands)
 	if err != nil {
 		log.Fatalf("Failed to load bitrate: %v", err)
 	}

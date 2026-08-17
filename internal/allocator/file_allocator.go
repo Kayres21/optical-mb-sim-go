@@ -62,7 +62,7 @@ func FirstFitFromFile(csvPath string) (Allocator, error) {
 		})
 	}
 
-	return func(source, destination int, getSlot func(band int) int, network infrastructure.Network, path connections.Routes, numberOfBands int, id string, addConnection func(connections.Connection)) bool {
+	return func(source, destination int, bitRate connections.BitRate, network infrastructure.Network, path connections.Routes, numberOfBands int, id string, addConnection func(connections.Connection)) bool {
 		for index, event := range events {
 			if event.ID == id && event.Source == source && event.Destination == destination {
 				events = append(events[:index], events[index+1:]...)

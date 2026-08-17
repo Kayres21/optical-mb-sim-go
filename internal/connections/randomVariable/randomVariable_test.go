@@ -7,19 +7,19 @@ import (
 func TestRandomVariable_ParametersAndSeeds(t *testing.T) {
 	var rv RandomVariable
 
-	rv.SetParameters(10, 5, 3, 2, 2, 1, 4)
+	rv.SetParameters(10, 5, 3, 2, 2, 1)
 	if rv.Arrive.Parameter != 10 {
 		t.Errorf("expected Lambda=10, got %v", rv.Arrive.Parameter)
 	}
 
-	rv.SetSeeds(1, 2, 3, 4, 5, 6, 7)
+	rv.SetSeeds(1, 2, 3, 4, 5, 6)
 	// Just check if we can call it without panic, we can't easily inspect the rng state directly
 	// unless we generate values and see they are deterministic.
 
 	val1 := rv.GetNetValueExponential(KeyArrive)
 
 	// Reset seed and check if deterministic
-	rv.SetSeeds(1, 2, 3, 4, 5, 6, 7)
+	rv.SetSeeds(1, 2, 3, 4, 5, 6)
 	val2 := rv.GetNetValueExponential(KeyArrive)
 
 	if val1 != val2 {
@@ -29,8 +29,8 @@ func TestRandomVariable_ParametersAndSeeds(t *testing.T) {
 
 func TestRandomVariable_GetNetValueUniform(t *testing.T) {
 	var rv RandomVariable
-	rv.SetParameters(10, 5, 3, 2, 2, 1, 4)
-	rv.SetSeeds(1, 2, 3, 4, 5, 6, 7)
+	rv.SetParameters(10, 5, 3, 2, 2, 1)
+	rv.SetSeeds(1, 2, 3, 4, 5, 6)
 
 	for i := 0; i < 100; i++ {
 		val := rv.GetNetValueUniform(KeyBitrate)
@@ -42,8 +42,8 @@ func TestRandomVariable_GetNetValueUniform(t *testing.T) {
 
 func TestRandomVariable_GetNetValueUniformIncludesUpperBound(t *testing.T) {
 	var rv RandomVariable
-	rv.SetParameters(10, 5, 3, 2, 2, 1, 4)
-	rv.SetSeeds(1, 2, 3, 4, 5, 6, 7)
+	rv.SetParameters(10, 5, 3, 2, 2, 1)
+	rv.SetSeeds(1, 2, 3, 4, 5, 6)
 
 	seen := make(map[int]bool)
 	for i := 0; i < 200; i++ {

@@ -43,29 +43,6 @@ func TestSimulator_PushAndPopEvent(t *testing.T) {
 	}
 }
 
-func TestSimulator_getSlotsByGigabits(t *testing.T) {
-	s := &Simulator{}
-
-	br := connections.BitRate{
-		Slots: []connections.Slots{
-			{Gigabits: "100", Slots: 2},
-			{Gigabits: "200", Slots: 4},
-		},
-	}
-
-	if slot := s.getSlotsByGigabits(br, 100); slot.Slots != 2 {
-		t.Errorf("expected 2 slots, got %d", slot.Slots)
-	}
-
-	if slot := s.getSlotsByGigabits(br, 200); slot.Slots != 4 {
-		t.Errorf("expected 4 slots, got %d", slot.Slots)
-	}
-
-	if slot := s.getSlotsByGigabits(br, 300); slot.Slots != 0 {
-		t.Errorf("expected 0 slots for unknown gigabits, got %d", slot.Slots)
-	}
-}
-
 func TestSimulator_AddResultsAndArrives(t *testing.T) {
 	s := &Simulator{}
 

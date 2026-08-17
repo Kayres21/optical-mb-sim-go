@@ -5,15 +5,26 @@ import (
 	"github.com/Kayres21/optical-mb-sim-go/internal/infrastructure"
 )
 
-type Allocator func(source, destination int, getSlot func(band int) int, network infrastructure.Network, path connections.Routes, numberOfBands int, id string, addConnection func(connections.Connection)) bool
+// Allocator receives the whole BitRate magnitude selected for the connection
+// (every modulation it supports) so it can pick the modulation itself, based
+// on each candidate route's length, mirroring the Python reference allocator.
+type Allocator func(source, destination int, bitRate connections.BitRate, network infrastructure.Network, path connections.Routes, numberOfBands int, id string, addConnection func(connections.Connection)) bool
 
-func FirstFit(source int, destination int, getSlot func(band int) int, network infrastructure.Network, path connections.Routes, numberOfBands int, id string, addConnection func(connections.Connection)) bool {
+func FirstFit(source int, destination int, bitRate connections.BitRate, network infrastructure.Network, path connections.Routes, numberOfBands int, id string, addConnection func(connections.Connection)) bool {
 
 	paths := path.GetPaths(source, destination)
 
 	for _, pathSelected := range paths {
 		links := network.GetLinkByPath(pathSelected)
 		if len(links) == 0 {
+			continue
+		}
+
+		// Distance-adaptive modulation selection: pick the modulation with
+		// the smallest reach that still covers this route's length.
+		length := float64(network.GetPathDistance(links))
+		modulation := bitRate.GetDistanceAdaptive(length)
+		if modulation == -1 {
 			continue
 		}
 
@@ -38,7 +49,11 @@ func FirstFit(source int, destination int, getSlot func(band int) int, network i
 				continue
 			}
 
-			slotCount := getSlot(band)
+			bandName := ""
+			if band < len(links[0].Capacities.Bands) {
+				bandName = links[0].Capacities.Bands[band].Name
+			}
+			slotCount := bitRate.SlotsForBand(modulation, bandName)
 			if slotCount == 0 {
 				continue
 			}

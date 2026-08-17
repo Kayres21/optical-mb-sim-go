@@ -107,8 +107,12 @@ func (l *LegacyLoader) LoadNetwork(networkPath, capacitiesPath string) (infrastr
 	return network, nil
 }
 
-// LoadBitRate parses legacy bitrate JSON files.
-func (l *LegacyLoader) LoadBitRate(bitRatePath string) (connections.BitRateList, error) {
+// LoadBitRate parses legacy bitrate JSON files, mirroring
+// flexnetsim.bitrate.BitRate.read_bit_rate_file / read_bit_rate_file_mb: one
+// BitRate is produced per magnitude (gigabits key), holding every modulation
+// found for it. Single-band and multi-band (per-band) modulation configs may
+// be mixed freely within the same file, detected per modulation entry.
+func (l *LegacyLoader) LoadBitRate(bitRatePath string, _ int) (connections.BitRateList, error) {
 	data, err := os.ReadFile(bitRatePath)
 	if err != nil {
 		return connections.BitRateList{}, fmt.Errorf("reading legacy bitrate file: %w", err)
@@ -120,89 +124,83 @@ func (l *LegacyLoader) LoadBitRate(bitRatePath string) (connections.BitRateList,
 		return connections.BitRateList{}, fmt.Errorf("parsing legacy bitrate JSON: %w", err)
 	}
 
-	bitrateByKey := make(map[string]*connections.BitRate)
 	keys := make([]string, 0, len(raw))
 	for gigabits := range raw {
 		keys = append(keys, gigabits)
 	}
 	sort.Slice(keys, func(i, j int) bool {
-		left, _ := strconv.Atoi(keys[i])
-		right, _ := strconv.Atoi(keys[j])
+		left, _ := strconv.ParseFloat(keys[i], 64)
+		right, _ := strconv.ParseFloat(keys[j], 64)
 		return left < right
 	})
 
-	for _, gigabits := range keys {
-		entries := raw[gigabits]
-		br, ok := bitrateByKey[gigabits]
-		if !ok {
-			br = &connections.BitRate{}
-			bitrateByKey[gigabits] = br
-		}
-
-		for _, entry := range entries {
-			modulations := make([]string, 0, len(entry))
-			for modulation := range entry {
-				modulations = append(modulations, modulation)
-			}
-			sort.Slice(modulations, func(i, j int) bool {
-				return modulationSortKey(modulations[i]) < modulationSortKey(modulations[j])
-			})
-
-			for _, modulation := range modulations {
-				configRaw := entry[modulation]
-				if br.Modulation == "" {
-					br.Modulation = modulation
-				}
-
-				// Check if configRaw is a single config or a band map
-				var singleConfig struct {
-					Slots int `json:"slots"`
-					Reach int `json:"reach"`
-				}
-
-				if err := json.Unmarshal(configRaw, &singleConfig); err == nil {
-					// Single band legacy format
-					br.Slots = append(br.Slots, connections.Slots{
-						Gigabits: gigabits,
-						Slots:    singleConfig.Slots,
-					})
-					addReach(br, 1, "C", singleConfig.Reach)
-				} else {
-					// Multi band legacy format: [ { "C": {...} }, { "L": {...} } ]
-					var bandConfigs []map[string]struct {
-						Slots int `json:"slots"`
-						Reach int `json:"reach"`
-					}
-					if err := json.Unmarshal(configRaw, &bandConfigs); err == nil {
-						mainSlots := 0
-						slotsPerBand := make(map[string]int)
-						numBands := len(bandConfigs)
-
-						for _, bc := range bandConfigs {
-							for bandName, v := range bc {
-								if mainSlots == 0 || bandName == "C" {
-									mainSlots = v.Slots
-								}
-								slotsPerBand[bandName] = v.Slots
-								addReach(br, numBands, bandName, v.Reach)
-							}
-						}
-
-						br.Slots = append(br.Slots, connections.Slots{
-							Gigabits:     gigabits,
-							Slots:        mainSlots,
-							SlotsPerBand: slotsPerBand,
-						})
-					}
-				}
-			}
-		}
-	}
-
 	var res connections.BitRateList
 	for _, gigabits := range keys {
-		br := bitrateByKey[gigabits]
-		res.BitRates = append(res.BitRates, *br)
+		value, err := strconv.ParseFloat(gigabits, 64)
+		if err != nil {
+			return connections.BitRateList{}, fmt.Errorf("parsing bitrate magnitude %q: %w", gigabits, err)
+		}
+		br := connections.BitRate{Value: value}
+
+		configs := make(map[string]json.RawMessage)
+		modulations := make([]string, 0)
+		for _, entry := range raw[gigabits] {
+			for modulation, configRaw := range entry {
+				modulations = append(modulations, modulation)
+				configs[modulation] = configRaw
+			}
+		}
+		sort.Slice(modulations, func(i, j int) bool {
+			return modulationSortKey(modulations[i]) < modulationSortKey(modulations[j])
+		})
+
+		for _, modulation := range modulations {
+			configRaw := configs[modulation]
+
+			// Check if configRaw is a single config or a band map
+			var singleConfig struct {
+				Slots int     `json:"slots"`
+				Reach float64 `json:"reach"`
+			}
+
+			if err := json.Unmarshal(configRaw, &singleConfig); err == nil {
+				if err := validateSlotsReach(singleConfig.Slots, singleConfig.Reach); err != nil {
+					return connections.BitRateList{}, fmt.Errorf("bitrate %q modulation %q: %w", gigabits, modulation, err)
+				}
+				br.AddModulation(modulation, singleConfig.Slots, singleConfig.Reach, nil, nil, nil)
+				continue
+			}
+
+			// Multi band legacy format: [ { "C": {...} }, { "L": {...} } ]
+			var bandConfigs []map[string]struct {
+				Slots int     `json:"slots"`
+				Reach float64 `json:"reach"`
+			}
+			if err := json.Unmarshal(configRaw, &bandConfigs); err != nil {
+				return connections.BitRateList{}, fmt.Errorf("parsing modulation %q for bitrate %q: %w", modulation, gigabits, err)
+			}
+
+			var bandNames []string
+			var slotsPerBand []int
+			var reachPerBand []float64
+			totalSlots := 0
+			totalReach := 0.0
+			for _, bc := range bandConfigs {
+				for bandName, v := range bc {
+					if err := validateSlotsReach(v.Slots, v.Reach); err != nil {
+						return connections.BitRateList{}, fmt.Errorf("bitrate %q modulation %q band %q: %w", gigabits, modulation, bandName, err)
+					}
+					bandNames = append(bandNames, bandName)
+					slotsPerBand = append(slotsPerBand, v.Slots)
+					reachPerBand = append(reachPerBand, v.Reach)
+					totalSlots += v.Slots
+					totalReach += v.Reach
+				}
+			}
+			br.AddModulation(modulation, totalSlots, totalReach, bandNames, slotsPerBand, reachPerBand)
+		}
+
+		res.BitRates = append(res.BitRates, br)
 	}
 
 	return res, nil
@@ -224,26 +222,16 @@ func modulationSortKey(modulation string) int {
 	}
 }
 
-func addReach(br *connections.BitRate, numBands int, bandName string, reachVal int) {
-	var foundReach *connections.Reach
-	for i := range br.Reachs {
-		if br.Reachs[i].NumberOfBands == numBands {
-			foundReach = &br.Reachs[i]
-			break
-		}
+func validateSlotsReach(slots int, reach float64) error {
+	switch {
+	case slots < 0 && reach < 0:
+		return fmt.Errorf("value entered for slots and reach is less than zero")
+	case reach < 0:
+		return fmt.Errorf("value entered for reach is less than zero")
+	case slots < 0:
+		return fmt.Errorf("value entered for slots is less than zero")
 	}
-
-	if foundReach == nil {
-		br.Reachs = append(br.Reachs, connections.Reach{
-			NumberOfBands: numBands,
-		})
-		foundReach = &br.Reachs[len(br.Reachs)-1]
-	}
-
-	foundReach.Reach = append(foundReach.Reach, connections.ReachPerBand{
-		Band:  bandName,
-		Reach: reachVal,
-	})
+	return nil
 }
 
 // LoadRoutes parses legacy routes JSON files.

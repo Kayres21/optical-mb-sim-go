@@ -12,8 +12,8 @@ func (l *StandardLoader) LoadNetwork(networkPath, capacitiesPath string) (infras
 	return infrastructure.NetworkGenerate(networkPath, capacitiesPath)
 }
 
-func (l *StandardLoader) LoadBitRate(bitRatePath string) (connections.BitRateList, error) {
-	return connections.ReadBitRateFile(bitRatePath)
+func (l *StandardLoader) LoadBitRate(bitRatePath string, numberOfBands int) (connections.BitRateList, error) {
+	return connections.ReadBitRateFile(bitRatePath, numberOfBands)
 }
 
 func (l *StandardLoader) LoadRoutes(routesPath string) (connections.Routes, error) {

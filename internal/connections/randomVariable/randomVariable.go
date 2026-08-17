@@ -20,11 +20,7 @@ const (
 	KeySource      UniformKey = "source"
 	KeyDestination UniformKey = "destination"
 	KeyBand        UniformKey = "band"
-	KeyGigabits    UniformKey = "gigabits"
 )
-
-// DefaultGigabitOptions lists the supported gigabit values for connection requests.
-var DefaultGigabitOptions = []int{10, 40, 100, 400, 1000}
 
 type RandomVariable struct {
 	Arrive                ExponentialVariable
@@ -33,7 +29,6 @@ type RandomVariable struct {
 	SourceNodeSelect      UniformVariable
 	DestinationNodeSelect UniformVariable
 	BandSelect            UniformVariable
-	GigabitsSelected      UniformVariable
 }
 
 type ExponentialVariable struct {
@@ -46,24 +41,22 @@ type UniformVariable struct {
 	Rng       *rand.Rand
 }
 
-func (rv *RandomVariable) SetSeeds(seedArrive, seedDeparture, seedBitrate, seedSource, seedDestination, seedBand, seedGigabits int64) {
+func (rv *RandomVariable) SetSeeds(seedArrive, seedDeparture, seedBitrate, seedSource, seedDestination, seedBand int64) {
 	rv.Arrive.Rng = rand.New(rand.NewSource(seedArrive))
 	rv.Departure.Rng = rand.New(rand.NewSource(seedDeparture))
 	rv.BitrateSelect.Rng = rand.New(rand.NewSource(seedBitrate))
 	rv.SourceNodeSelect.Rng = rand.New(rand.NewSource(seedSource))
 	rv.DestinationNodeSelect.Rng = rand.New(rand.NewSource(seedDestination))
 	rv.BandSelect.Rng = rand.New(rand.NewSource(seedBand))
-	rv.GigabitsSelected.Rng = rand.New(rand.NewSource(seedGigabits))
 }
 
 // Parameters are interpreted as inclusive upper bounds, matching the C++
 // simulator's uniform distributions (range [0, parameter]).
-func (rv *RandomVariable) SetParameters(lambda, mu float64, bitrateSelect, sourceNodeSelect, destinationNodeSelect, bandSelect, gigabits int) {
+func (rv *RandomVariable) SetParameters(lambda, mu float64, bitrateSelect, sourceNodeSelect, destinationNodeSelect, bandSelect int) {
 	rv.Arrive.Parameter = lambda
 	rv.Departure.Parameter = mu
 	rv.BitrateSelect.Parameter = bitrateSelect
 	rv.SourceNodeSelect.Parameter = sourceNodeSelect
 	rv.DestinationNodeSelect.Parameter = destinationNodeSelect
 	rv.BandSelect.Parameter = bandSelect
-	rv.GigabitsSelected.Parameter = gigabits
 }

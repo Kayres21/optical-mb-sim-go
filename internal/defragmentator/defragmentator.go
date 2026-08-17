@@ -2,6 +2,7 @@ package defragmentator
 
 import (
 	"fmt"
+	"math"
 	"sort"
 	"strconv"
 
@@ -80,17 +81,24 @@ func DefaultAction(network infrastructure.Network, connectionsMap map[string]con
 	for _, entry := range entries {
 		connection := entry.conn
 		var reallocated connections.Connection
-		getSlot := func(band int) int {
-			if band == connection.BandSelected {
-				return connection.Slots
-			}
-			return 0
+
+		// Restrict reallocation to the connection's original band by giving
+		// it a single-band BitRate with unlimited reach.
+		bandName := ""
+		if len(connection.Links) > 0 && connection.BandSelected < len(connection.Links[0].Capacities.Bands) {
+			bandName = connection.Links[0].Capacities.Bands[connection.BandSelected].Name
+		}
+		bitRate := connections.BitRate{
+			Reach:        []float64{math.MaxFloat64},
+			Slots:        []int{0},
+			Bands:        [][]string{{bandName}},
+			SlotsPerBand: [][]int{{connection.Slots}},
 		}
 
 		assigned := alloc(
 			connection.Source,
 			connection.Destination,
-			getSlot,
+			bitRate,
 			network,
 			routes,
 			numberOfBands,

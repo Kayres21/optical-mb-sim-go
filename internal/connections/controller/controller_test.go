@@ -83,7 +83,7 @@ func TestController_ReleaseConnectionUsesStoredConnectionByID(t *testing.T) {
 
 func TestController_ConnectionAllocation(t *testing.T) {
 	// Dummy allocator
-	dummyAllocator := func(source, destination int, getSlot func(int) int, network infrastructure.Network, path connections.Routes, numberOfBands int, id string, addConnection func(connections.Connection)) bool {
+	dummyAllocator := func(source, destination int, bitRate connections.BitRate, network infrastructure.Network, path connections.Routes, numberOfBands int, id string, addConnection func(connections.Connection)) bool {
 		if addConnection != nil {
 			addConnection(connections.Connection{Id: id, Source: source, Destination: destination})
 		}
@@ -95,7 +95,7 @@ func TestController_ConnectionAllocation(t *testing.T) {
 		Allocator:   dummyAllocator,
 	}
 
-	success := c.ConnectionAllocation(0, 1, func(int) int { return 1 }, 1, "test-id")
+	success := c.ConnectionAllocation(0, 1, connections.BitRate{}, 1, "test-id")
 	if !success {
 		t.Errorf("expected successful allocation")
 	}

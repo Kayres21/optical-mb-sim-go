@@ -11,8 +11,7 @@ type ConnectionEvent struct {
 	Id                     string
 	Source                 int
 	Destination            int
-	Bitrate                int
-	GigabitsSelected       int
+	Bitrate                int        // index into BitRateList.BitRates
 	Event                  EventsType // "Arrive", "Release"
 	Time                   float64
 	ConnectionAssignedId   string
@@ -40,27 +39,16 @@ func GenerateEvents(nodeCount int, randomVariable randomvariable.RandomVariable,
 	for i := range nodeCount {
 		for j := range nodeCount {
 			if i != j {
-				unifiedIndex := randomVariable.GetNetValueUniform(randomvariable.KeyBitrate)
-				var modulationIndex, gigabits int
-
-				if len(bitRateList.BitRates) > 0 && len(bitRateList.BitRates[0].Slots) > 0 {
-					slotsCount := len(bitRateList.BitRates[0].Slots)
-					modulationIndex = unifiedIndex / slotsCount
-					slotIndex := unifiedIndex % slotsCount
-
-					gigaStr := bitRateList.BitRates[modulationIndex].Slots[slotIndex].Gigabits
-					gigabits, _ = strconv.Atoi(gigaStr)
-				} else {
-					modulationIndex = 0
-					gigabits = 10
+				bitrateIndex := 0
+				if len(bitRateList.BitRates) > 0 {
+					bitrateIndex = randomVariable.GetNetValueUniform(randomvariable.KeyBitrate)
 				}
 
 				event := ConnectionEvent{
 					Id:                   strconv.Itoa(id),
 					Source:               i,
 					Destination:          j,
-					Bitrate:              modulationIndex,
-					GigabitsSelected:     gigabits,
+					Bitrate:              bitrateIndex,
 					Event:                ConnectionEventTypeArrive,
 					Time:                 randomVariable.GetNetValueExponential(randomvariable.KeyArrive),
 					ConnectionAssignedId: "",

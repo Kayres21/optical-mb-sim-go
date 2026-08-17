@@ -1,6 +1,7 @@
 package allocator
 
 import (
+	"math"
 	"os"
 	"path/filepath"
 	"testing"
@@ -8,6 +9,15 @@ import (
 	"github.com/Kayres21/optical-mb-sim-go/internal/connections"
 	"github.com/Kayres21/optical-mb-sim-go/internal/infrastructure"
 )
+
+// bitRateFixedSlots returns a single-modulation BitRate with unlimited reach,
+// so any route qualifies and exactly slots slots are requested.
+func bitRateFixedSlots(slots int) connections.BitRate {
+	return connections.BitRate{
+		Reach: []float64{math.MaxFloat64},
+		Slots: []int{slots},
+	}
+}
 
 func TestFirstFit_Success(t *testing.T) {
 	// Setup a simple route
@@ -37,7 +47,7 @@ func TestFirstFit_Success(t *testing.T) {
 	}
 	network := infrastructure.Network{Links: links}
 
-	allocated := FirstFit(0, 1, func(int) int { return 2 }, network, routes, 1, "test-id", nil)
+	allocated := FirstFit(0, 1, bitRateFixedSlots(2), network, routes, 1, "test-id", nil)
 
 	if !allocated {
 		t.Fatalf("expected allocation to succeed")
@@ -70,7 +80,7 @@ func TestFirstFit_FailNoCapacity(t *testing.T) {
 	}
 	network := infrastructure.Network{Links: links}
 
-	allocated := FirstFit(0, 1, func(int) int { return 2 }, network, routes, 1, "test-id", nil)
+	allocated := FirstFit(0, 1, bitRateFixedSlots(2), network, routes, 1, "test-id", nil)
 
 	if allocated {
 		t.Fatalf("expected allocation to fail due to lack of capacity")
@@ -103,7 +113,7 @@ func TestFirstFit_FailContiguity(t *testing.T) {
 	}
 	network := infrastructure.Network{Links: links}
 
-	allocated := FirstFit(0, 1, func(int) int { return 2 }, network, routes, 1, "test-id", nil)
+	allocated := FirstFit(0, 1, bitRateFixedSlots(2), network, routes, 1, "test-id", nil)
 
 	if allocated {
 		t.Fatalf("expected allocation to fail due to lack of contiguous capacity")
@@ -139,7 +149,7 @@ func TestFirstFitFromFile_DoesNotAllocateConnections(t *testing.T) {
 	}}
 	network := infrastructure.Network{Links: links}
 
-	allocated := alloc(0, 1, func(int) int { return 2 }, network, routes, 1, "req-1", nil)
+	allocated := alloc(0, 1, bitRateFixedSlots(2), network, routes, 1, "req-1", nil)
 	if !allocated {
 		t.Fatalf("expected allocation to be allowed")
 	}
@@ -178,7 +188,7 @@ func TestFirstFitFromFile_UsesCSVDecisionEvenWhenCapacityLooksFull(t *testing.T)
 	}}
 	network := infrastructure.Network{Links: links}
 
-	allocated := alloc(0, 1, func(int) int { return 1 }, network, routes, 1, "req-1", nil)
+	allocated := alloc(0, 1, bitRateFixedSlots(1), network, routes, 1, "req-1", nil)
 	if !allocated {
 		t.Fatalf("expected ALLOCATED CSV entry to be accepted")
 	}
@@ -223,7 +233,7 @@ func TestFirstFit_SearchesAllRoutes(t *testing.T) {
 	}
 	network := infrastructure.Network{Links: links}
 
-	allocated := FirstFit(0, 1, func(int) int { return 2 }, network, routes, 1, "test-id", nil)
+	allocated := FirstFit(0, 1, bitRateFixedSlots(2), network, routes, 1, "test-id", nil)
 
 	if !allocated {
 		t.Fatalf("expected allocation to succeed on the second route")

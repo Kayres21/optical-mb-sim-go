@@ -13,7 +13,7 @@ func TestLegacyLoader_LoadBitRateUsesBitrateClasses(t *testing.T) {
 	bitratePath := filepath.Join(root, "legacy_files", "bitrates", "bitrate_iroBand_C.json")
 
 	loader := &LegacyLoader{}
-	bitrateList, err := loader.LoadBitRate(bitratePath)
+	bitrateList, err := loader.LoadBitRate(bitratePath, 1)
 	if err != nil {
 		t.Fatalf("LoadBitRate returned error: %v", err)
 	}
@@ -22,8 +22,8 @@ func TestLegacyLoader_LoadBitRateUsesBitrateClasses(t *testing.T) {
 		t.Fatalf("expected 5 bitrate classes, got %d", len(bitrateList.BitRates))
 	}
 
-	if got := bitrateList.BitRates[0].Slots[0].Gigabits; got != "10" {
-		t.Fatalf("expected first bitrate class to be 10, got %s", got)
+	if got := bitrateList.BitRates[0].Value; got != 10 {
+		t.Fatalf("expected first bitrate class to be 10, got %v", got)
 	}
 }
 
@@ -35,18 +35,18 @@ func TestLegacyLoader_LoadBitRateIsDeterministic(t *testing.T) {
 	var first []string
 
 	for i := 0; i < 10; i++ {
-		bitrateList, err := loader.LoadBitRate(bitratePath)
+		bitrateList, err := loader.LoadBitRate(bitratePath, 1)
 		if err != nil {
 			t.Fatalf("LoadBitRate iteration %d returned error: %v", i, err)
 		}
 
 		var summary []string
 		for _, br := range bitrateList.BitRates {
-			var slotSummary []string
-			for _, slot := range br.Slots {
-				slotSummary = append(slotSummary, fmt.Sprintf("%s:%d", slot.Gigabits, slot.Slots))
+			var modSummary []string
+			for m, modulation := range br.Modulation {
+				modSummary = append(modSummary, fmt.Sprintf("%s:%d", modulation, br.Slots[m]))
 			}
-			summary = append(summary, fmt.Sprintf("%s[%s]", br.Modulation, strings.Join(slotSummary, ",")))
+			summary = append(summary, fmt.Sprintf("%v[%s]", br.Value, strings.Join(modSummary, ",")))
 		}
 
 		if i == 0 {

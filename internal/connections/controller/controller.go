@@ -88,6 +88,6 @@ func (c *Controller) SetUnassignMB() {
 
 // ConnectionAllocation delegates to the configured Allocator using the
 // controller's own Network and Routes — callers no longer need to pass them in.
-func (c *Controller) ConnectionAllocation(source, destination int, getSlot func(band int) int, numberOfBands int, id string) bool {
-	return c.Allocator(source, destination, getSlot, c.Network, c.Routes, numberOfBands, id, c.AddConnection)
+func (c *Controller) ConnectionAllocation(source, destination int, bitRate connections.BitRate, numberOfBands int, id string) bool {
+	return c.Allocator(source, destination, bitRate, c.Network, c.Routes, numberOfBands, id, c.AddConnection)
 }

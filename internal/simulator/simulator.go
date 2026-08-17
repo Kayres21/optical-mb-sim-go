@@ -29,7 +29,6 @@ const (
 	defaultSeedSource      int64 = 1234
 	defaultSeedDestination int64 = 12345
 	defaultSeedBand        int64 = 123456
-	defaultSeedGigabits    int64 = 1234567
 )
 
 // Band count limits.
@@ -66,7 +65,6 @@ type Simulator struct {
 	NumberOfBands    int
 	NumberOfBitrates int
 	NumberOfNodes    int
-	NumberOfGigabits int
 	DefragMode       string
 	DefragDecision   defragmentator.DecisionFunc
 	DefragAction     defragmentator.ActionFunc
@@ -87,7 +85,6 @@ type Simulator struct {
 	SeedSource      int64
 	SeedDestination int64
 	SeedBand        int64
-	SeedGigabits    int64
 
 	// For CI calculations (port from C++ implementation)
 	zScore     float64
@@ -100,16 +97,6 @@ func (s *Simulator) pushEvent(event connections.ConnectionEvent) {
 
 func (s *Simulator) popEvent() connections.ConnectionEvent {
 	return heap.Pop(&s.events).(connections.ConnectionEvent)
-}
-
-func (s *Simulator) getSlotsByGigabits(bitrate connections.BitRate, gigabits int) connections.Slots {
-	key := fmt.Sprint(gigabits)
-	for _, slot := range bitrate.Slots {
-		if slot.Gigabits == key {
-			return slot
-		}
-	}
-	return connections.Slots{}
 }
 
 func (s *Simulator) resolveConnectionID(event connections.ConnectionEvent) string {
@@ -202,7 +189,7 @@ func (s *Simulator) printBlockingTable(logOn bool) {
 	}
 }
 
-func (s *Simulator) initRandomVariable(lambda, mu float64, seedArrive, seedDeparture, seedBitrate, seedSource, seedDestination, seedBand, seedGigabits int64) {
+func (s *Simulator) initRandomVariable(lambda, mu float64, seedArrive, seedDeparture, seedBitrate, seedSource, seedDestination, seedBand int64) {
 	var rv randomvariable.RandomVariable
 	bitrateParam := s.NumberOfBitrates - 1
 	if bitrateParam < 0 {
@@ -216,17 +203,12 @@ func (s *Simulator) initRandomVariable(lambda, mu float64, seedArrive, seedDepar
 	if bandParam < 0 {
 		bandParam = 0
 	}
-	gigabitsParam := s.NumberOfGigabits - 1
-	if gigabitsParam < 0 {
-		gigabitsParam = 0
-	}
 
 	rv.SetParameters(
 		lambda, mu,
 		bitrateParam,
 		sourceParam, sourceParam,
 		bandParam,
-		gigabitsParam,
 	)
 
 	// If any provided seed is zero, fall back to defaults.
@@ -248,9 +230,6 @@ func (s *Simulator) initRandomVariable(lambda, mu float64, seedArrive, seedDepar
 	if seedBand == 0 {
 		seedBand = defaultSeedBand
 	}
-	if seedGigabits == 0 {
-		seedGigabits = defaultSeedGigabits
-	}
 
 	rv.SetSeeds(
 		seedArrive,
@@ -259,7 +238,6 @@ func (s *Simulator) initRandomVariable(lambda, mu float64, seedArrive, seedDepar
 		seedSource,
 		seedDestination,
 		seedBand,
-		seedGigabits,
 	)
 	s.RandomVariable = rv
 }
@@ -283,12 +261,9 @@ func (s *Simulator) initBitRate(bitRate connections.BitRateList) {
 
 func (s *Simulator) initVariableNumbers(numberOfBands int) {
 	s.NumberOfNodes = len(s.Network.Nodes)
-	if len(s.BitRateList.BitRates) > 0 {
-		s.NumberOfBitrates = len(s.BitRateList.BitRates) * len(s.BitRateList.BitRates[0].Slots)
-	} else {
-		s.NumberOfBitrates = 0
-	}
-	s.NumberOfGigabits = len(randomvariable.DefaultGigabitOptions)
+	// One BitRate entry per magnitude (Python-style flat list); the bitrate
+	// uniform variable draws a single index directly into it.
+	s.NumberOfBitrates = len(s.BitRateList.BitRates)
 
 	switch {
 	case numberOfBands > maxBands:
@@ -335,7 +310,6 @@ func New(
 		defaultSeedSource,
 		defaultSeedDestination,
 		defaultSeedBand,
-		defaultSeedGigabits,
 	)
 }
 
@@ -351,7 +325,7 @@ func NewWithSeeds(
 	defragMode string,
 	defragDecision defragmentator.DecisionFunc,
 	defragAction defragmentator.ActionFunc,
-	seedArrive, seedDeparture, seedBitrate, seedSource, seedDestination, seedBand, seedGigabits int64,
+	seedArrive, seedDeparture, seedBitrate, seedSource, seedDestination, seedBand int64,
 ) (*Simulator, error) {
 	s := &Simulator{}
 
@@ -366,9 +340,8 @@ func NewWithSeeds(
 	s.SeedSource = seedSource
 	s.SeedDestination = seedDestination
 	s.SeedBand = seedBand
-	s.SeedGigabits = seedGigabits
 
-	s.initRandomVariable(lambda, mu, seedArrive, seedDeparture, seedBitrate, seedSource, seedDestination, seedBand, seedGigabits)
+	s.initRandomVariable(lambda, mu, seedArrive, seedDeparture, seedBitrate, seedSource, seedDestination, seedBand)
 
 	s.GoalConnections = goalConnections
 	s.Time = 0
@@ -486,27 +459,16 @@ func (s *Simulator) createRandomArrival(currentTime float64, id string) connecti
 		destination = rv.GetNetValueUniform(randomvariable.KeyDestination)
 	}
 
-	unifiedIndex := rv.GetNetValueUniform(randomvariable.KeyBitrate)
-	var modulationIndex, gigabits int
-
-	if len(s.BitRateList.BitRates) > 0 && len(s.BitRateList.BitRates[0].Slots) > 0 {
-		slotsCount := len(s.BitRateList.BitRates[0].Slots)
-		modulationIndex = unifiedIndex / slotsCount
-		slotIndex := unifiedIndex % slotsCount
-
-		gigaStr := s.BitRateList.BitRates[modulationIndex].Slots[slotIndex].Gigabits
-		gigabits, _ = strconv.Atoi(gigaStr)
-	} else {
-		modulationIndex = 0
-		gigabits = 10
+	bitrateIndex := 0
+	if len(s.BitRateList.BitRates) > 0 {
+		bitrateIndex = rv.GetNetValueUniform(randomvariable.KeyBitrate)
 	}
 
 	return connections.ConnectionEvent{
 		Id:                   id,
 		Source:               source,
 		Destination:          destination,
-		Bitrate:              modulationIndex,
-		GigabitsSelected:     gigabits,
+		Bitrate:              bitrateIndex,
 		Event:                connections.ConnectionEventTypeArrive,
 		Time:                 currentTime + rv.GetNetValueExponential(randomvariable.KeyArrive),
 		ConnectionAssignedId: "",
@@ -540,23 +502,14 @@ func (s *Simulator) Start(logOn bool) {
 			s.pushEvent(nextArrive)
 
 			selectedBitrate := s.BitRateList.BitRates[event.Bitrate]
-			slotsConfig := s.getSlotsByGigabits(selectedBitrate, event.GigabitsSelected)
 
-			getSlot := func(bandIndex int) int {
-				band := s.Network.Links[0].Capacities.Bands[bandIndex]
-				if sVal, ok := slotsConfig.SlotsPerBand[band.Name]; ok {
-					return sVal
-				}
-				return slotsConfig.Slots
-			}
-
-			assigned := s.Controller.ConnectionAllocation(event.Source, event.Destination, getSlot, s.NumberOfBands, s.resolveConnectionID(event))
+			assigned := s.Controller.ConnectionAllocation(event.Source, event.Destination, selectedBitrate, s.NumberOfBands, s.resolveConnectionID(event))
 
 			if !assigned && s.DefragMode == defragmentator.DefragAfterBlock && s.shouldRunDefragment(event) {
 				if err := s.runDefragment(); err != nil {
 					slog.Warn("defragmentation failed after block", "err", err)
 				} else {
-					assigned = s.Controller.ConnectionAllocation(event.Source, event.Destination, getSlot, s.NumberOfBands, s.resolveConnectionID(event))
+					assigned = s.Controller.ConnectionAllocation(event.Source, event.Destination, selectedBitrate, s.NumberOfBands, s.resolveConnectionID(event))
 				}
 			}
 
@@ -575,7 +528,6 @@ func (s *Simulator) Start(logOn bool) {
 					Source:                 event.Source,
 					Destination:            event.Destination,
 					Bitrate:                event.Bitrate,
-					GigabitsSelected:       event.GigabitsSelected,
 					Event:                  connections.ConnectionEventTypeRelease,
 					Time:                   event.Time + rv.GetNetValueExponential(randomvariable.KeyDeparture),
 					ConnectionAssignedId:   s.resolveConnectionID(event),
@@ -659,46 +611,41 @@ func (s *Simulator) SaveEventsCSV(path string) error {
 	return nil
 }
 
-func (s *Simulator) SetSeeds(seedArrive, seedDeparture, seedBitrate, seedSource, seedDestination, seedBand, seedGigabits int64) {
+func (s *Simulator) SetSeeds(seedArrive, seedDeparture, seedBitrate, seedSource, seedDestination, seedBand int64) {
 	s.SeedArrive = seedArrive
 	s.SeedDeparture = seedDeparture
 	s.SeedBitrate = seedBitrate
 	s.SeedSource = seedSource
 	s.SeedDestination = seedDestination
 	s.SeedBand = seedBand
-	s.SeedGigabits = seedGigabits
 
 	if (s.RandomVariable != randomvariable.RandomVariable{}) {
-		s.RandomVariable.SetSeeds(seedArrive, seedDeparture, seedBitrate, seedSource, seedDestination, seedBand, seedGigabits)
+		s.RandomVariable.SetSeeds(seedArrive, seedDeparture, seedBitrate, seedSource, seedDestination, seedBand)
 	}
 }
 
 func (s *Simulator) SetSeedArrive(seed int64) {
-	s.SetSeeds(seed, s.SeedDeparture, s.SeedBitrate, s.SeedSource, s.SeedDestination, s.SeedBand, s.SeedGigabits)
+	s.SetSeeds(seed, s.SeedDeparture, s.SeedBitrate, s.SeedSource, s.SeedDestination, s.SeedBand)
 }
 
 func (s *Simulator) SetSeedDeparture(seed int64) {
-	s.SetSeeds(s.SeedArrive, seed, s.SeedBitrate, s.SeedSource, s.SeedDestination, s.SeedBand, s.SeedGigabits)
+	s.SetSeeds(s.SeedArrive, seed, s.SeedBitrate, s.SeedSource, s.SeedDestination, s.SeedBand)
 }
 
 func (s *Simulator) SetSeedBitrate(seed int64) {
-	s.SetSeeds(s.SeedArrive, s.SeedDeparture, seed, s.SeedSource, s.SeedDestination, s.SeedBand, s.SeedGigabits)
+	s.SetSeeds(s.SeedArrive, s.SeedDeparture, seed, s.SeedSource, s.SeedDestination, s.SeedBand)
 }
 
 func (s *Simulator) SetSeedSource(seed int64) {
-	s.SetSeeds(s.SeedArrive, s.SeedDeparture, s.SeedBitrate, seed, s.SeedDestination, s.SeedBand, s.SeedGigabits)
+	s.SetSeeds(s.SeedArrive, s.SeedDeparture, s.SeedBitrate, seed, s.SeedDestination, s.SeedBand)
 }
 
 func (s *Simulator) SetSeedDestination(seed int64) {
-	s.SetSeeds(s.SeedArrive, s.SeedDeparture, s.SeedBitrate, s.SeedSource, seed, s.SeedBand, s.SeedGigabits)
+	s.SetSeeds(s.SeedArrive, s.SeedDeparture, s.SeedBitrate, s.SeedSource, seed, s.SeedBand)
 }
 
 func (s *Simulator) SetSeedBand(seed int64) {
-	s.SetSeeds(s.SeedArrive, s.SeedDeparture, s.SeedBitrate, s.SeedSource, s.SeedDestination, seed, s.SeedGigabits)
-}
-
-func (s *Simulator) SetSeedGigabits(seed int64) {
-	s.SetSeeds(s.SeedArrive, s.SeedDeparture, s.SeedBitrate, s.SeedSource, s.SeedDestination, s.SeedBand, seed)
+	s.SetSeeds(s.SeedArrive, s.SeedDeparture, s.SeedBitrate, s.SeedSource, s.SeedDestination, seed)
 }
 
 // SetAllocator allows replacing the allocator after constructing the Simulator.

@@ -10,9 +10,6 @@ func (rv *RandomVariable) GetNetValueUniform(key UniformKey) int {
 		return rv.DestinationNodeSelect.Rng.Intn(rv.DestinationNodeSelect.Parameter + 1)
 	case KeyBand:
 		return rv.BandSelect.Rng.Intn(rv.BandSelect.Parameter + 1)
-	case KeyGigabits:
-		selected := rv.GigabitsSelected.Rng.Intn(rv.GigabitsSelected.Parameter + 1)
-		return DefaultGigabitOptions[selected]
 	}
 	return -1
 }
