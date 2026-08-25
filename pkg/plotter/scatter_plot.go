@@ -14,6 +14,13 @@ import (
 	"gonum.org/v1/plot/vg/draw"
 )
 
+// Series represents a single plotted dataset in a multi-series chart.
+type Series struct {
+	Label string
+	X     []float64
+	Y     []float64
+}
+
 // PlotConfig holds optional styling overrides for GenerateLinePlot.
 type PlotConfig struct {
 	// LineColor is the colour of the data line. Defaults to a vivid blue.
@@ -34,10 +41,109 @@ var defaultConfig = PlotConfig{
 	OutputDir:  "result",
 }
 
+func DefaultPlotConfig() PlotConfig {
+	return defaultConfig
+}
+
 // GenerateScatterPlot is the original API kept for backwards compatibility.
 // It now delegates to GenerateLinePlot with default styling.
 func GenerateScatterPlot(xData, yData []float64, title, xLabel, yLabel string) error {
 	return GenerateLinePlot(xData, yData, title, xLabel, yLabel, defaultConfig)
+}
+
+// GenerateMultiSeriesPlot creates a line/scatter plot with multiple series and saves it as PNG.
+func GenerateMultiSeriesPlot(series []Series, title, xLabel, yLabel string, cfg PlotConfig) error {
+	if len(series) == 0 {
+		return fmt.Errorf("no series to plot")
+	}
+
+	p := gplot.New()
+	p.Title.Text = title
+	p.Title.Padding = vg.Points(10)
+	p.X.Label.Text = xLabel
+	p.Y.Label.Text = yLabel
+	p.X.Label.Padding = vg.Points(6)
+	p.Y.Label.Padding = vg.Points(6)
+	p.X.Tick.Marker = scientificTicker{}
+	p.Y.Tick.Marker = gplot.DefaultTicks{}
+
+	grid := plotter.NewGrid()
+	grid.Horizontal.Color = color.RGBA{R: 220, G: 220, B: 220, A: 255}
+	grid.Vertical.Color = color.RGBA{R: 220, G: 220, B: 220, A: 255}
+	grid.Horizontal.Width = vg.Points(0.5)
+	grid.Vertical.Width = vg.Points(0.5)
+	p.Add(grid)
+
+	palette := []color.RGBA{
+		{R: 30, G: 120, B: 255, A: 255},
+		{R: 220, G: 50, B: 32, A: 255},
+		{R: 34, G: 168, B: 95, A: 255},
+		{R: 180, G: 85, B: 180, A: 255},
+		{R: 235, G: 145, B: 52, A: 255},
+		{R: 80, G: 100, B: 150, A: 255},
+	}
+
+	allY := make([]float64, 0)
+	for i, s := range series {
+		if len(s.X) != len(s.Y) {
+			return fmt.Errorf("series %q has mismatched x/y lengths (got %d and %d)", s.Label, len(s.X), len(s.Y))
+		}
+		if len(s.X) == 0 {
+			continue
+		}
+		allY = append(allY, s.Y...)
+		pts := make(plotter.XYs, len(s.X))
+		for j := range s.X {
+			pts[j].X = s.X[j]
+			pts[j].Y = s.Y[j]
+		}
+
+		line, err := plotter.NewLine(pts)
+		if err != nil {
+			return fmt.Errorf("creating line for %q: %w", s.Label, err)
+		}
+		colorIdx := i % len(palette)
+		line.Color = palette[colorIdx]
+		line.Width = vg.Points(2)
+		p.Add(line)
+
+		scatter, err := plotter.NewScatter(pts)
+		if err != nil {
+			return fmt.Errorf("creating scatter for %q: %w", s.Label, err)
+		}
+		scatter.GlyphStyle = draw.GlyphStyle{
+			Color:  palette[colorIdx],
+			Radius: vg.Points(4),
+			Shape:  draw.CircleGlyph{},
+		}
+		p.Add(scatter)
+		p.Legend.Add(s.Label, line)
+	}
+
+	if len(allY) > 0 {
+		minY, maxY := minMax(allY)
+		padding := (maxY - minY) * 0.1
+		if padding == 0 {
+			padding = 0.05
+		}
+		p.Y.Min = math.Max(0, minY-padding)
+		p.Y.Max = maxY + padding
+	}
+	p.Legend.Top = true
+	p.Legend.Left = true
+
+	timestamp := time.Now().Format("20060102_150405")
+	filename := fmt.Sprintf("%s_%s.png", title, timestamp)
+	filePath := filepath.Join(cfg.OutputDir, filename)
+	if err := os.MkdirAll(cfg.OutputDir, 0o755); err != nil {
+		return fmt.Errorf("creating output directory %q: %w", cfg.OutputDir, err)
+	}
+	if err := p.Save(cfg.Width, cfg.Height, filePath); err != nil {
+		return fmt.Errorf("saving plot to %q: %w", filePath, err)
+	}
+
+	fmt.Printf("Plot saved → %s\n", filePath)
+	return nil
 }
 
 // GenerateLinePlot produces a polished line+scatter plot and saves it as PNG.

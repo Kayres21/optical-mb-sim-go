@@ -3,11 +3,15 @@
   "routes": "files/routes/UKNet_routes.json",
   "capacities": "files/capacities/capacities.json",
   "bitrate": "files/bitrate/bitrate.json",
-  "lambda": 400,
+  "lambda": 600,
   "mu": 1,
-  "bands": 1,
-  "goal": 1e6,
+  "bands": 4,
+  "goal": 1e7,
   "logs": true,
   "legacy": false,
-  "defrag_mode": "none"
+  "defrag_mode": "none",
+  "sweep": true,
+  "lambda_start": 500,
+  "lambda_end": 1000,
+  "lambda_step": 100
 }

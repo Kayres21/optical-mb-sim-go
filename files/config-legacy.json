@@ -9,5 +9,9 @@
   "goal": 1e6,
   "logs": true,
   "legacy": true,
-  "defrag_mode": "none"
+  "defrag_mode": "none",
+  "sweep": false,
+  "lambda_start": 500,
+  "lambda_end": 1500,
+  "lambda_step": 50
 }

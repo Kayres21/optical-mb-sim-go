@@ -135,8 +135,8 @@ func (s *Simulator) printBlockingTable(logOn bool) {
 	}
 
 	if s.totalConnections == 0 {
-		fmt.Println("+----------+----------+----------+----------+-------------------+-------------------+-------------------+")
-		fmt.Printf("|%10s|%10s|%10s|%10s|%19s|%19s|%19s|\n",
+		fmt.Println("+----------+----------+------------------+----------+-------------------+-------------------+-------------------+")
+		fmt.Printf("|%10s|%10s|%18s|%10s|%19s|%19s|%19s|\n",
 			"progress",
 			"arrives",
 			"blocking",
@@ -145,7 +145,7 @@ func (s *Simulator) printBlockingTable(logOn bool) {
 			"A-C. CI",
 			"Wilson CI",
 		)
-		fmt.Println("+----------+----------+----------+----------+-------------------+-------------------+-------------------+")
+		fmt.Println("+----------+----------+------------------+----------+-------------------+-------------------+-------------------+")
 		return
 	}
 
@@ -174,16 +174,17 @@ func (s *Simulator) printBlockingTable(logOn bool) {
 		acCI := fmt.Sprintf("%9.1e", acHalf)
 		wilsonCI := fmt.Sprintf("%9.1e", wilsonHalf)
 
-		fmt.Printf("|%8.1f %%|%10d|%10.3e|%10s|%19s|%19s|%19s|\n",
+		blockingValue := helpers.FormatBlockingProbability(blockingProbability)
+		fmt.Printf("|%8.1f %%|%10d|%18s|%10s|%19s|%19s|%19s|\n",
 			progress,
 			s.totalConnections,
-			blockingProbability,
+			blockingValue,
 			timeFormatted,
 			waldCI,
 			acCI,
 			wilsonCI,
 		)
-		fmt.Println("+----------+----------+----------+----------+-------------------+-------------------+-------------------+")
+		fmt.Println("+----------+----------+------------------+----------+-------------------+-------------------+-------------------+")
 		s.addResult(blockingProbability)
 		s.addArrive(float64(s.totalConnections))
 	}
@@ -560,6 +561,14 @@ func (s *Simulator) Start(logOn bool) {
 
 func (s *Simulator) Plot(title, xLabel, yLabel string) error {
 	return plotter.GenerateScatterPlot(s.arrives, s.results, title, xLabel, yLabel)
+}
+
+func (s *Simulator) Arrives() []float64 {
+	return append([]float64(nil), s.arrives...)
+}
+
+func (s *Simulator) Results() []float64 {
+	return append([]float64(nil), s.results...)
 }
 
 func (s *Simulator) SaveEventsCSV(path string) error {

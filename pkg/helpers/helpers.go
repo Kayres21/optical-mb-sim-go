@@ -1,11 +1,18 @@
 package helpers
 
-import "math"
+import (
+	"fmt"
+	"math"
+)
 
 const confidence95z = 1.96
 
 func ComputeBlockingProbabilities(assignedConnections, totalConnections int) float64 {
 	return 1.0 - float64(assignedConnections)/float64(totalConnections)
+}
+
+func FormatBlockingProbability(value float64) string {
+	return fmt.Sprintf("%.12e", value)
 }
 
 func WaldConfidenceInterval(assignedConnections, totalConnections int) (float64, float64) {
@@ -27,9 +34,9 @@ func AgrestiCoullConfidenceInterval(assignedConnections, totalConnections int) (
 
 	blocked := float64(totalConnections - assignedConnections)
 	n := float64(totalConnections)
-	z2Even := 4.0
-	pHat := (blocked + z2Even/2.0) / (n + z2Even)
-	se := math.Sqrt(pHat * (1.0 - pHat) / (n + z2Even))
+	z2 := confidence95z * confidence95z
+	pHat := (blocked + z2/2.0) / (n + z2)
+	se := math.Sqrt(pHat * (1.0 - pHat) / (n + z2))
 	lower := pHat - confidence95z*se
 	upper := pHat + confidence95z*se
 	return clamp(lower, 0.0, 1.0), clamp(upper, 0.0, 1.0)

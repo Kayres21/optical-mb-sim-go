@@ -12,21 +12,26 @@ import (
 	"github.com/Kayres21/optical-mb-sim-go/internal/defragmentator"
 	"github.com/Kayres21/optical-mb-sim-go/internal/loader"
 	"github.com/Kayres21/optical-mb-sim-go/internal/simulator"
+	"github.com/Kayres21/optical-mb-sim-go/simulations"
 )
 
 type AppConfig struct {
-	Network    string   `json:"network"`
-	Routes     string   `json:"routes"`
-	Capacities string   `json:"capacities"`
-	Bitrate    string   `json:"bitrate"`
-	Lambda     *float64 `json:"lambda"`
-	Mu         *float64 `json:"mu"`
-	Bands      *int     `json:"bands"`
-	Goal       *float64 `json:"goal"`
-	Logs       *bool    `json:"logs"`
-	Legacy     *bool    `json:"legacy"`
-	DefragMode string   `json:"defrag_mode"`
-	EventsCSV  string   `json:"events_csv"`
+	Network     string   `json:"network"`
+	Routes      string   `json:"routes"`
+	Capacities  string   `json:"capacities"`
+	Bitrate     string   `json:"bitrate"`
+	Lambda      *float64 `json:"lambda"`
+	Mu          *float64 `json:"mu"`
+	Bands       *int     `json:"bands"`
+	Goal        *float64 `json:"goal"`
+	Logs        *bool    `json:"logs"`
+	Legacy      *bool    `json:"legacy"`
+	DefragMode  string   `json:"defrag_mode"`
+	EventsCSV   string   `json:"events_csv"`
+	Sweep       *bool    `json:"sweep"`
+	LambdaStart *float64 `json:"lambda_start"`
+	LambdaEnd   *float64 `json:"lambda_end"`
+	LambdaStep  *float64 `json:"lambda_step"`
 }
 
 func loadConfig(path string) (AppConfig, error) {
@@ -105,6 +110,22 @@ func applyDefaults(cfg AppConfig) AppConfig {
 	if cfg.EventsCSV == "" {
 		cfg.EventsCSV = ""
 	}
+	if cfg.Sweep == nil {
+		cfg.Sweep = new(bool)
+		*cfg.Sweep = false
+	}
+	if cfg.LambdaStart == nil {
+		cfg.LambdaStart = new(float64)
+		*cfg.LambdaStart = 500
+	}
+	if cfg.LambdaEnd == nil {
+		cfg.LambdaEnd = new(float64)
+		*cfg.LambdaEnd = 1500
+	}
+	if cfg.LambdaStep == nil {
+		cfg.LambdaStep = new(float64)
+		*cfg.LambdaStep = 50
+	}
 
 	return cfg
 }
@@ -113,6 +134,10 @@ func main() {
 	configPath := flag.String("config", "files/config.json", "Path to JSON configuration file")
 	eventsCSV := flag.String("events-csv", "", "Path to write the generated events CSV after the simulation")
 	logs := flag.Bool("logs", true, "Enable progress logging")
+	lambdaStart := flag.Float64("lambda-start", 500, "Start lambda for a multi-simulation sweep")
+	lambdaEnd := flag.Float64("lambda-end", 1500, "End lambda for a multi-simulation sweep")
+	lambdaStep := flag.Float64("lambda-step", 50, "Lambda step for a multi-simulation sweep")
+	sweepEnabled := flag.Bool("sweep", false, "Run multiple simulations across a lambda range and plot all results together")
 	flag.Parse()
 
 	cfg, err := loadConfig(*configPath)
@@ -149,6 +174,39 @@ func main() {
 		log.Fatalf("Failed to load routes: %v", err)
 	}
 
+	if *sweepEnabled || (cfg.Sweep != nil && *cfg.Sweep) {
+		if *sweepEnabled {
+			cfg.Sweep = sweepEnabled
+		}
+		if cfg.LambdaStart == nil || cfg.LambdaEnd == nil || cfg.LambdaStep == nil {
+			cfg.LambdaStart = lambdaStart
+			cfg.LambdaEnd = lambdaEnd
+			cfg.LambdaStep = lambdaStep
+		}
+
+		runner := simulations.NewSweepRunner(network, bitRate, routes, simulations.SweepConfig{
+			StartLambda: *cfg.LambdaStart,
+			EndLambda:   *cfg.LambdaEnd,
+			StepLambda:  *cfg.LambdaStep,
+			Mu:          *cfg.Mu,
+			Bands:       *cfg.Bands,
+			Goal:        *cfg.Goal,
+			LogOn:       *cfg.Logs,
+		})
+		if _, err := runner.Run(); err != nil {
+			log.Fatalf("Failed to run lambda sweep: %v", err)
+		}
+
+		title := fmt.Sprintf("FirstFit_%s_lambda_sweep_%s_%s", network.Alias,
+			strconv.FormatInt(int64(*cfg.LambdaStart), 10),
+			strconv.FormatInt(int64(*cfg.LambdaEnd), 10),
+		)
+		if err := runner.Plot(title, "Número de conexiones", "Probabilidad de bloqueo"); err != nil {
+			log.Fatalf("Failed to generate combined plot: %v", err)
+		}
+		return
+	}
+
 	sim, err := simulator.New(
 		network, bitRate, routes,
 		*cfg.Lambda, *cfg.Mu, *cfg.Goal,
@@ -162,7 +220,6 @@ func main() {
 		log.Fatalf("Failed to initialise simulator: %v", err)
 	}
 	sim.SetRecordEvents(cfg.EventsCSV != "")
-
 	sim.Start(*cfg.Logs)
 
 	if cfg.EventsCSV != "" {

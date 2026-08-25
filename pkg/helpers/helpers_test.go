@@ -5,6 +5,14 @@ import (
 	"testing"
 )
 
+func TestFormatBlockingProbability(t *testing.T) {
+	got := FormatBlockingProbability(0.0001234567890123)
+	want := "1.234567890123e-04"
+	if got != want {
+		t.Fatalf("FormatBlockingProbability() = %s, want %s", got, want)
+	}
+}
+
 func TestComputeBlockingProbabilities(t *testing.T) {
 	tests := []struct {
 		name                string
