@@ -78,6 +78,11 @@ type Simulator struct {
 	generatedEvents     []connections.ConnectionEvent
 	recordEvents        bool
 
+	// Defragmentation metrics.
+	defragAttempts         int
+	defragSuccesses        int
+	defragConnectionsMoved int
+
 	// Seeds (optional). If zero, defaults will be used.
 	SeedArrive      int64
 	SeedDeparture   int64
@@ -107,11 +112,34 @@ func (s *Simulator) shouldRunDefragment(event connections.ConnectionEvent) bool 
 	return s.DefragMode != defragmentator.DefragNone && s.DefragDecision(s.Network, s.Controller.Connections, event, s.NumberOfBands)
 }
 
-func (s *Simulator) runDefragment() error {
+func (s *Simulator) runDefragment() (int, error) {
 	if s.DefragMode == defragmentator.DefragNone {
-		return nil
+		return 0, nil
 	}
-	return s.DefragAction(s.Network, s.Controller.Connections, s.Controller.Routes, s.Controller.Allocator, s.NumberOfBands)
+	moved, err := s.DefragAction(s.Network, s.Controller.Connections, s.Controller.Routes, s.Controller.Allocator, s.NumberOfBands)
+	s.defragAttempts++
+	if err == nil && moved > 0 {
+		s.defragSuccesses++
+		s.defragConnectionsMoved += moved
+	}
+	return moved, err
+}
+
+// DefragSuccesses returns how many defragmentation runs actually relocated at
+// least one connection.
+func (s *Simulator) DefragSuccesses() int {
+	return s.defragSuccesses
+}
+
+// DefragAttempts returns how many times defragmentation was run.
+func (s *Simulator) DefragAttempts() int {
+	return s.defragAttempts
+}
+
+// DefragConnectionsMoved returns the total number of connections relocated
+// across all defragmentation runs.
+func (s *Simulator) DefragConnectionsMoved() int {
+	return s.defragConnectionsMoved
 }
 
 func (s *Simulator) addResult(result float64) {
@@ -130,22 +158,20 @@ func (s *Simulator) recordEvent(event connections.ConnectionEvent) {
 }
 
 func (s *Simulator) printBlockingTable(logOn bool) {
-	if !logOn {
-		return
-	}
-
 	if s.totalConnections == 0 {
-		fmt.Println("+----------+----------+------------------+----------+-------------------+-------------------+-------------------+")
-		fmt.Printf("|%10s|%10s|%18s|%10s|%19s|%19s|%19s|\n",
-			"progress",
-			"arrives",
-			"blocking",
-			"time(s)",
-			"Wald CI",
-			"A-C. CI",
-			"Wilson CI",
-		)
-		fmt.Println("+----------+----------+------------------+----------+-------------------+-------------------+-------------------+")
+		if logOn {
+			fmt.Println("+----------+----------+------------------+----------+-------------------+-------------------+-------------------+")
+			fmt.Printf("|%10s|%10s|%18s|%10s|%19s|%19s|%19s|\n",
+				"progress",
+				"arrives",
+				"blocking",
+				"time(s)",
+				"Wald CI",
+				"A-C. CI",
+				"Wilson CI",
+			)
+			fmt.Println("+----------+----------+------------------+----------+-------------------+-------------------+-------------------+")
+		}
 		return
 	}
 
@@ -175,16 +201,18 @@ func (s *Simulator) printBlockingTable(logOn bool) {
 		wilsonCI := fmt.Sprintf("%9.1e", wilsonHalf)
 
 		blockingValue := helpers.FormatBlockingProbability(blockingProbability)
-		fmt.Printf("|%8.1f %%|%10d|%18s|%10s|%19s|%19s|%19s|\n",
-			progress,
-			s.totalConnections,
-			blockingValue,
-			timeFormatted,
-			waldCI,
-			acCI,
-			wilsonCI,
-		)
-		fmt.Println("+----------+----------+------------------+----------+-------------------+-------------------+-------------------+")
+		if logOn {
+			fmt.Printf("|%8.1f %%|%10d|%18s|%10s|%19s|%19s|%19s|\n",
+				progress,
+				s.totalConnections,
+				blockingValue,
+				timeFormatted,
+				waldCI,
+				acCI,
+				wilsonCI,
+			)
+			fmt.Println("+----------+----------+------------------+----------+-------------------+-------------------+-------------------+")
+		}
 		s.addResult(blockingProbability)
 		s.addArrive(float64(s.totalConnections))
 	}
@@ -490,10 +518,9 @@ func (s *Simulator) Start(logOn bool) {
 		if event.Event == connections.ConnectionEventTypeArrive {
 			s.totalConnections++
 			s.recordEvent(event)
-			s.printBlockingTable(logOn)
 
 			if s.DefragMode == defragmentator.DefragBeforeArrival && s.shouldRunDefragment(event) {
-				if err := s.runDefragment(); err != nil {
+				if _, err := s.runDefragment(); err != nil {
 					slog.Warn("defragmentation failed before arrival", "err", err)
 				}
 			}
@@ -507,7 +534,7 @@ func (s *Simulator) Start(logOn bool) {
 			assigned := s.Controller.ConnectionAllocation(event.Source, event.Destination, selectedBitrate, s.NumberOfBands, s.resolveConnectionID(event))
 
 			if !assigned && s.DefragMode == defragmentator.DefragAfterBlock && s.shouldRunDefragment(event) {
-				if err := s.runDefragment(); err != nil {
+				if _, err := s.runDefragment(); err != nil {
 					slog.Warn("defragmentation failed after block", "err", err)
 				} else {
 					assigned = s.Controller.ConnectionAllocation(event.Source, event.Destination, selectedBitrate, s.NumberOfBands, s.resolveConnectionID(event))
@@ -519,7 +546,7 @@ func (s *Simulator) Start(logOn bool) {
 				s.assignedConnections++
 
 				if s.DefragMode == defragmentator.DefragAfterAssign && s.shouldRunDefragment(event) {
-					if err := s.runDefragment(); err != nil {
+					if _, err := s.runDefragment(); err != nil {
 						slog.Warn("defragmentation failed after assign", "err", err)
 					}
 				}
@@ -538,6 +565,8 @@ func (s *Simulator) Start(logOn bool) {
 				}
 				s.pushEvent(departure)
 			}
+
+			s.printBlockingTable(logOn)
 		}
 
 		if event.Event == connections.ConnectionEventTypeRelease {
@@ -557,6 +586,10 @@ func (s *Simulator) Start(logOn bool) {
 	}
 
 	fmt.Printf("Simulation completed. Releases processed: %d, Total simulated time: %.2f\n", countRelease, s.Time)
+	fmt.Printf("Network fragmentation ratio: %.6f\n", s.Network.FragmentationRatio(s.NumberOfBands))
+	if s.DefragMode != defragmentator.DefragNone {
+		fmt.Printf("Defragmentation runs: %d, successful: %d, connections moved: %d\n", s.defragAttempts, s.defragSuccesses, s.defragConnectionsMoved)
+	}
 }
 
 func (s *Simulator) Plot(title, xLabel, yLabel string) error {

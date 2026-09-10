@@ -2,9 +2,7 @@ package defragmentator
 
 import (
 	"fmt"
-	"math"
 	"sort"
-	"strconv"
 
 	"github.com/Kayres21/optical-mb-sim-go/internal/allocator"
 	"github.com/Kayres21/optical-mb-sim-go/internal/connections"
@@ -13,7 +11,9 @@ import (
 
 type DecisionFunc func(network infrastructure.Network, connections map[string]connections.Connection, event connections.ConnectionEvent, numberOfBands int) bool
 
-type ActionFunc func(network infrastructure.Network, connections map[string]connections.Connection, routes connections.Routes, alloc allocator.Allocator, numberOfBands int) error
+// ActionFunc returns the number of connections that were actually relocated
+// to a better slot/band, plus any error encountered.
+type ActionFunc func(network infrastructure.Network, connections map[string]connections.Connection, routes connections.Routes, alloc allocator.Allocator, numberOfBands int) (int, error)
 
 const (
 	DefragNone          = "none"
@@ -22,112 +22,207 @@ const (
 	DefragAfterAssign   = "after_assign"
 )
 
-func DefaultDecision(network infrastructure.Network, connections map[string]connections.Connection, event connections.ConnectionEvent, numberOfBands int) bool {
-	for _, link := range network.Links {
-		for band := 0; band < numberOfBands && band < len(link.Capacities.Bands); band++ {
-			slots := link.GetSlotsByBand(band)
-			used := false
-			for _, occupied := range slots {
-				if occupied {
-					used = true
-				} else if used {
-					return true
-				}
-			}
-		}
-	}
-	return false
+type Defragmenter struct {
+	Network       infrastructure.Network
+	Connections   map[string]connections.Connection
+	Routes        connections.Routes
+	Allocator     allocator.Allocator
+	NumberOfBands int
+	PendingEvents []connections.ConnectionEvent
+	nextIndex     int
+	finished      bool
 }
 
-func DefaultAction(network infrastructure.Network, connectionsMap map[string]connections.Connection, routes connections.Routes, alloc allocator.Allocator, numberOfBands int) error {
-	if len(connectionsMap) == 0 {
-		return nil
-	}
-
-	type connEntry struct {
-		id   string
-		conn connections.Connection
-		idx  int
-	}
-
-	entries := make([]connEntry, 0, len(connectionsMap))
+func NewDefragmenter(network infrastructure.Network, connectionsMap map[string]connections.Connection, routes connections.Routes, alloc allocator.Allocator, numberOfBands int, events []connections.ConnectionEvent) *Defragmenter {
+	clonedConnections := make(map[string]connections.Connection, len(connectionsMap))
 	for id, conn := range connectionsMap {
-		idx, err := strconv.Atoi(id)
-		if err != nil {
-			idx = int(^uint(0) >> 1)
-		}
-		entries = append(entries, connEntry{id: id, conn: conn, idx: idx})
+		clonedConnections[id] = conn
 	}
 
-	sort.Slice(entries, func(i, j int) bool {
-		if entries[i].idx != entries[j].idx {
-			return entries[i].idx < entries[j].idx
-		}
-		return entries[i].id < entries[j].id
-	})
+	clonedEvents := make([]connections.ConnectionEvent, len(events))
+	copy(clonedEvents, events)
 
-	original := make(map[string]connections.Connection, len(connectionsMap))
-	for id, conn := range connectionsMap {
-		original[id] = conn
+	return &Defragmenter{
+		Network:       network,
+		Connections:   clonedConnections,
+		Routes:        routes,
+		Allocator:     alloc,
+		NumberOfBands: numberOfBands,
+		PendingEvents: clonedEvents,
+		nextIndex:     0,
+		finished:      false,
+	}
+}
+
+func (d *Defragmenter) Process() {
+	d.finished = true
+}
+
+func DefaultDecision(network infrastructure.Network, connections map[string]connections.Connection, event connections.ConnectionEvent, numberOfBands int) bool {
+	return true
+}
+
+func DefaultAction(network infrastructure.Network, connectionsMap map[string]connections.Connection, routes connections.Routes, alloc allocator.Allocator, numberOfBands int) (int, error) {
+	return 0, nil
+}
+
+func BeforeArrivalDecision(network infrastructure.Network, connections map[string]connections.Connection, event connections.ConnectionEvent, numberOfBands int) bool {
+	return DefaultDecision(network, connections, event, numberOfBands)
+}
+
+func BeforeArrivalAction(network infrastructure.Network, connectionsMap map[string]connections.Connection, routes connections.Routes, alloc allocator.Allocator, numberOfBands int) (int, error) {
+	return DefaultAction(network, connectionsMap, routes, alloc, numberOfBands)
+}
+
+// FirstFitActiveConnections attempts to compact every active connection into
+// a lower-fragmentation slot/band, returning how many connections actually moved.
+func FirstFitActiveConnections(network infrastructure.Network, activeConnections map[string]connections.Connection, routes connections.Routes, numberOfBands int) (int, error) {
+
+	if len(activeConnections) == 0 {
+		return 0, nil
 	}
 
-	for _, conn := range original {
-		for _, link := range conn.Links {
-			_ = link.ReleaseConnection(conn.InitialSlot, conn.Slots, conn.BandSelected)
-		}
+	moved := 0
+	ids := make([]string, 0, len(activeConnections))
+	for id := range activeConnections {
+		ids = append(ids, id)
 	}
-
-	updated := make(map[string]connections.Connection, len(original))
-	for _, entry := range entries {
-		connection := entry.conn
-		var reallocated connections.Connection
-
-		// Restrict reallocation to the connection's original band by giving
-		// it a single-band BitRate with unlimited reach.
-		bandName := ""
-		if len(connection.Links) > 0 && connection.BandSelected < len(connection.Links[0].Capacities.Bands) {
-			bandName = connection.Links[0].Capacities.Bands[connection.BandSelected].Name
-		}
-		bitRate := connections.BitRate{
-			Reach:        []float64{math.MaxFloat64},
-			Slots:        []int{0},
-			Bands:        [][]string{{bandName}},
-			SlotsPerBand: [][]int{{connection.Slots}},
+	sort.Strings(ids)
+	for _, id := range ids {
+		conn := activeConnections[id]
+		if !conn.Allocated || conn.Slots <= 0 || len(conn.Links) == 0 {
+			continue
 		}
 
-		assigned := alloc(
-			connection.Source,
-			connection.Destination,
-			bitRate,
-			network,
-			routes,
-			numberOfBands,
-			connection.Id,
-			func(conn connections.Connection) {
-				reallocated = conn
-			},
-		)
-		if !assigned {
-			for _, conn := range original {
-				for _, link := range conn.Links {
-					_ = link.AssignConnection(conn.InitialSlot, conn.Slots, conn.BandSelected)
+		originalSlot := conn.InitialSlot
+		originalBand := conn.BandSelected
+		routeLinks := conn.Links
+		if len(routeLinks) == 0 {
+			continue
+		}
+
+		// Links keep FragmentationRatioByBand up to date on every assign/release,
+		// so the current ratio can be read directly while the connection is still in place.
+		currentRatio := averageFragmentationRatio(routeLinks, originalBand)
+
+		for _, link := range routeLinks {
+			if err := link.ReleaseConnection(originalSlot, conn.Slots, originalBand); err != nil {
+				return moved, fmt.Errorf("release connection %s before reallocation: %w", id, err)
+			}
+		}
+
+		placed := false
+		for band := 0; band < numberOfBands && band < len(routeLinks[0].Capacities.Bands); band++ {
+			// Only candidate slots earlier than the connection's original position count as an improvement.
+			candidateStarts, ok := findFirstFitRouteSlot(routeLinks, band, conn.Slots, originalSlot)
+			if !ok {
+				continue
+			}
+
+			for _, start := range candidateStarts {
+				for _, link := range routeLinks {
+					if err := link.AssignConnection(start, conn.Slots, band); err != nil {
+						for _, restoreLink := range routeLinks {
+							_ = restoreLink.AssignConnection(originalSlot, conn.Slots, originalBand)
+						}
+						return moved, fmt.Errorf("assign connection %s in route: %w", id, err)
+					}
+				}
+
+				candidateRatio := averageFragmentationRatio(routeLinks, band)
+				if candidateRatio >= currentRatio {
+					for _, link := range routeLinks {
+						if err := link.ReleaseConnection(start, conn.Slots, band); err != nil {
+							return moved, fmt.Errorf("revert candidate placement for connection %s: %w", id, err)
+						}
+					}
+					continue
+				}
+
+				conn.InitialSlot = start
+				conn.FinalSlot = start + conn.Slots - 1
+				conn.BandSelected = band
+				conn.Allocated = true
+				activeConnections[id] = conn
+				placed = true
+				moved++
+				break
+			}
+			if placed {
+				break
+			}
+		}
+
+		if !placed {
+			for _, link := range routeLinks {
+				if err := link.AssignConnection(originalSlot, conn.Slots, originalBand); err != nil {
+					return moved, fmt.Errorf("restore connection %s after failed reallocation: %w", id, err)
 				}
 			}
-			for id, conn := range original {
-				connectionsMap[id] = conn
+			conn.InitialSlot = originalSlot
+			conn.FinalSlot = originalSlot + conn.Slots - 1
+			conn.BandSelected = originalBand
+			conn.Allocated = true
+			activeConnections[id] = conn
+		}
+	}
+
+	return moved, nil
+}
+
+func averageFragmentationRatio(routeLinks []*infrastructure.Link, band int) float64 {
+	if len(routeLinks) == 0 {
+		return 0
+	}
+
+	total := 0.0
+	for _, link := range routeLinks {
+		total += link.GetFragmentationRatioByBand(band)
+	}
+	return total / float64(len(routeLinks))
+}
+
+// findFirstFitRouteSlot returns every free start index below maxStart where
+// the whole route has slotCount contiguous free slots on the given band.
+func findFirstFitRouteSlot(routeLinks []*infrastructure.Link, band, slotCount, maxStart int) ([]int, bool) {
+	if len(routeLinks) == 0 || slotCount <= 0 {
+		return nil, false
+	}
+
+	maxLen := len(routeLinks[0].GetSlotsByBand(band))
+	lastStart := maxLen - slotCount
+	if maxStart-1 < lastStart {
+		lastStart = maxStart - 1
+	}
+	starts := make([]int, 0)
+	for start := 0; start <= lastStart; start++ {
+		fits := true
+		for _, link := range routeLinks {
+			if band >= len(link.Capacities.Bands) {
+				fits = false
+				break
 			}
-			return fmt.Errorf("failed to reallocate connection %s during defragmentation", entry.id)
+			bandSlots := link.GetSlotsByBand(band)
+			if len(bandSlots) < start+slotCount {
+				fits = false
+				break
+			}
+			for idx := start; idx < start+slotCount; idx++ {
+				if bandSlots[idx] {
+					fits = false
+					break
+				}
+			}
+			if !fits {
+				break
+			}
 		}
-
-		if reallocated.Id == "" {
-			reallocated = connection
+		if fits {
+			starts = append(starts, start)
 		}
-		updated[entry.id] = reallocated
 	}
-
-	for id, conn := range updated {
-		connectionsMap[id] = conn
+	if len(starts) == 0 {
+		return nil, false
 	}
-
-	return nil
+	return starts, true
 }

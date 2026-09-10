@@ -9,7 +9,9 @@ import (
 	"strconv"
 
 	"github.com/Kayres21/optical-mb-sim-go/internal/allocator"
+	"github.com/Kayres21/optical-mb-sim-go/internal/connections"
 	"github.com/Kayres21/optical-mb-sim-go/internal/defragmentator"
+	"github.com/Kayres21/optical-mb-sim-go/internal/infrastructure"
 	"github.com/Kayres21/optical-mb-sim-go/internal/loader"
 	"github.com/Kayres21/optical-mb-sim-go/internal/simulator"
 	"github.com/Kayres21/optical-mb-sim-go/simulations"
@@ -67,7 +69,7 @@ func defaultConfig() AppConfig {
 		Goal:       &goal,
 		Logs:       &logs,
 		Legacy:     &legacy,
-		DefragMode: defragmentator.DefragNone,
+		DefragMode: defragmentator.DefragBeforeArrival,
 	}
 }
 
@@ -134,6 +136,7 @@ func main() {
 	configPath := flag.String("config", "files/config.json", "Path to JSON configuration file")
 	eventsCSV := flag.String("events-csv", "", "Path to write the generated events CSV after the simulation")
 	logs := flag.Bool("logs", true, "Enable progress logging")
+	defragMode := flag.String("defrag-mode", "", "Defragmentation mode: none, before_arrival, after_block, after_assign")
 	lambdaStart := flag.Float64("lambda-start", 500, "Start lambda for a multi-simulation sweep")
 	lambdaEnd := flag.Float64("lambda-end", 1500, "End lambda for a multi-simulation sweep")
 	lambdaStep := flag.Float64("lambda-step", 50, "Lambda step for a multi-simulation sweep")
@@ -145,12 +148,35 @@ func main() {
 		log.Fatalf("Failed to load config: %v", err)
 	}
 	cfg = applyDefaults(cfg)
+	if *defragMode != "" {
+		cfg.DefragMode = *defragMode
+	}
 	if *eventsCSV != "" {
 		cfg.EventsCSV = *eventsCSV
 	}
 	if cfg.Logs == nil || *cfg.Logs != *logs {
 		cfg.Logs = logs
 	}
+
+	allowedModes := map[string]bool{
+		defragmentator.DefragNone:          true,
+		defragmentator.DefragBeforeArrival: true,
+		defragmentator.DefragAfterBlock:    true,
+		defragmentator.DefragAfterAssign:   true,
+	}
+	if !allowedModes[cfg.DefragMode] {
+		log.Fatalf("Unsupported defrag mode %q. Valid modes: none, before_arrival, after_block, after_assign", cfg.DefragMode)
+	}
+
+	defragDecision := defragmentator.DefaultDecision
+	defragAction := defragmentator.DefaultAction
+	if cfg.DefragMode != defragmentator.DefragNone {
+		defragAction = func(network infrastructure.Network, connectionsMap map[string]connections.Connection, routes connections.Routes, alloc allocator.Allocator, numberOfBands int) (int, error) {
+			return defragmentator.FirstFitActiveConnections(network, connectionsMap, routes, numberOfBands)
+		}
+	}
+
+	fmt.Printf("Running simulation with defrag mode: %s\n", cfg.DefragMode)
 
 	var resLoader loader.ResourceLoader
 	if *cfg.Legacy {
@@ -213,8 +239,8 @@ func main() {
 		allocator.FirstFit,
 		*cfg.Bands,
 		cfg.DefragMode,
-		defragmentator.DefaultDecision,
-		defragmentator.DefaultAction,
+		defragDecision,
+		defragAction,
 	)
 	if err != nil {
 		log.Fatalf("Failed to initialise simulator: %v", err)
@@ -237,8 +263,3 @@ func main() {
 		log.Fatalf("Failed to generate plot: %v", err)
 	}
 }
-
-// 1 banda lambda 50 mu 1: 0.690987 00:04:02 1e8
-// 2 banda lambda 50 mu 1: 0.518572 00:07:09 1e8
-// 3 banda lambda 50 mu 1: 0.387643 00:10:18 1e8
-// 4 banda lambda 50 mu 1: 0.289645 00:15:34 1e8

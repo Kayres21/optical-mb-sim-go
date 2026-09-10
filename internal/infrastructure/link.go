@@ -13,8 +13,6 @@ type Link struct {
 	Capacities  Capacity `json:"-"`
 	// FragmentationRatioByBand stores FR1 per band and is updated on link usage.
 	FragmentationRatioByBand []float64 `json:"-"`
-	// FragmentationRatio2ByBand stores FR2 per band and is updated on link usage.
-	FragmentationRatio2ByBand []float64 `json:"-"`
 }
 
 func (l *Link) GetSlotsByBand(band int) []bool {
@@ -31,7 +29,6 @@ func (l *Link) AssignConnection(initialSlot, slotCount, band int) error {
 		capacity[i] = true
 	}
 	l.UpdateFragmentationRatio(band)
-	l.UpdateFragmentationRatio2(band)
 	return nil
 }
 
@@ -45,7 +42,6 @@ func (l *Link) ReleaseConnection(initialSlot, slotCount, band int) error {
 		capacity[i] = false
 	}
 	l.UpdateFragmentationRatio(band)
-	l.UpdateFragmentationRatio2(band)
 	return nil
 }
 
@@ -56,30 +52,18 @@ func (l *Link) GetFragmentationRatioByBand(band int) float64 {
 	return l.FragmentationRatioByBand[band]
 }
 
-func (l *Link) GetFragmentationRatio2ByBand(band int) float64 {
-	if band < 0 || band >= len(l.FragmentationRatio2ByBand) {
-		return 0
-	}
-	return l.FragmentationRatio2ByBand[band]
-}
-
 func (l *Link) UpdateAllFragmentationRatios() {
 	if len(l.Capacities.Bands) == 0 {
 		l.FragmentationRatioByBand = nil
-		l.FragmentationRatio2ByBand = nil
 		return
 	}
 
 	if len(l.FragmentationRatioByBand) != len(l.Capacities.Bands) {
 		l.FragmentationRatioByBand = make([]float64, len(l.Capacities.Bands))
 	}
-	if len(l.FragmentationRatio2ByBand) != len(l.Capacities.Bands) {
-		l.FragmentationRatio2ByBand = make([]float64, len(l.Capacities.Bands))
-	}
 
 	for band := range l.Capacities.Bands {
 		l.UpdateFragmentationRatio(band)
-		l.UpdateFragmentationRatio2(band)
 	}
 }
 
@@ -89,9 +73,6 @@ func (l *Link) UpdateFragmentationRatio(band int) {
 	}
 	if len(l.FragmentationRatioByBand) != len(l.Capacities.Bands) {
 		l.FragmentationRatioByBand = make([]float64, len(l.Capacities.Bands))
-	}
-	if len(l.FragmentationRatio2ByBand) != len(l.Capacities.Bands) {
-		l.FragmentationRatio2ByBand = make([]float64, len(l.Capacities.Bands))
 	}
 
 	slots := l.GetSlotsByBand(band)
@@ -125,39 +106,4 @@ func (l *Link) UpdateFragmentationRatio(band int) {
 	}
 
 	l.FragmentationRatioByBand[band] = 1 - (float64(maxBlock) / float64(usedSlots))
-}
-
-func (l *Link) UpdateFragmentationRatio2(band int) {
-	if band < 0 || band >= len(l.Capacities.Bands) {
-		return
-	}
-	if len(l.FragmentationRatio2ByBand) != len(l.Capacities.Bands) {
-		l.FragmentationRatio2ByBand = make([]float64, len(l.Capacities.Bands))
-	}
-
-	slots := l.GetSlotsByBand(band)
-	if len(slots) == 0 {
-		l.FragmentationRatio2ByBand[band] = 0
-		return
-	}
-
-	freeBlocks := 0
-	inFreeBlock := false
-	for _, occupied := range slots {
-		if !occupied {
-			if !inFreeBlock {
-				freeBlocks++
-				inFreeBlock = true
-			}
-			continue
-		}
-		inFreeBlock = false
-	}
-
-	if freeBlocks <= 0 {
-		l.FragmentationRatio2ByBand[band] = 0
-		return
-	}
-
-	l.FragmentationRatio2ByBand[band] = 1 - (1 / float64(freeBlocks))
 }

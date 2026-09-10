@@ -106,3 +106,20 @@ func (n *Network) GetPathDistance(links []*Link) int {
 	}
 	return distance
 }
+
+// FragmentationRatio returns the sum of the selected bands' FR values across
+// every link, divided by the number of links in the network.
+func (n *Network) FragmentationRatio(numberOfBands int) float64 {
+	if len(n.Links) == 0 || numberOfBands <= 0 {
+		return 0
+	}
+
+	total := 0.0
+	for i := range n.Links {
+		for band := 0; band < numberOfBands; band++ {
+			total += n.Links[i].GetFragmentationRatioByBand(band)
+		}
+	}
+
+	return total / float64(len(n.Links))
+}

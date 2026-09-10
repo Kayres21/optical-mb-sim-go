@@ -85,6 +85,7 @@ func FirstFit(source int, destination int, bitRate connections.BitRate, network 
 						Slots:        slotCount,
 						BandSelected: band,
 						Links:        links,
+						Allocated:    true,
 					}
 
 					if addConnection != nil {

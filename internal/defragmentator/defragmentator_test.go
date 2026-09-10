@@ -3,7 +3,6 @@ package defragmentator
 import (
 	"testing"
 
-	"github.com/Kayres21/optical-mb-sim-go/internal/allocator"
 	"github.com/Kayres21/optical-mb-sim-go/internal/connections"
 	"github.com/Kayres21/optical-mb-sim-go/internal/infrastructure"
 )
@@ -31,20 +30,24 @@ func makeTestNetwork() infrastructure.Network {
 	}
 }
 
-func makeTestRoutes() connections.Routes {
-	return connections.Routes{
-		Paths: []connections.Path{{
-			Source:      0,
-			Destination: 1,
-			PathLinks:   [][]int{{0, 1}},
-		}},
+func TestDefaultDecisionAlwaysTrue(t *testing.T) {
+	network := makeTestNetwork()
+	if !DefaultDecision(network, nil, connections.ConnectionEvent{}, 1) {
+		t.Fatal("expected default decision to always return true")
 	}
 }
 
-func TestDefaultDecisionDetectsFragmentation(t *testing.T) {
+func TestDefaultActionDoesNothing(t *testing.T) {
 	network := makeTestNetwork()
-	link := network.GetLinkByPath([]int{0, 1})[0]
+	connectionsMap := map[string]connections.Connection{}
+	if _, err := DefaultAction(network, connectionsMap, connections.Routes{}, nil, 1); err != nil {
+		t.Fatalf("expected default action to be a no-op, got: %v", err)
+	}
+}
 
+func TestFirstFitActiveConnectionsCompactsRoute(t *testing.T) {
+	network := makeTestNetwork()
+	link := &network.Links[0]
 	if err := link.AssignConnection(0, 1, 0); err != nil {
 		t.Fatal(err)
 	}
@@ -57,48 +60,30 @@ func TestDefaultDecisionDetectsFragmentation(t *testing.T) {
 		"2": {Id: "2", Source: 0, Destination: 1, Links: []*infrastructure.Link{link}, Slots: 1, InitialSlot: 2, FinalSlot: 2, BandSelected: 0, Allocated: true},
 	}
 
-	event := connections.ConnectionEvent{Id: "1", Source: 0, Destination: 1}
-	if !DefaultDecision(network, connectionsMap, event, 1) {
-		t.Fatalf("expected default decision to detect fragmentation")
-	}
-}
-
-func TestDefaultActionReallocatesConnections(t *testing.T) {
-	network := makeTestNetwork()
-	routes := makeTestRoutes()
-	link := network.GetLinkByPath([]int{0, 1})[0]
-
-	if err := link.AssignConnection(0, 1, 0); err != nil {
-		t.Fatal(err)
-	}
-	if err := link.AssignConnection(2, 1, 0); err != nil {
-		t.Fatal(err)
-	}
-
-	connectionsMap := map[string]connections.Connection{
-		"1": {Id: "1", Source: 0, Destination: 1, Links: []*infrastructure.Link{link}, Slots: 1, InitialSlot: 0, FinalSlot: 0, BandSelected: 0, Allocated: true},
-		"2": {Id: "2", Source: 0, Destination: 1, Links: []*infrastructure.Link{link}, Slots: 1, InitialSlot: 2, FinalSlot: 2, BandSelected: 0, Allocated: true},
-	}
-
-	if err := DefaultAction(network, connectionsMap, routes, allocator.FirstFit, 1); err != nil {
-		t.Fatalf("defragmentation action failed: %v", err)
+	if moved, err := FirstFitActiveConnections(network, connectionsMap, connections.Routes{}, 1); err != nil {
+		t.Fatalf("first-fit compaction failed: %v", err)
+	} else if moved != 1 {
+		t.Fatalf("expected 1 connection to be moved, got %d", moved)
 	}
 
 	slots := link.GetSlotsByBand(0)
-	expected := []bool{true, true, false, false}
-	for i, got := range slots {
-		if got != expected[i] {
-			t.Fatalf("expected slots %v, got %v", expected, slots)
-		}
+	if got := slots[0]; !got {
+		t.Fatalf("expected slot 0 to remain occupied, got %v", slots)
+	}
+	if got := slots[1]; !got {
+		t.Fatalf("expected slot 1 to be occupied after moving the later connection forward, got %v", slots)
+	}
+	if got := slots[2]; got {
+		t.Fatalf("expected slot 2 to be free after compaction, got %v", slots)
+	}
+	if got := slots[3]; got {
+		t.Fatalf("expected slot 3 to stay free, got %v", slots)
 	}
 
-	conn1, ok := connectionsMap["1"]
-	if !ok || conn1.InitialSlot != 0 {
-		t.Fatalf("expected connection 1 to be reallocated to slot 0, got %+v", conn1)
+	if conn1 := connectionsMap["1"]; conn1.InitialSlot != 0 {
+		t.Fatalf("expected connection 1 to stay at slot 0, got %+v", conn1)
 	}
-
-	conn2, ok := connectionsMap["2"]
-	if !ok || conn2.InitialSlot != 1 {
-		t.Fatalf("expected connection 2 to be reallocated to slot 1, got %+v", conn2)
+	if conn2 := connectionsMap["2"]; conn2.InitialSlot != 1 {
+		t.Fatalf("expected connection 2 to move to slot 1 because only smaller indexes are considered, got %+v", conn2)
 	}
 }

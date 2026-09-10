@@ -3,7 +3,7 @@
   "routes": "files/routes/Eurocore_routes.json",
   "capacities": "files/capacities/capacities.json",
   "bitrate": "files/bitrate/bitrate.json",
-  "lambda": 600,
+  "lambda": 1000,
   "mu": 1,
   "bands": 1,
   "goal": 1e7,
