@@ -35,7 +35,12 @@ func cloneCapacity(orig Capacity) Capacity {
 	for i, b := range orig.Bands {
 		slots := make([]bool, len(b.Slots))
 		copy(slots, b.Slots)
-		bands[i] = Band{Slots: slots}
+		bands[i] = Band{
+			ID:       b.ID,
+			Name:     b.Name,
+			SlotsLen: b.SlotsLen,
+			Slots:    slots,
+		}
 	}
 	return Capacity{Bands: bands}
 }
@@ -107,14 +112,18 @@ func (n *Network) GetPathDistance(links []*Link) int {
 	return distance
 }
 
-// FragmentationRatio returns the sum of the selected bands' FR values across
-// every link, divided by the number of links in the network.
+// FragmentationRatio returns the mean of the selected bands' average FR values.
 func (n *Network) FragmentationRatio(numberOfBands int) float64 {
+	ratios := n.FragmentationRatiosByBand(numberOfBands)
+	if len(ratios) == 0 {
+		return 0
+	}
+
 	total := 0.0
-	for _, ratio := range n.FragmentationRatiosByBand(numberOfBands) {
+	for _, ratio := range ratios {
 		total += ratio
 	}
-	return total
+	return total / float64(len(ratios))
 }
 
 // FragmentationRatiosByBand returns the average FR for every selected band

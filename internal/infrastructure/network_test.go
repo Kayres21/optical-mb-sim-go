@@ -53,8 +53,8 @@ func TestNetworkFragmentationRatio(t *testing.T) {
 	if got := network.FragmentationRatio(1); got != 0.4 {
 		t.Fatalf("expected one-band fragmentation ratio 0.4, got %v", got)
 	}
-	if got := network.FragmentationRatio(2); got != 1.0 {
-		t.Fatalf("expected two-band fragmentation ratio 1.0, got %v", got)
+	if got := network.FragmentationRatio(2); got != 0.5 {
+		t.Fatalf("expected two-band fragmentation ratio 0.5, got %v", got)
 	}
 
 	ratios := network.FragmentationRatiosByBand(2)

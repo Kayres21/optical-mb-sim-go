@@ -18,22 +18,23 @@ import (
 )
 
 type AppConfig struct {
-	Network     string   `json:"network"`
-	Routes      string   `json:"routes"`
-	Capacities  string   `json:"capacities"`
-	Bitrate     string   `json:"bitrate"`
-	Lambda      *float64 `json:"lambda"`
-	Mu          *float64 `json:"mu"`
-	Bands       *int     `json:"bands"`
-	Goal        *float64 `json:"goal"`
-	Logs        *bool    `json:"logs"`
-	Legacy      *bool    `json:"legacy"`
-	DefragMode  string   `json:"defrag_mode"`
-	EventsCSV   string   `json:"events_csv"`
-	Sweep       *bool    `json:"sweep"`
-	LambdaStart *float64 `json:"lambda_start"`
-	LambdaEnd   *float64 `json:"lambda_end"`
-	LambdaStep  *float64 `json:"lambda_step"`
+	Network         string   `json:"network"`
+	Routes          string   `json:"routes"`
+	Capacities      string   `json:"capacities"`
+	Bitrate         string   `json:"bitrate"`
+	Lambda          *float64 `json:"lambda"`
+	Mu              *float64 `json:"mu"`
+	Bands           *int     `json:"bands"`
+	Goal            *float64 `json:"goal"`
+	Logs            *bool    `json:"logs"`
+	Legacy          *bool    `json:"legacy"`
+	DefragMode      string   `json:"defrag_mode"`
+	DefragAlgorithm string   `json:"defrag_algorithm"`
+	EventsCSV       string   `json:"events_csv"`
+	Sweep           *bool    `json:"sweep"`
+	LambdaStart     *float64 `json:"lambda_start"`
+	LambdaEnd       *float64 `json:"lambda_end"`
+	LambdaStep      *float64 `json:"lambda_step"`
 }
 
 func loadConfig(path string) (AppConfig, error) {
@@ -59,17 +60,18 @@ func defaultConfig() AppConfig {
 	legacy := false
 
 	return AppConfig{
-		Network:    "files/networks/UKNet_BDM.json",
-		Routes:     "files/routes/UKNet_routes.json",
-		Capacities: "files/capacities/capacities.json",
-		Bitrate:    "files/bitrate/bitrate.json",
-		Lambda:     &lambda,
-		Mu:         &mu,
-		Bands:      &bands,
-		Goal:       &goal,
-		Logs:       &logs,
-		Legacy:     &legacy,
-		DefragMode: defragmentator.DefragBeforeArrival,
+		Network:         "files/networks/UKNet_BDM.json",
+		Routes:          "files/routes/UKNet_routes.json",
+		Capacities:      "files/capacities/capacities.json",
+		Bitrate:         "files/bitrate/bitrate.json",
+		Lambda:          &lambda,
+		Mu:              &mu,
+		Bands:           &bands,
+		Goal:            &goal,
+		Logs:            &logs,
+		Legacy:          &legacy,
+		DefragMode:      defragmentator.DefragBeforeArrival,
+		DefragAlgorithm: "first_fit",
 	}
 }
 
@@ -108,6 +110,9 @@ func applyDefaults(cfg AppConfig) AppConfig {
 	}
 	if cfg.DefragMode == "" {
 		cfg.DefragMode = defaults.DefragMode
+	}
+	if cfg.DefragAlgorithm == "" {
+		cfg.DefragAlgorithm = defaults.DefragAlgorithm
 	}
 	if cfg.EventsCSV == "" {
 		cfg.EventsCSV = ""
@@ -167,16 +172,35 @@ func main() {
 	if !allowedModes[cfg.DefragMode] {
 		log.Fatalf("Unsupported defrag mode %q. Valid modes: none, before_arrival, after_block, after_assign", cfg.DefragMode)
 	}
+	allowedAlgorithms := map[string]bool{
+		"first_fit":           true,
+		"multiband":           true,
+		"multiband_same_band": true,
+	}
+	if !allowedAlgorithms[cfg.DefragAlgorithm] {
+		log.Fatalf("Unsupported defrag algorithm %q. Valid algorithms: first_fit, multiband, multiband_same_band", cfg.DefragAlgorithm)
+	}
 
 	defragDecision := defragmentator.DefaultDecision
 	defragAction := defragmentator.DefaultAction
 	if cfg.DefragMode != defragmentator.DefragNone {
-		defragAction = func(network infrastructure.Network, connectionsMap map[string]connections.Connection, routes connections.Routes, alloc allocator.Allocator, numberOfBands int) (int, error) {
-			return defragmentator.FirstFitActiveConnections(network, connectionsMap, routes, numberOfBands)
+		switch cfg.DefragAlgorithm {
+		case "multiband":
+			defragAction = func(network infrastructure.Network, connectionsMap map[string]connections.Connection, routes connections.Routes, alloc allocator.Allocator, numberOfBands int) (int, error) {
+				return defragmentator.MultiBandActiveConnections(network, connectionsMap, routes, numberOfBands)
+			}
+		case "multiband_same_band":
+			defragAction = func(network infrastructure.Network, connectionsMap map[string]connections.Connection, routes connections.Routes, alloc allocator.Allocator, numberOfBands int) (int, error) {
+				return defragmentator.MultiBandSameBandActiveConnections(network, connectionsMap, routes, numberOfBands)
+			}
+		default:
+			defragAction = func(network infrastructure.Network, connectionsMap map[string]connections.Connection, routes connections.Routes, alloc allocator.Allocator, numberOfBands int) (int, error) {
+				return defragmentator.FirstFitActiveConnections(network, connectionsMap, routes, numberOfBands)
+			}
 		}
 	}
 
-	fmt.Printf("Running simulation with defrag mode: %s\n", cfg.DefragMode)
+	fmt.Printf("Running simulation with defrag mode: %s, algorithm: %s\n", cfg.DefragMode, cfg.DefragAlgorithm)
 
 	var resLoader loader.ResourceLoader
 	if *cfg.Legacy {
