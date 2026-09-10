@@ -4,9 +4,13 @@ import (
 	"encoding/json"
 	"flag"
 	"fmt"
+	"io"
 	"log"
+	"log/slog"
 	"os"
+	"path/filepath"
 	"strconv"
+	"time"
 
 	"github.com/Kayres21/optical-mb-sim-go/internal/allocator"
 	"github.com/Kayres21/optical-mb-sim-go/internal/connections"
@@ -137,7 +141,72 @@ func applyDefaults(cfg AppConfig) AppConfig {
 	return cfg
 }
 
+// setupFileLogging creates a timestamped log file under logs/ and tees all
+// stdout, stderr and slog output to it, returning a cleanup func to be
+// deferred.
+func setupFileLogging() (func(), error) {
+	if err := os.MkdirAll("logs", 0755); err != nil {
+		return nil, fmt.Errorf("failed to create logs directory: %w", err)
+	}
+
+	logPath := filepath.Join("logs", fmt.Sprintf("simulation_%s.log", time.Now().Format("20060102_150405")))
+	logFile, err := os.OpenFile(logPath, os.O_CREATE|os.O_WRONLY|os.O_TRUNC, 0644)
+	if err != nil {
+		return nil, fmt.Errorf("failed to create log file: %w", err)
+	}
+
+	origStdout := os.Stdout
+	stdoutR, stdoutW, err := os.Pipe()
+	if err != nil {
+		logFile.Close()
+		return nil, fmt.Errorf("failed to create stdout pipe: %w", err)
+	}
+	os.Stdout = stdoutW
+
+	origStderr := os.Stderr
+	stderrR, stderrW, err := os.Pipe()
+	if err != nil {
+		stdoutW.Close()
+		stdoutR.Close()
+		logFile.Close()
+		os.Stdout = origStdout
+		return nil, fmt.Errorf("failed to create stderr pipe: %w", err)
+	}
+	os.Stderr = stderrW
+
+	stdoutDone := make(chan struct{})
+	go func() {
+		defer close(stdoutDone)
+		io.Copy(io.MultiWriter(origStdout, logFile), stdoutR)
+	}()
+	stderrDone := make(chan struct{})
+	go func() {
+		defer close(stderrDone)
+		io.Copy(io.MultiWriter(origStderr, logFile), stderrR)
+	}()
+
+	log.SetOutput(io.MultiWriter(origStderr, logFile))
+	slog.SetDefault(slog.New(slog.NewTextHandler(io.MultiWriter(origStderr, logFile), nil)))
+
+	cleanup := func() {
+		stdoutW.Close()
+		stderrW.Close()
+		<-stdoutDone
+		<-stderrDone
+		logFile.Close()
+		os.Stdout = origStdout
+		os.Stderr = origStderr
+	}
+	return cleanup, nil
+}
+
 func main() {
+	cleanupLogging, err := setupFileLogging()
+	if err != nil {
+		log.Fatalf("Failed to set up file logging: %v", err)
+	}
+	defer cleanupLogging()
+
 	configPath := flag.String("config", "files/config.json", "Path to JSON configuration file")
 	eventsCSV := flag.String("events-csv", "", "Path to write the generated events CSV after the simulation")
 	logs := flag.Bool("logs", true, "Enable progress logging")
