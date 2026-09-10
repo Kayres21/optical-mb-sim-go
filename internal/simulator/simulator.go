@@ -586,9 +586,32 @@ func (s *Simulator) Start(logOn bool) {
 	}
 
 	fmt.Printf("Simulation completed. Releases processed: %d, Total simulated time: %.2f\n", countRelease, s.Time)
-	fmt.Printf("Network fragmentation ratio: %.6f\n", s.Network.FragmentationRatio(s.NumberOfBands))
+	s.printFragmentationSummary()
 	if s.DefragMode != defragmentator.DefragNone {
 		fmt.Printf("Defragmentation runs: %d, successful: %d, connections moved: %d\n", s.defragAttempts, s.defragSuccesses, s.defragConnectionsMoved)
+	}
+}
+
+func (s *Simulator) printFragmentationSummary() {
+	ratios := s.Network.FragmentationRatiosByBand(s.NumberOfBands)
+	if len(ratios) == 0 {
+		fmt.Println("Network fragmentation ratio: 0.000000")
+		return
+	}
+
+	bandName := func(index int) string {
+		return s.Network.Links[0].Capacities.Bands[index].Name
+	}
+
+	switch len(ratios) {
+	case 1:
+		fmt.Printf("Fragmentation ratio: %s=%.6f | Network=%.6f\n", bandName(0), ratios[0], s.Network.FragmentationRatio(1))
+	case 2:
+		fmt.Printf("Fragmentation ratio: %s=%.6f, %s=%.6f | Network=%.6f\n", bandName(0), ratios[0], bandName(1), ratios[1], s.Network.FragmentationRatio(2))
+	case 3:
+		fmt.Printf("Fragmentation ratio: %s=%.6f, %s=%.6f, %s=%.6f | Network=%.6f\n", bandName(0), ratios[0], bandName(1), ratios[1], bandName(2), ratios[2], s.Network.FragmentationRatio(3))
+	default:
+		fmt.Printf("Fragmentation ratio: %s=%.6f, %s=%.6f, %s=%.6f, %s=%.6f | Network=%.6f\n", bandName(0), ratios[0], bandName(1), ratios[1], bandName(2), ratios[2], bandName(3), ratios[3], s.Network.FragmentationRatio(4))
 	}
 }
 

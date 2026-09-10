@@ -1,6 +1,9 @@
 package infrastructure
 
-import "testing"
+import (
+	"math"
+	"testing"
+)
 
 func TestReadNetworkFile(t *testing.T) {
 	networkPath := "../../files/networks/network_test.json"
@@ -52,5 +55,10 @@ func TestNetworkFragmentationRatio(t *testing.T) {
 	}
 	if got := network.FragmentationRatio(2); got != 1.0 {
 		t.Fatalf("expected two-band fragmentation ratio 1.0, got %v", got)
+	}
+
+	ratios := network.FragmentationRatiosByBand(2)
+	if len(ratios) != 2 || math.Abs(ratios[0]-0.4) > 1e-9 || math.Abs(ratios[1]-0.6) > 1e-9 {
+		t.Fatalf("expected per-band fragmentation ratios [0.4 0.6], got %v", ratios)
 	}
 }
