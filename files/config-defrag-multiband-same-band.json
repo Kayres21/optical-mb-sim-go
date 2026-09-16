@@ -1,6 +1,6 @@
 {
-  "network": "files/networks/NSFNet.json",
-  "routes": "files/routes/NSFNet_routes.json",
+  "network": "files/networks/USNet.json",
+  "routes": "files/routes/USNet_routes.json",
   "capacities": "files/capacities/capacities.json",
   "bitrate": "files/bitrate/bitrate.json",
   "lambda": 4000,
