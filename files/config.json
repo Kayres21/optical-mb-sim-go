@@ -1,6 +1,6 @@
 {
-  "network": "files/networks/Eurocore.json",
-  "routes": "files/routes/Eurocore_routes.json",
+  "network": "files/networks/EON.json",
+  "routes": "files/routes/EON_routes.json",
   "capacities": "files/capacities/capacities.json",
   "bitrate": "files/bitrate/bitrate.json",
   "lambda": 4000,
