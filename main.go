@@ -141,15 +141,14 @@ func applyDefaults(cfg AppConfig) AppConfig {
 	return cfg
 }
 
-// setupFileLogging creates a timestamped log file under logs/ and tees all
-// stdout, stderr and slog output to it, returning a cleanup func to be
-// deferred.
-func setupFileLogging() (func(), error) {
+// setupFileLogging creates a named log file under logs/ and tees all stdout,
+// stderr and slog output to it, returning a cleanup func to be deferred.
+func setupFileLogging(name string) (func(), error) {
 	if err := os.MkdirAll("logs", 0755); err != nil {
 		return nil, fmt.Errorf("failed to create logs directory: %w", err)
 	}
 
-	logPath := filepath.Join("logs", fmt.Sprintf("simulation_%s.log", time.Now().Format("20060102_150405")))
+	logPath := filepath.Join("logs", fmt.Sprintf("%s_%s.log", name, time.Now().Format("20060102_150405")))
 	logFile, err := os.OpenFile(logPath, os.O_CREATE|os.O_WRONLY|os.O_TRUNC, 0644)
 	if err != nil {
 		return nil, fmt.Errorf("failed to create log file: %w", err)
@@ -201,12 +200,6 @@ func setupFileLogging() (func(), error) {
 }
 
 func main() {
-	cleanupLogging, err := setupFileLogging()
-	if err != nil {
-		log.Fatalf("Failed to set up file logging: %v", err)
-	}
-	defer cleanupLogging()
-
 	configPath := flag.String("config", "files/config.json", "Path to JSON configuration file")
 	eventsCSV := flag.String("events-csv", "", "Path to write the generated events CSV after the simulation")
 	logs := flag.Bool("logs", true, "Enable progress logging")
@@ -282,6 +275,17 @@ func main() {
 	if err != nil {
 		log.Fatalf("Failed to load network: %v", err)
 	}
+
+	defragAlgorithm := "none"
+	if cfg.DefragMode != defragmentator.DefragNone {
+		defragAlgorithm = cfg.DefragAlgorithm
+	}
+	logName := fmt.Sprintf("%s_%d_%s_lambda_%g", network.Name, *cfg.Bands, defragAlgorithm, *cfg.Lambda)
+	cleanupLogging, err := setupFileLogging(logName)
+	if err != nil {
+		log.Fatalf("Failed to set up file logging: %v", err)
+	}
+	defer cleanupLogging()
 
 	bitRate, err := resLoader.LoadBitRate(cfg.Bitrate, *cfg.Bands)
 	if err != nil {
