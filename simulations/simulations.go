@@ -28,6 +28,27 @@ type SweepConfig struct {
 	LogOn       bool
 }
 
+type sweepSeedSet struct {
+	arrive      int64
+	departure   int64
+	bitrate     int64
+	source      int64
+	destination int64
+	band        int64
+}
+
+func sweepSeedsForIteration(iteration int) sweepSeedSet {
+	base := int64(iteration + 1)
+	return sweepSeedSet{
+		arrive:      base * 1_000_003,
+		departure:   base * 1_000_033,
+		bitrate:     base * 1_000_097,
+		source:      base * 1_000_333,
+		destination: base * 1_000_999,
+		band:        base * 1_001_001,
+	}
+}
+
 type SweepRunner struct {
 	Network    infrastructure.Network
 	BitRate    connections.BitRateList
@@ -64,9 +85,17 @@ func (r *SweepRunner) Run() ([]RunResult, error) {
 	count := int(math.Floor((cfg.EndLambda-cfg.StartLambda)/cfg.StepLambda)) + 1
 	results := make([]RunResult, 0, count)
 
-	for lambda := cfg.StartLambda; lambda <= cfg.EndLambda+1e-9; lambda += cfg.StepLambda {
-		sim, err := simulator.New(
-			r.Network,
+	for iteration, lambda := range func() []float64 {
+		values := make([]float64, 0, count)
+		for value := cfg.StartLambda; value <= cfg.EndLambda+1e-9; value += cfg.StepLambda {
+			values = append(values, value)
+		}
+		return values
+	}() {
+		seeds := sweepSeedsForIteration(iteration)
+		networkForIteration := r.Network.Clone()
+		sim, err := simulator.NewWithSeeds(
+			networkForIteration,
 			r.BitRate,
 			r.Routes,
 			lambda,
@@ -77,6 +106,12 @@ func (r *SweepRunner) Run() ([]RunResult, error) {
 			defragmentator.DefragNone,
 			defragmentator.DefaultDecision,
 			defragmentator.DefaultAction,
+			seeds.arrive,
+			seeds.departure,
+			seeds.bitrate,
+			seeds.source,
+			seeds.destination,
+			seeds.band,
 		)
 		if err != nil {
 			return nil, fmt.Errorf("initialising simulator for lambda %.0f: %w", lambda, err)

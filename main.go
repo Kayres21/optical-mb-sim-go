@@ -79,6 +79,28 @@ func defaultConfig() AppConfig {
 	}
 }
 
+func applyExplicitSweepFlags(cfg AppConfig, set *flag.FlagSet, sweepEnabled *bool, lambdaStart, lambdaEnd, lambdaStep *float64) AppConfig {
+	if set == nil {
+		return cfg
+	}
+
+	set.Visit(func(f *flag.Flag) {
+		switch f.Name {
+		case "sweep":
+			cfg.Sweep = new(bool)
+			*cfg.Sweep = *sweepEnabled
+		case "lambda-start":
+			cfg.LambdaStart = lambdaStart
+		case "lambda-end":
+			cfg.LambdaEnd = lambdaEnd
+		case "lambda-step":
+			cfg.LambdaStep = lambdaStep
+		}
+	})
+
+	return cfg
+}
+
 func applyDefaults(cfg AppConfig) AppConfig {
 	defaults := defaultConfig()
 
@@ -143,6 +165,10 @@ func applyDefaults(cfg AppConfig) AppConfig {
 
 // setupFileLogging creates a named log file under logs/ and tees all stdout,
 // stderr and slog output to it, returning a cleanup func to be deferred.
+func simulationLogName(networkName string, bands int, defragAlgorithm string, lambda, mu float64) string {
+	return fmt.Sprintf("%s_%d_%s_lambda_%g_mu_%g", networkName, bands, defragAlgorithm, lambda, mu)
+}
+
 func setupFileLogging(name string) (func(), error) {
 	if err := os.MkdirAll("logs", 0755); err != nil {
 		return nil, fmt.Errorf("failed to create logs directory: %w", err)
@@ -215,6 +241,7 @@ func main() {
 		log.Fatalf("Failed to load config: %v", err)
 	}
 	cfg = applyDefaults(cfg)
+	cfg = applyExplicitSweepFlags(cfg, flag.CommandLine, sweepEnabled, lambdaStart, lambdaEnd, lambdaStep)
 	if *defragMode != "" {
 		cfg.DefragMode = *defragMode
 	}
@@ -262,7 +289,11 @@ func main() {
 		}
 	}
 
-	fmt.Printf("Running simulation with defrag mode: %s, algorithm: %s\n", cfg.DefragMode, cfg.DefragAlgorithm)
+	if *sweepEnabled || (cfg.Sweep != nil && *cfg.Sweep) {
+		fmt.Printf("Running sweep with defrag mode: %s, algorithm: %s, lambda range: [%g, %g], step: %g, mu: %g\n", cfg.DefragMode, cfg.DefragAlgorithm, *cfg.LambdaStart, *cfg.LambdaEnd, *cfg.LambdaStep, *cfg.Mu)
+	} else {
+		fmt.Printf("Running simulation with defrag mode: %s, algorithm: %s, lambda: %g, mu: %g\n", cfg.DefragMode, cfg.DefragAlgorithm, *cfg.Lambda, *cfg.Mu)
+	}
 
 	var resLoader loader.ResourceLoader
 	if *cfg.Legacy {
@@ -280,7 +311,7 @@ func main() {
 	if cfg.DefragMode != defragmentator.DefragNone {
 		defragAlgorithm = cfg.DefragAlgorithm
 	}
-	logName := fmt.Sprintf("%s_%d_%s_lambda_%g", network.Name, *cfg.Bands, defragAlgorithm, *cfg.Lambda)
+	logName := simulationLogName(network.Name, *cfg.Bands, defragAlgorithm, *cfg.Lambda, *cfg.Mu)
 	cleanupLogging, err := setupFileLogging(logName)
 	if err != nil {
 		log.Fatalf("Failed to set up file logging: %v", err)

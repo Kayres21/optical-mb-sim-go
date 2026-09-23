@@ -64,6 +64,18 @@ func NetworkGenerate(networkPath string, capacityPath string) (Network, error) {
 	return network, nil
 }
 
+func (n Network) Clone() Network {
+	clone := n
+	clone.Nodes = append([]Node(nil), n.Nodes...)
+	clone.Links = make([]Link, len(n.Links))
+	for i := range n.Links {
+		clone.Links[i] = n.Links[i]
+		clone.Links[i].Capacities = cloneCapacity(n.Links[i].Capacities)
+		clone.Links[i].FragmentationRatioByBand = append([]float64(nil), n.Links[i].FragmentationRatioByBand...)
+	}
+	return clone
+}
+
 func (n *Network) GetNodeByID(id int) *Node {
 	for i := range n.Nodes {
 		if n.Nodes[i].ID == id {

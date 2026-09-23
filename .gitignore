@@ -34,3 +34,4 @@ go.work.sum
 /test
 optical-mb-sim-go
 /examples/e001
+/bin

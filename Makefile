@@ -6,17 +6,17 @@ BIN_DIR  := bin
 CONFIG ?= files/config.json
 LOGS ?= true
 EVENTS_CSV ?=
-SWEEP ?= false
-LAMBDA_START ?= 500
-LAMBDA_END ?= 1500
-LAMBDA_STEP ?= 50
+SWEEP ?=
+LAMBDA_START ?=
+LAMBDA_END ?=
+LAMBDA_STEP ?=
 
 RUN_FLAGS = -config="$(CONFIG)" \
 	-logs="$(LOGS)" \
-	-sweep="$(SWEEP)" \
-	-lambda-start="$(LAMBDA_START)" \
-	-lambda-end="$(LAMBDA_END)" \
-	-lambda-step="$(LAMBDA_STEP)" \
+	$(if $(SWEEP),-sweep="$(SWEEP)",) \
+	$(if $(LAMBDA_START),-lambda-start="$(LAMBDA_START)",) \
+	$(if $(LAMBDA_END),-lambda-end="$(LAMBDA_END)",) \
+	$(if $(LAMBDA_STEP),-lambda-step="$(LAMBDA_STEP)",) \
 	$(if $(EVENTS_CSV),-events-csv="$(EVENTS_CSV)",)
 
 all: test build

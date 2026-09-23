@@ -507,7 +507,7 @@ func (s *Simulator) createRandomArrival(currentTime float64, id string) connecti
 func (s *Simulator) Start(logOn bool) {
 	countRelease := 0
 
-	fmt.Println("Starting simulation...")
+	fmt.Printf("Starting simulation with lambda=%g, mu=%g...\n", s.RandomVariable.Arrive.Parameter, s.RandomVariable.Departure.Parameter)
 	s.printBlockingTable(logOn) // Print header
 
 	for s.totalConnections < int(s.GoalConnections) {
