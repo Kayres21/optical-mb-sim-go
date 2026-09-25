@@ -9,6 +9,7 @@ import (
 	"os"
 	"path/filepath"
 	"strconv"
+	"strings"
 	"time"
 
 	"github.com/Kayres21/optical-mb-sim-go/internal/allocator"
@@ -77,6 +78,11 @@ type Simulator struct {
 	arrives             []float64
 	generatedEvents     []connections.ConnectionEvent
 	recordEvents        bool
+
+	// Fragmentation metrics sampled at the same steps as the blocking table.
+	fragmentationArrives []float64
+	fragmentationByBand  [][]float64 // indexed [band][sample]
+	fragmentationNetwork []float64
 
 	// Defragmentation metrics.
 	defragAttempts         int
@@ -200,6 +206,8 @@ func (s *Simulator) printBlockingTable(logOn bool) {
 		acCI := fmt.Sprintf("%9.1e", acHalf)
 		wilsonCI := fmt.Sprintf("%9.1e", wilsonHalf)
 
+		s.recordFragmentation()
+
 		blockingValue := helpers.FormatBlockingProbability(blockingProbability)
 		if logOn {
 			fmt.Printf("|%8.1f %%|%10d|%18s|%10s|%19s|%19s|%19s|\n",
@@ -216,6 +224,42 @@ func (s *Simulator) printBlockingTable(logOn bool) {
 		s.addResult(blockingProbability)
 		s.addArrive(float64(s.totalConnections))
 	}
+}
+
+// recordFragmentation samples the current per-band and network-wide FR1
+// fragmentation ratios and appends them to the tracked series.
+func (s *Simulator) recordFragmentation() {
+	ratios := s.Network.FragmentationRatiosByBand(s.NumberOfBands)
+	if len(s.fragmentationByBand) != len(ratios) {
+		s.fragmentationByBand = make([][]float64, len(ratios))
+	}
+	for band, ratio := range ratios {
+		s.fragmentationByBand[band] = append(s.fragmentationByBand[band], ratio)
+	}
+	s.fragmentationNetwork = append(s.fragmentationNetwork, s.Network.FragmentationRatio(s.NumberOfBands))
+	s.fragmentationArrives = append(s.fragmentationArrives, float64(s.totalConnections))
+}
+
+// FragmentationArrives returns the connection-count x-axis values matching
+// FragmentationByBand/NetworkFragmentation samples.
+func (s *Simulator) FragmentationArrives() []float64 {
+	return append([]float64(nil), s.fragmentationArrives...)
+}
+
+// FragmentationByBand returns the sampled FR1 fragmentation ratio per band,
+// indexed [band][sample].
+func (s *Simulator) FragmentationByBand() [][]float64 {
+	out := make([][]float64, len(s.fragmentationByBand))
+	for i, values := range s.fragmentationByBand {
+		out[i] = append([]float64(nil), values...)
+	}
+	return out
+}
+
+// NetworkFragmentation returns the sampled network-wide (mean-of-bands) FR1
+// fragmentation ratio.
+func (s *Simulator) NetworkFragmentation() []float64 {
+	return append([]float64(nil), s.fragmentationNetwork...)
 }
 
 func (s *Simulator) initRandomVariable(lambda, mu float64, seedArrive, seedDeparture, seedBitrate, seedSource, seedDestination, seedBand int64) {
@@ -593,8 +637,7 @@ func (s *Simulator) Start(logOn bool) {
 }
 
 func (s *Simulator) printFragmentationSummary() {
-	ratios := s.Network.FragmentationRatiosByBand(s.NumberOfBands)
-	if len(ratios) == 0 {
+	if len(s.fragmentationByBand) == 0 {
 		fmt.Println("Network fragmentation ratio: 0.000000")
 		return
 	}
@@ -603,20 +646,56 @@ func (s *Simulator) printFragmentationSummary() {
 		return s.Network.Links[0].Capacities.Bands[index].Name
 	}
 
-	switch len(ratios) {
-	case 1:
-		fmt.Printf("Fragmentation ratio: %s=%.6f | Network=%.6f\n", bandName(0), ratios[0], s.Network.FragmentationRatio(1))
-	case 2:
-		fmt.Printf("Fragmentation ratio: %s=%.6f, %s=%.6f | Network=%.6f\n", bandName(0), ratios[0], bandName(1), ratios[1], s.Network.FragmentationRatio(2))
-	case 3:
-		fmt.Printf("Fragmentation ratio: %s=%.6f, %s=%.6f, %s=%.6f | Network=%.6f\n", bandName(0), ratios[0], bandName(1), ratios[1], bandName(2), ratios[2], s.Network.FragmentationRatio(3))
-	default:
-		fmt.Printf("Fragmentation ratio: %s=%.6f, %s=%.6f, %s=%.6f, %s=%.6f | Network=%.6f\n", bandName(0), ratios[0], bandName(1), ratios[1], bandName(2), ratios[2], bandName(3), ratios[3], s.Network.FragmentationRatio(4))
+	parts := make([]string, 0, len(s.fragmentationByBand))
+	for band, values := range s.fragmentationByBand {
+		parts = append(parts, fmt.Sprintf("%s=%.6f", bandName(band), averageFloat64(values)))
 	}
+
+	fmt.Printf("Fragmentation ratio (mean over simulation): %s | Network=%.6f\n",
+		strings.Join(parts, ", "), averageFloat64(s.fragmentationNetwork))
 }
 
 func (s *Simulator) Plot(title, xLabel, yLabel string) error {
 	return plotter.GenerateScatterPlot(s.arrives, s.results, title, xLabel, yLabel)
+}
+
+// PlotFragmentation renders the sampled per-band and network fragmentation
+// series, plus a horizontal line at the overall mean network fragmentation.
+func (s *Simulator) PlotFragmentation(title, xLabel, yLabel string) error {
+	if len(s.fragmentationArrives) == 0 {
+		return fmt.Errorf("no fragmentation samples recorded")
+	}
+
+	series := make([]plotter.Series, 0, len(s.fragmentationByBand)+2)
+	for band, values := range s.fragmentationByBand {
+		label := fmt.Sprintf("Band %d", band)
+		if len(s.Network.Links) > 0 && band < len(s.Network.Links[0].Capacities.Bands) {
+			label = s.Network.Links[0].Capacities.Bands[band].Name
+		}
+		series = append(series, plotter.Series{Label: label, X: s.fragmentationArrives, Y: values})
+	}
+
+	series = append(series, plotter.Series{Label: "Network", X: s.fragmentationArrives, Y: s.fragmentationNetwork})
+
+	meanValue := averageFloat64(s.fragmentationNetwork)
+	meanY := make([]float64, len(s.fragmentationArrives))
+	for i := range meanY {
+		meanY[i] = meanValue
+	}
+	series = append(series, plotter.Series{Label: "Mean", X: s.fragmentationArrives, Y: meanY})
+
+	return plotter.GenerateMultiSeriesPlot(series, title, xLabel, yLabel, plotter.DefaultPlotConfig())
+}
+
+func averageFloat64(values []float64) float64 {
+	if len(values) == 0 {
+		return 0
+	}
+	total := 0.0
+	for _, v := range values {
+		total += v
+	}
+	return total / float64(len(values))
 }
 
 func (s *Simulator) Arrives() []float64 {

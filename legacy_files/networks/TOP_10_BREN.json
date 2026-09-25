@@ -1,0 +1,192 @@
+{
+    "alias": "BREN",
+    "links": [
+        {
+            "dst": 1,
+            "id": 0,
+            "length": 345.3,
+            "slots": 320,
+            "src": 0
+        },
+        {
+            "dst": 0,
+            "id": 1,
+            "length": 345.3,
+            "slots": 320,
+            "src": 1
+        },
+        {
+            "dst": 4,
+            "id": 2,
+            "length": 133.545,
+            "slots": 320,
+            "src": 0
+        },
+        {
+            "dst": 0,
+            "id": 3,
+            "length": 133.545,
+            "slots": 320,
+            "src": 4
+        },
+        {
+            "dst": 2,
+            "id": 4,
+            "length": 251.85,
+            "slots": 320,
+            "src": 1
+        },
+        {
+            "dst": 1,
+            "id": 5,
+            "length": 251.85,
+            "slots": 320,
+            "src": 2
+        },
+        {
+            "dst": 3,
+            "id": 6,
+            "length": 130.575,
+            "slots": 320,
+            "src": 2
+        },
+        {
+            "dst": 2,
+            "id": 7,
+            "length": 130.575,
+            "slots": 320,
+            "src": 3
+        },
+        {
+            "dst": 6,
+            "id": 8,
+            "length": 225.45,
+            "slots": 320,
+            "src": 3
+        },
+        {
+            "dst": 3,
+            "id": 9,
+            "length": 225.45,
+            "slots": 320,
+            "src": 6
+        },
+        {
+            "dst": 5,
+            "id": 10,
+            "length": 85.57499999999999,
+            "slots": 320,
+            "src": 6
+        },
+        {
+            "dst": 6,
+            "id": 11,
+            "length": 85.57499999999999,
+            "slots": 320,
+            "src": 5
+        },
+        {
+            "dst": 9,
+            "id": 12,
+            "length": 119.655,
+            "slots": 320,
+            "src": 6
+        },
+        {
+            "dst": 6,
+            "id": 13,
+            "length": 119.655,
+            "slots": 320,
+            "src": 9
+        },
+        {
+            "dst": 4,
+            "id": 14,
+            "length": 48.915,
+            "slots": 320,
+            "src": 5
+        },
+        {
+            "dst": 5,
+            "id": 15,
+            "length": 48.915,
+            "slots": 320,
+            "src": 4
+        },
+        {
+            "dst": 7,
+            "id": 16,
+            "length": 135.795,
+            "slots": 320,
+            "src": 4
+        },
+        {
+            "dst": 4,
+            "id": 17,
+            "length": 135.795,
+            "slots": 320,
+            "src": 7
+        },
+        {
+            "dst": 8,
+            "id": 18,
+            "length": 197.1,
+            "slots": 320,
+            "src": 7
+        },
+        {
+            "dst": 7,
+            "id": 19,
+            "length": 197.1,
+            "slots": 320,
+            "src": 8
+        },
+        {
+            "dst": 9,
+            "id": 20,
+            "length": 199.2,
+            "slots": 320,
+            "src": 8
+        },
+        {
+            "dst": 8,
+            "id": 21,
+            "length": 199.2,
+            "slots": 320,
+            "src": 9
+        }
+    ],
+    "name": "TOP_10_BREN",
+    "nodes": [
+        {
+            "id": 0
+        },
+        {
+            "id": 1
+        },
+        {
+            "id": 2
+        },
+        {
+            "id": 3
+        },
+        {
+            "id": 4
+        },
+        {
+            "id": 5
+        },
+        {
+            "id": 6
+        },
+        {
+            "id": 7
+        },
+        {
+            "id": 8
+        },
+        {
+            "id": 9
+        }
+    ]
+}

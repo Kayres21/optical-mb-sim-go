@@ -390,4 +390,13 @@ func main() {
 	if err := sim.Plot(title, "Número de conexiones", "Probabilidad de bloqueo"); err != nil {
 		log.Fatalf("Failed to generate plot: %v", err)
 	}
+
+	fragTitle := fmt.Sprintf("Fragmentation_%s-erlang-%s_%s",
+		network.Alias,
+		fmt.Sprintf("%.1f", *cfg.Lambda),
+		strconv.Itoa(*cfg.Bands),
+	)
+	if err := sim.PlotFragmentation(fragTitle, "Número de conexiones", "Fragmentación (FR1)"); err != nil {
+		log.Fatalf("Failed to generate fragmentation plot: %v", err)
+	}
 }
