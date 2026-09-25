@@ -20,7 +20,7 @@ first_config="${CONFIGS[0]}"
 tmux new-session -d -s "$SESSION" -n "win-1" "cd '$REPO_ROOT' && make run CONFIG=$first_config; exec \$SHELL"
 
 # 2. Create one window per remaining config file
-for i in "$(seq 1 $((${#CONFIGS[@]} - 1)))"; do
+for i in $(seq 1 $(( ${#CONFIGS[@]} - 1 ))); do
     win_num=$((i + 1))
     config_path="${CONFIGS[$i]}"
     tmux new-window -t "$SESSION" -n "win-$win_num" "cd '$REPO_ROOT' && make run CONFIG=$config_path; exec \$SHELL"
