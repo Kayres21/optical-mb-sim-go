@@ -1,0 +1,18 @@
+{
+  "network": "files/networks/TOP_96_SAGO.json",
+  "routes": "files/routes/TOP_96_SAGO_routes.json",
+  "capacities": "files/capacities/capacities.json",
+  "bitrate": "files/bitrate/bitrate.json",
+  "lambda": 4000,
+  "mu": 1,
+  "bands": 2,
+  "goal": 1e6,
+  "logs": true,
+  "legacy": false,
+  "defrag_mode": "none",
+  "defrag_algorithm": "first_fit",
+  "sweep": true,
+  "lambda_start": 500,
+  "lambda_end": 2000,
+  "lambda_step": 100
+}

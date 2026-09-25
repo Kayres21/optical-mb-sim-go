@@ -9,7 +9,7 @@ type Link struct {
 	ID          int      `json:"id"`
 	Source      int      `json:"src"`
 	Destination int      `json:"dst"`
-	Length      int      `json:"length"`
+	Length      float64  `json:"length"`
 	Capacities  Capacity `json:"-"`
 	// FragmentationRatioByBand stores FR1 per band and is updated on link usage.
 	FragmentationRatioByBand []float64 `json:"-"`

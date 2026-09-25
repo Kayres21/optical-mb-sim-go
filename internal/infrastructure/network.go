@@ -116,8 +116,8 @@ func (n *Network) GetLinkBySourceDestination(src, dst int) *Link {
 	return nil
 }
 
-func (n *Network) GetPathDistance(links []*Link) int {
-	distance := 0
+func (n *Network) GetPathDistance(links []*Link) float64 {
+	distance := 0.0
 	for _, link := range links {
 		distance += link.Length
 	}

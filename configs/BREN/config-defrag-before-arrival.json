@@ -1,0 +1,18 @@
+{
+  "network": "files/networks/TOP_10_BREN.json",
+  "routes": "files/routes/TOP_10_BREN_routes.json",
+  "capacities": "files/capacities/capacities.json",
+  "bitrate": "files/bitrate/bitrate.json",
+  "lambda": 4000,
+  "mu": 1,
+  "bands": 2,
+  "goal": 1e6,
+  "logs": true,
+  "legacy": false,
+  "defrag_mode": "before_arrival",
+  "defrag_algorithm": "multiband",
+  "sweep": true,
+  "lambda_start": 500,
+  "lambda_end": 2000,
+  "lambda_step": 100
+}

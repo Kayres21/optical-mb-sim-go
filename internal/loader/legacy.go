@@ -32,7 +32,7 @@ func (l *LegacyLoader) LoadNetwork(networkPath, capacitiesPath string) (infrastr
 			ID     int             `json:"id"`
 			Src    int             `json:"src"`
 			Dst    int             `json:"dst"`
-			Length int             `json:"length"`
+			Length float64         `json:"length"`
 			Slots  json.RawMessage `json:"slots"`
 		} `json:"links"`
 	}
