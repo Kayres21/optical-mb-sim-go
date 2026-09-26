@@ -3,7 +3,7 @@
   "routes": "files/routes/TOP_37_GERMANY50_routes.json",
   "capacities": "files/capacities/capacities.json",
   "bitrate": "files/bitrate/bitrate.json",
-  "lambda": 1500,
+  "lambda": 1200,
   "mu": 1,
   "bands": 2,
   "goal": 1e6,
