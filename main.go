@@ -233,6 +233,8 @@ func main() {
 	lambdaStart := flag.Float64("lambda-start", 500, "Start lambda for a multi-simulation sweep")
 	lambdaEnd := flag.Float64("lambda-end", 1500, "End lambda for a multi-simulation sweep")
 	lambdaStep := flag.Float64("lambda-step", 50, "Lambda step for a multi-simulation sweep")
+	fragOut := flag.String("frag-out", "", "Output path prefix for the full-resolution fragmentation stream (<prefix>.f32, .meta.json, .defrag.u64); disabled when empty")
+	fragStride := flag.Int("frag-stride", 1, "Record one fragmentation sample every N arrivals (used with -frag-out)")
 	sweepEnabled := flag.Bool("sweep", false, "Run multiple simulations across a lambda range and plot all results together")
 	flag.Parse()
 
@@ -374,6 +376,12 @@ func main() {
 		log.Fatalf("Failed to initialise simulator: %v", err)
 	}
 	sim.SetRecordEvents(cfg.EventsCSV != "")
+	if *fragOut != "" {
+		extra := map[string]any{"config": *configPath, "defrag_algorithm": defragAlgorithm}
+		if err := sim.EnableFragmentationStream(*fragOut, *fragStride, extra); err != nil {
+			log.Fatalf("Failed to enable fragmentation stream: %v", err)
+		}
+	}
 	sim.Start(*cfg.Logs)
 
 	if cfg.EventsCSV != "" {

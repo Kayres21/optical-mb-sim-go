@@ -16,6 +16,11 @@ import (
 	"time"
 )
 
+type fragOptions struct {
+	Dir    string
+	Stride int
+}
+
 type jobResult struct {
 	Config   string
 	Duration time.Duration
@@ -31,6 +36,8 @@ func main() {
 	runLogsDir := flag.String("run-logs-dir", "logs/run-all", "Directory to store per-process stdout/stderr captures")
 	logs := flag.Bool("logs", true, "Pass -logs flag through to each simulation")
 	extraArgs := flag.String("args", "", "Extra raw flags appended to every simulador invocation, e.g. \"-defrag-mode=before_arrival\"")
+	fragDir := flag.String("frag-dir", "", "Directory for full-resolution fragmentation streams (one file set per config); disabled when empty")
+	fragStride := flag.Int("frag-stride", 1, "Record one fragmentation sample every N arrivals (used with -frag-dir)")
 	flag.Parse()
 
 	if *jobs < 1 {
@@ -57,7 +64,14 @@ func main() {
 
 	fmt.Printf("Running %d configs with up to %d concurrent processes...\n", len(configPaths), *jobs)
 
-	results := runAll(configPaths, *binPath, *runLogsDir, *logs, *extraArgs, *jobs)
+	if *fragDir != "" {
+		if err := os.MkdirAll(*fragDir, 0o755); err != nil {
+			log.Fatalf("Failed to create frag-dir: %v", err)
+		}
+	}
+	frag := fragOptions{Dir: *fragDir, Stride: *fragStride}
+
+	results := runAll(configPaths, *binPath, *runLogsDir, *logs, *extraArgs, frag, *jobs)
 
 	failed := printSummary(results)
 	if failed > 0 {
@@ -91,7 +105,7 @@ func findConfigs(dir string) ([]string, error) {
 	return paths, err
 }
 
-func runAll(configPaths []string, binPath, runLogsDir string, logsEnabled bool, extraArgs string, jobs int) []jobResult {
+func runAll(configPaths []string, binPath, runLogsDir string, logsEnabled bool, extraArgs string, frag fragOptions, jobs int) []jobResult {
 	results := make([]jobResult, len(configPaths))
 	sem := make(chan struct{}, jobs)
 	var wg sync.WaitGroup
@@ -102,7 +116,7 @@ func runAll(configPaths []string, binPath, runLogsDir string, logsEnabled bool, 
 		go func(i int, configPath string) {
 			defer wg.Done()
 			defer func() { <-sem }()
-			results[i] = runOne(binPath, configPath, runLogsDir, logsEnabled, extraArgs)
+			results[i] = runOne(binPath, configPath, runLogsDir, logsEnabled, extraArgs, frag)
 		}(i, configPath)
 	}
 
@@ -110,7 +124,7 @@ func runAll(configPaths []string, binPath, runLogsDir string, logsEnabled bool, 
 	return results
 }
 
-func runOne(binPath, configPath, runLogsDir string, logsEnabled bool, extraArgs string) jobResult {
+func runOne(binPath, configPath, runLogsDir string, logsEnabled bool, extraArgs string, frag fragOptions) jobResult {
 	start := time.Now()
 
 	name := sanitizeName(configPath)
@@ -123,6 +137,10 @@ func runOne(binPath, configPath, runLogsDir string, logsEnabled bool, extraArgs 
 	defer logFile.Close()
 
 	args := []string{"-config", configPath, fmt.Sprintf("-logs=%t", logsEnabled)}
+	if frag.Dir != "" {
+		fragPrefix := filepath.Join(frag.Dir, fmt.Sprintf("%s_%s", name, start.Format("20060102_150405")))
+		args = append(args, "-frag-out="+fragPrefix, fmt.Sprintf("-frag-stride=%d", frag.Stride))
+	}
 	if extraArgs != "" {
 		args = append(args, extraArgs)
 	}

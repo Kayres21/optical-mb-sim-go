@@ -84,6 +84,9 @@ type Simulator struct {
 	fragmentationByBand  [][]float64 // indexed [band][sample]
 	fragmentationNetwork []float64
 
+	// Optional full-resolution fragmentation stream (nil when disabled).
+	fragSink *fragSink
+
 	// Defragmentation metrics.
 	defragAttempts         int
 	defragSuccesses        int
@@ -127,8 +130,80 @@ func (s *Simulator) runDefragment() (int, error) {
 	if err == nil && moved > 0 {
 		s.defragSuccesses++
 		s.defragConnectionsMoved += moved
+		if s.fragSink != nil {
+			if werr := s.fragSink.writeDefrag(s.totalConnections, moved); werr != nil {
+				slog.Warn("failed to write defragmentation event", "err", werr)
+			}
+		}
 	}
 	return moved, err
+}
+
+// EnableFragmentationStream turns on full-resolution fragmentation recording:
+// one sample every stride arrivals is streamed to <prefix>.f32, defragmentation
+// events (only runs that moved connections) to <prefix>.defrag.u64, and a
+// <prefix>.meta.json sidecar is written when the simulation finishes. extra is
+// copied into the sidecar under "run". Must be called before Start.
+func (s *Simulator) EnableFragmentationStream(prefix string, stride int, extra map[string]any) error {
+	names := make([]string, 0, s.NumberOfBands+1)
+	for band := 0; band < s.NumberOfBands; band++ {
+		name := fmt.Sprintf("band%d", band)
+		if len(s.Network.Links) > 0 && band < len(s.Network.Links[0].Capacities.Bands) {
+			name = s.Network.Links[0].Capacities.Bands[band].Name
+		}
+		names = append(names, name)
+	}
+	names = append(names, "network")
+
+	run := map[string]any{
+		"lambda":       s.RandomVariable.Arrive.Parameter,
+		"mu":           s.RandomVariable.Departure.Parameter,
+		"goal":         s.GoalConnections,
+		"bands":        s.NumberOfBands,
+		"network":      s.Network.Name,
+		"defrag_mode":  s.DefragMode,
+		"seed_arrive":  s.SeedArrive,
+		"seed_depart":  s.SeedDeparture,
+		"seed_bitrate": s.SeedBitrate,
+		"seed_source":  s.SeedSource,
+		"seed_dest":    s.SeedDestination,
+		"seed_band":    s.SeedBand,
+	}
+	for k, v := range extra {
+		run[k] = v
+	}
+
+	sink, err := newFragSink(prefix, stride, names, run)
+	if err != nil {
+		return err
+	}
+	s.fragSink = sink
+	return nil
+}
+
+// CloseFragmentationStream flushes and finalises the stream; it is a no-op when
+// the stream is disabled. Start calls it automatically.
+func (s *Simulator) CloseFragmentationStream() error {
+	if s.fragSink == nil {
+		return nil
+	}
+	err := s.fragSink.close()
+	s.fragSink = nil
+	return err
+}
+
+func (s *Simulator) streamFragmentation() {
+	if s.fragSink == nil || s.totalConnections%s.fragSink.stride != 0 {
+		return
+	}
+	ratios := s.Network.FragmentationRatiosByBand(s.NumberOfBands)
+	values := make([]float64, 0, len(ratios)+1)
+	values = append(values, ratios...)
+	values = append(values, s.Network.FragmentationRatio(s.NumberOfBands))
+	if err := s.fragSink.writeRow(values); err != nil {
+		slog.Warn("failed to write fragmentation sample, disabling stream", "err", err)
+		_ = s.CloseFragmentationStream()
+	}
 }
 
 // DefragSuccesses returns how many defragmentation runs actually relocated at
@@ -610,6 +685,7 @@ func (s *Simulator) Start(logOn bool) {
 				s.pushEvent(departure)
 			}
 
+			s.streamFragmentation()
 			s.printBlockingTable(logOn)
 		}
 
@@ -631,6 +707,9 @@ func (s *Simulator) Start(logOn bool) {
 
 	fmt.Printf("Simulation completed. Releases processed: %d, Total simulated time: %.2f\n", countRelease, s.Time)
 	s.printFragmentationSummary()
+	if err := s.CloseFragmentationStream(); err != nil {
+		slog.Warn("failed to finalise fragmentation stream", "err", err)
+	}
 	if s.DefragMode != defragmentator.DefragNone {
 		fmt.Printf("Defragmentation runs: %d, successful: %d, connections moved: %d\n", s.defragAttempts, s.defragSuccesses, s.defragConnectionsMoved)
 	}
