@@ -1,0 +1,41 @@
+{
+  "format_version": 1,
+  "dtype": "\u003cf4",
+  "layout": "row-major [sample][series]",
+  "data_file": "configs_BREN_config-defrag-before-arrival_20261002_103413.f32",
+  "n_series": 3,
+  "series_names": [
+    "C",
+    "L",
+    "network"
+  ],
+  "n_samples": 100000,
+  "stride": 100,
+  "first_arrival": 100,
+  "x_formula": "arrival = (sample_index + 1) * stride",
+  "defrag_events_file": "configs_BREN_config-defrag-before-arrival_20261002_103413.defrag.u64",
+  "defrag_events_dtype": "\u003cu8",
+  "defrag_events_columns": [
+    "arrival",
+    "connections_moved"
+  ],
+  "defrag_events": 5928909,
+  "started_at": "2026-10-02T10:34:13-03:00",
+  "finished_at": "2026-10-02T18:25:36-03:00",
+  "run": {
+    "bands": 2,
+    "config": "configs/BREN/config-defrag-before-arrival.json",
+    "defrag_algorithm": "multiband",
+    "defrag_mode": "before_arrival",
+    "goal": 10000000,
+    "lambda": 800,
+    "mu": 1,
+    "network": "TOP_10_BREN",
+    "seed_arrive": 1,
+    "seed_band": 123456,
+    "seed_bitrate": 123,
+    "seed_depart": 12,
+    "seed_dest": 12345,
+    "seed_source": 1234
+  }
+}
