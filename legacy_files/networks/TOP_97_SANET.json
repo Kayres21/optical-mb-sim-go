@@ -1,0 +1,916 @@
+{
+    "alias": "SANET",
+    "links": [
+        {
+            "dst": 39,
+            "id": 0,
+            "length": 32.0,
+            "slots": 320,
+            "src": 1
+        },
+        {
+            "dst": 1,
+            "id": 1,
+            "length": 32.0,
+            "slots": 320,
+            "src": 39
+        },
+        {
+            "dst": 9,
+            "id": 2,
+            "length": 43.0,
+            "slots": 320,
+            "src": 1
+        },
+        {
+            "dst": 1,
+            "id": 3,
+            "length": 43.0,
+            "slots": 320,
+            "src": 9
+        },
+        {
+            "dst": 38,
+            "id": 4,
+            "length": 23.0,
+            "slots": 320,
+            "src": 1
+        },
+        {
+            "dst": 1,
+            "id": 5,
+            "length": 23.0,
+            "slots": 320,
+            "src": 38
+        },
+        {
+            "dst": 2,
+            "id": 6,
+            "length": 46.0,
+            "slots": 320,
+            "src": 1
+        },
+        {
+            "dst": 1,
+            "id": 7,
+            "length": 46.0,
+            "slots": 320,
+            "src": 2
+        },
+        {
+            "dst": 3,
+            "id": 8,
+            "length": 41.0,
+            "slots": 320,
+            "src": 1
+        },
+        {
+            "dst": 1,
+            "id": 9,
+            "length": 41.0,
+            "slots": 320,
+            "src": 3
+        },
+        {
+            "dst": 6,
+            "id": 10,
+            "length": 47.0,
+            "slots": 320,
+            "src": 3
+        },
+        {
+            "dst": 3,
+            "id": 11,
+            "length": 47.0,
+            "slots": 320,
+            "src": 6
+        },
+        {
+            "dst": 5,
+            "id": 12,
+            "length": 14.0,
+            "slots": 320,
+            "src": 6
+        },
+        {
+            "dst": 6,
+            "id": 13,
+            "length": 14.0,
+            "slots": 320,
+            "src": 5
+        },
+        {
+            "dst": 5,
+            "id": 14,
+            "length": 49.0,
+            "slots": 320,
+            "src": 8
+        },
+        {
+            "dst": 8,
+            "id": 15,
+            "length": 49.0,
+            "slots": 320,
+            "src": 5
+        },
+        {
+            "dst": 2,
+            "id": 16,
+            "length": 40.0,
+            "slots": 320,
+            "src": 4
+        },
+        {
+            "dst": 4,
+            "id": 17,
+            "length": 40.0,
+            "slots": 320,
+            "src": 2
+        },
+        {
+            "dst": 38,
+            "id": 18,
+            "length": 25.0,
+            "slots": 320,
+            "src": 2
+        },
+        {
+            "dst": 2,
+            "id": 19,
+            "length": 25.0,
+            "slots": 320,
+            "src": 38
+        },
+        {
+            "dst": 8,
+            "id": 20,
+            "length": 38.0,
+            "slots": 320,
+            "src": 9
+        },
+        {
+            "dst": 9,
+            "id": 21,
+            "length": 38.0,
+            "slots": 320,
+            "src": 8
+        },
+        {
+            "dst": 12,
+            "id": 22,
+            "length": 28.0,
+            "slots": 320,
+            "src": 8
+        },
+        {
+            "dst": 8,
+            "id": 23,
+            "length": 28.0,
+            "slots": 320,
+            "src": 12
+        },
+        {
+            "dst": 41,
+            "id": 24,
+            "length": 37.0,
+            "slots": 320,
+            "src": 9
+        },
+        {
+            "dst": 9,
+            "id": 25,
+            "length": 37.0,
+            "slots": 320,
+            "src": 41
+        },
+        {
+            "dst": 40,
+            "id": 26,
+            "length": 21.0,
+            "slots": 320,
+            "src": 41
+        },
+        {
+            "dst": 41,
+            "id": 27,
+            "length": 21.0,
+            "slots": 320,
+            "src": 40
+        },
+        {
+            "dst": 43,
+            "id": 28,
+            "length": 19.0,
+            "slots": 320,
+            "src": 42
+        },
+        {
+            "dst": 42,
+            "id": 29,
+            "length": 19.0,
+            "slots": 320,
+            "src": 43
+        },
+        {
+            "dst": 10,
+            "id": 30,
+            "length": 21.0,
+            "slots": 320,
+            "src": 43
+        },
+        {
+            "dst": 43,
+            "id": 31,
+            "length": 21.0,
+            "slots": 320,
+            "src": 10
+        },
+        {
+            "dst": 18,
+            "id": 32,
+            "length": 33.0,
+            "slots": 320,
+            "src": 10
+        },
+        {
+            "dst": 10,
+            "id": 33,
+            "length": 33.0,
+            "slots": 320,
+            "src": 18
+        },
+        {
+            "dst": 19,
+            "id": 34,
+            "length": 63.0,
+            "slots": 320,
+            "src": 10
+        },
+        {
+            "dst": 10,
+            "id": 35,
+            "length": 63.0,
+            "slots": 320,
+            "src": 19
+        },
+        {
+            "dst": 20,
+            "id": 36,
+            "length": 9.0,
+            "slots": 320,
+            "src": 19
+        },
+        {
+            "dst": 19,
+            "id": 37,
+            "length": 9.0,
+            "slots": 320,
+            "src": 20
+        },
+        {
+            "dst": 14,
+            "id": 38,
+            "length": 22.0,
+            "slots": 320,
+            "src": 19
+        },
+        {
+            "dst": 19,
+            "id": 39,
+            "length": 22.0,
+            "slots": 320,
+            "src": 14
+        },
+        {
+            "dst": 19,
+            "id": 40,
+            "length": 32.0,
+            "slots": 320,
+            "src": 18
+        },
+        {
+            "dst": 18,
+            "id": 41,
+            "length": 32.0,
+            "slots": 320,
+            "src": 19
+        },
+        {
+            "dst": 14,
+            "id": 42,
+            "length": 27.0,
+            "slots": 320,
+            "src": 15
+        },
+        {
+            "dst": 15,
+            "id": 43,
+            "length": 27.0,
+            "slots": 320,
+            "src": 14
+        },
+        {
+            "dst": 16,
+            "id": 44,
+            "length": 23.0,
+            "slots": 320,
+            "src": 15
+        },
+        {
+            "dst": 15,
+            "id": 45,
+            "length": 23.0,
+            "slots": 320,
+            "src": 16
+        },
+        {
+            "dst": 17,
+            "id": 46,
+            "length": 40.0,
+            "slots": 320,
+            "src": 15
+        },
+        {
+            "dst": 15,
+            "id": 47,
+            "length": 40.0,
+            "slots": 320,
+            "src": 17
+        },
+        {
+            "dst": 13,
+            "id": 48,
+            "length": 18.0,
+            "slots": 320,
+            "src": 17
+        },
+        {
+            "dst": 17,
+            "id": 49,
+            "length": 18.0,
+            "slots": 320,
+            "src": 13
+        },
+        {
+            "dst": 11,
+            "id": 50,
+            "length": 43.0,
+            "slots": 320,
+            "src": 13
+        },
+        {
+            "dst": 13,
+            "id": 51,
+            "length": 43.0,
+            "slots": 320,
+            "src": 11
+        },
+        {
+            "dst": 37,
+            "id": 52,
+            "length": 48.0,
+            "slots": 320,
+            "src": 13
+        },
+        {
+            "dst": 13,
+            "id": 53,
+            "length": 48.0,
+            "slots": 320,
+            "src": 37
+        },
+        {
+            "dst": 12,
+            "id": 54,
+            "length": 41.0,
+            "slots": 320,
+            "src": 11
+        },
+        {
+            "dst": 11,
+            "id": 55,
+            "length": 41.0,
+            "slots": 320,
+            "src": 12
+        },
+        {
+            "dst": 7,
+            "id": 56,
+            "length": 56.0,
+            "slots": 320,
+            "src": 13
+        },
+        {
+            "dst": 13,
+            "id": 57,
+            "length": 56.0,
+            "slots": 320,
+            "src": 7
+        },
+        {
+            "dst": 4,
+            "id": 58,
+            "length": 41.0,
+            "slots": 320,
+            "src": 7
+        },
+        {
+            "dst": 7,
+            "id": 59,
+            "length": 41.0,
+            "slots": 320,
+            "src": 4
+        },
+        {
+            "dst": 44,
+            "id": 60,
+            "length": 9.0,
+            "slots": 320,
+            "src": 16
+        },
+        {
+            "dst": 16,
+            "id": 61,
+            "length": 9.0,
+            "slots": 320,
+            "src": 44
+        },
+        {
+            "dst": 30,
+            "id": 62,
+            "length": 50.0,
+            "slots": 320,
+            "src": 16
+        },
+        {
+            "dst": 16,
+            "id": 63,
+            "length": 50.0,
+            "slots": 320,
+            "src": 30
+        },
+        {
+            "dst": 29,
+            "id": 64,
+            "length": 12.0,
+            "slots": 320,
+            "src": 30
+        },
+        {
+            "dst": 30,
+            "id": 65,
+            "length": 12.0,
+            "slots": 320,
+            "src": 29
+        },
+        {
+            "dst": 31,
+            "id": 66,
+            "length": 23.0,
+            "slots": 320,
+            "src": 30
+        },
+        {
+            "dst": 30,
+            "id": 67,
+            "length": 23.0,
+            "slots": 320,
+            "src": 31
+        },
+        {
+            "dst": 32,
+            "id": 68,
+            "length": 9.0,
+            "slots": 320,
+            "src": 31
+        },
+        {
+            "dst": 31,
+            "id": 69,
+            "length": 9.0,
+            "slots": 320,
+            "src": 32
+        },
+        {
+            "dst": 34,
+            "id": 70,
+            "length": 50.0,
+            "slots": 320,
+            "src": 31
+        },
+        {
+            "dst": 31,
+            "id": 71,
+            "length": 50.0,
+            "slots": 320,
+            "src": 34
+        },
+        {
+            "dst": 33,
+            "id": 72,
+            "length": 16.0,
+            "slots": 320,
+            "src": 34
+        },
+        {
+            "dst": 34,
+            "id": 73,
+            "length": 16.0,
+            "slots": 320,
+            "src": 33
+        },
+        {
+            "dst": 21,
+            "id": 74,
+            "length": 36.0,
+            "slots": 320,
+            "src": 33
+        },
+        {
+            "dst": 33,
+            "id": 75,
+            "length": 36.0,
+            "slots": 320,
+            "src": 21
+        },
+        {
+            "dst": 22,
+            "id": 76,
+            "length": 33.0,
+            "slots": 320,
+            "src": 34
+        },
+        {
+            "dst": 34,
+            "id": 77,
+            "length": 33.0,
+            "slots": 320,
+            "src": 22
+        },
+        {
+            "dst": 23,
+            "id": 78,
+            "length": 22.0,
+            "slots": 320,
+            "src": 22
+        },
+        {
+            "dst": 22,
+            "id": 79,
+            "length": 22.0,
+            "slots": 320,
+            "src": 23
+        },
+        {
+            "dst": 24,
+            "id": 80,
+            "length": 13.0,
+            "slots": 320,
+            "src": 23
+        },
+        {
+            "dst": 23,
+            "id": 81,
+            "length": 13.0,
+            "slots": 320,
+            "src": 24
+        },
+        {
+            "dst": 25,
+            "id": 82,
+            "length": 35.0,
+            "slots": 320,
+            "src": 24
+        },
+        {
+            "dst": 24,
+            "id": 83,
+            "length": 35.0,
+            "slots": 320,
+            "src": 25
+        },
+        {
+            "dst": 26,
+            "id": 84,
+            "length": 17.0,
+            "slots": 320,
+            "src": 25
+        },
+        {
+            "dst": 25,
+            "id": 85,
+            "length": 17.0,
+            "slots": 320,
+            "src": 26
+        },
+        {
+            "dst": 45,
+            "id": 86,
+            "length": 8.0,
+            "slots": 320,
+            "src": 25
+        },
+        {
+            "dst": 25,
+            "id": 87,
+            "length": 8.0,
+            "slots": 320,
+            "src": 45
+        },
+        {
+            "dst": 26,
+            "id": 88,
+            "length": 35.0,
+            "slots": 320,
+            "src": 34
+        },
+        {
+            "dst": 34,
+            "id": 89,
+            "length": 35.0,
+            "slots": 320,
+            "src": 26
+        },
+        {
+            "dst": 27,
+            "id": 90,
+            "length": 20.0,
+            "slots": 320,
+            "src": 28
+        },
+        {
+            "dst": 28,
+            "id": 91,
+            "length": 20.0,
+            "slots": 320,
+            "src": 27
+        },
+        {
+            "dst": 0,
+            "id": 92,
+            "length": 36.0,
+            "slots": 320,
+            "src": 27
+        },
+        {
+            "dst": 27,
+            "id": 93,
+            "length": 36.0,
+            "slots": 320,
+            "src": 0
+        },
+        {
+            "dst": 34,
+            "id": 94,
+            "length": 31.0,
+            "slots": 320,
+            "src": 0
+        },
+        {
+            "dst": 0,
+            "id": 95,
+            "length": 31.0,
+            "slots": 320,
+            "src": 34
+        },
+        {
+            "dst": 35,
+            "id": 96,
+            "length": 53.0,
+            "slots": 320,
+            "src": 0
+        },
+        {
+            "dst": 0,
+            "id": 97,
+            "length": 53.0,
+            "slots": 320,
+            "src": 35
+        },
+        {
+            "dst": 36,
+            "id": 98,
+            "length": 31.0,
+            "slots": 320,
+            "src": 35
+        },
+        {
+            "dst": 35,
+            "id": 99,
+            "length": 31.0,
+            "slots": 320,
+            "src": 36
+        },
+        {
+            "dst": 37,
+            "id": 100,
+            "length": 74.0,
+            "slots": 320,
+            "src": 35
+        },
+        {
+            "dst": 35,
+            "id": 101,
+            "length": 74.0,
+            "slots": 320,
+            "src": 37
+        },
+        {
+            "dst": 28,
+            "id": 102,
+            "length": 20.0,
+            "slots": 320,
+            "src": 25
+        },
+        {
+            "dst": 25,
+            "id": 103,
+            "length": 20.0,
+            "slots": 320,
+            "src": 28
+        },
+        {
+            "dst": 34,
+            "id": 104,
+            "length": 69.0,
+            "slots": 320,
+            "src": 30
+        },
+        {
+            "dst": 30,
+            "id": 105,
+            "length": 69.0,
+            "slots": 320,
+            "src": 34
+        },
+        {
+            "dst": 10,
+            "id": 106,
+            "length": 37.0,
+            "slots": 320,
+            "src": 42
+        },
+        {
+            "dst": 42,
+            "id": 107,
+            "length": 37.0,
+            "slots": 320,
+            "src": 10
+        },
+        {
+            "dst": 42,
+            "id": 108,
+            "length": 30.0,
+            "slots": 320,
+            "src": 9
+        },
+        {
+            "dst": 9,
+            "id": 109,
+            "length": 30.0,
+            "slots": 320,
+            "src": 42
+        }
+    ],
+    "name": "TOP_97_SANET",
+    "nodes": [
+        {
+            "id": 0
+        },
+        {
+            "id": 1
+        },
+        {
+            "id": 2
+        },
+        {
+            "id": 3
+        },
+        {
+            "id": 4
+        },
+        {
+            "id": 5
+        },
+        {
+            "id": 6
+        },
+        {
+            "id": 7
+        },
+        {
+            "id": 8
+        },
+        {
+            "id": 9
+        },
+        {
+            "id": 10
+        },
+        {
+            "id": 11
+        },
+        {
+            "id": 12
+        },
+        {
+            "id": 13
+        },
+        {
+            "id": 14
+        },
+        {
+            "id": 15
+        },
+        {
+            "id": 16
+        },
+        {
+            "id": 17
+        },
+        {
+            "id": 18
+        },
+        {
+            "id": 19
+        },
+        {
+            "id": 20
+        },
+        {
+            "id": 21
+        },
+        {
+            "id": 22
+        },
+        {
+            "id": 23
+        },
+        {
+            "id": 24
+        },
+        {
+            "id": 25
+        },
+        {
+            "id": 26
+        },
+        {
+            "id": 27
+        },
+        {
+            "id": 28
+        },
+        {
+            "id": 29
+        },
+        {
+            "id": 30
+        },
+        {
+            "id": 31
+        },
+        {
+            "id": 32
+        },
+        {
+            "id": 33
+        },
+        {
+            "id": 34
+        },
+        {
+            "id": 35
+        },
+        {
+            "id": 36
+        },
+        {
+            "id": 37
+        },
+        {
+            "id": 38
+        },
+        {
+            "id": 39
+        },
+        {
+            "id": 40
+        },
+        {
+            "id": 41
+        },
+        {
+            "id": 42
+        },
+        {
+            "id": 43
+        },
+        {
+            "id": 44
+        },
+        {
+            "id": 45
+        }
+    ]
+}

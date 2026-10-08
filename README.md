@@ -56,6 +56,43 @@ go run main.go -config files/config.json -events-csv files/sim_events.csv
 go run main.go -config files/config.json -sweep=true -lambda-start 500 -lambda-end 1500 -lambda-step 50
 ```
 
+### Run all configurations
+
+To run every JSON configuration under `configs/` (searched recursively), use:
+
+```bash
+go run ./cmd/run-all
+```
+
+The runner builds `bin/simulador` first, then starts one simulation process per configuration, with concurrency limited to the number of available CPUs by default. Run it from the repository root so the relative paths in the configuration files resolve correctly. Each process's stdout and stderr are saved under `logs/run-all/`.
+
+Limit the number of concurrent simulations or select a different configuration directory:
+
+```bash
+go run ./cmd/run-all -jobs 4
+go run ./cmd/run-all -configs-dir configs/UKNet
+```
+
+Additional runner options:
+
+| Flag | Default | Description |
+|------|---------|-------------|
+| `-configs-dir` | `configs` | Directory recursively searched for `.json` configuration files |
+| `-bin` | `bin/simulador` | Path for the simulator binary |
+| `-jobs` | Number of CPUs | Maximum number of simulations running concurrently |
+| `-build` | `true` | Build the simulator binary before running; set to `false` to use an existing binary |
+| `-run-logs-dir` | `logs/run-all` | Directory for each process's stdout and stderr log |
+| `-logs` | `true` | Enable or disable progress logging in each simulation |
+| `-args` | empty | Pass one additional simulator flag to every run, for example `-args=-defrag-mode=before_arrival` |
+| `-frag-dir` | empty | Write full-resolution fragmentation output files to this directory |
+| `-frag-stride` | `1` | Record one fragmentation sample every N arrivals when `-frag-dir` is set |
+
+For example, run all configurations with four processes, without progress logging:
+
+```bash
+go run ./cmd/run-all -jobs 4 -logs=false
+```
+
 Available CLI flags:
 
 | Flag | Default | Description |

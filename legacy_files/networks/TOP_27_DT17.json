@@ -1,0 +1,372 @@
+{
+    "alias": "DT17",
+    "links": [
+        {
+            "dst": 6,
+            "id": 0,
+            "length": 306.3,
+            "slots": 320,
+            "src": 0
+        },
+        {
+            "dst": 0,
+            "id": 1,
+            "length": 306.3,
+            "slots": 320,
+            "src": 6
+        },
+        {
+            "dst": 7,
+            "id": 2,
+            "length": 160.9,
+            "slots": 320,
+            "src": 0
+        },
+        {
+            "dst": 0,
+            "id": 3,
+            "length": 160.9,
+            "slots": 320,
+            "src": 7
+        },
+        {
+            "dst": 9,
+            "id": 4,
+            "length": 173.3,
+            "slots": 320,
+            "src": 0
+        },
+        {
+            "dst": 0,
+            "id": 5,
+            "length": 173.3,
+            "slots": 320,
+            "src": 9
+        },
+        {
+            "dst": 6,
+            "id": 6,
+            "length": 114.7,
+            "slots": 320,
+            "src": 1
+        },
+        {
+            "dst": 1,
+            "id": 7,
+            "length": 114.7,
+            "slots": 320,
+            "src": 6
+        },
+        {
+            "dst": 7,
+            "id": 8,
+            "length": 121.3,
+            "slots": 320,
+            "src": 1
+        },
+        {
+            "dst": 1,
+            "id": 9,
+            "length": 121.3,
+            "slots": 320,
+            "src": 7
+        },
+        {
+            "dst": 4,
+            "id": 10,
+            "length": 278.5,
+            "slots": 320,
+            "src": 1
+        },
+        {
+            "dst": 1,
+            "id": 11,
+            "length": 278.5,
+            "slots": 320,
+            "src": 4
+        },
+        {
+            "dst": 4,
+            "id": 12,
+            "length": 37.4,
+            "slots": 320,
+            "src": 2
+        },
+        {
+            "dst": 2,
+            "id": 13,
+            "length": 37.4,
+            "slots": 320,
+            "src": 4
+        },
+        {
+            "dst": 7,
+            "id": 14,
+            "length": 230.4,
+            "slots": 320,
+            "src": 2
+        },
+        {
+            "dst": 2,
+            "id": 15,
+            "length": 230.4,
+            "slots": 320,
+            "src": 7
+        },
+        {
+            "dst": 8,
+            "id": 16,
+            "length": 84.3,
+            "slots": 320,
+            "src": 2
+        },
+        {
+            "dst": 2,
+            "id": 17,
+            "length": 84.3,
+            "slots": 320,
+            "src": 8
+        },
+        {
+            "dst": 4,
+            "id": 18,
+            "length": 36.9,
+            "slots": 320,
+            "src": 3
+        },
+        {
+            "dst": 3,
+            "id": 19,
+            "length": 36.9,
+            "slots": 320,
+            "src": 4
+        },
+        {
+            "dst": 8,
+            "id": 20,
+            "length": 40.9,
+            "slots": 320,
+            "src": 3
+        },
+        {
+            "dst": 3,
+            "id": 21,
+            "length": 40.9,
+            "slots": 320,
+            "src": 8
+        },
+        {
+            "dst": 7,
+            "id": 22,
+            "length": 313.9,
+            "slots": 320,
+            "src": 5
+        },
+        {
+            "dst": 5,
+            "id": 23,
+            "length": 313.9,
+            "slots": 320,
+            "src": 7
+        },
+        {
+            "dst": 8,
+            "id": 24,
+            "length": 182.0,
+            "slots": 320,
+            "src": 5
+        },
+        {
+            "dst": 5,
+            "id": 25,
+            "length": 182.0,
+            "slots": 320,
+            "src": 8
+        },
+        {
+            "dst": 9,
+            "id": 26,
+            "length": 352.6,
+            "slots": 320,
+            "src": 5
+        },
+        {
+            "dst": 5,
+            "id": 27,
+            "length": 352.6,
+            "slots": 320,
+            "src": 9
+        },
+        {
+            "dst": 12,
+            "id": 28,
+            "length": 207.4,
+            "slots": 320,
+            "src": 5
+        },
+        {
+            "dst": 5,
+            "id": 29,
+            "length": 207.4,
+            "slots": 320,
+            "src": 12
+        },
+        {
+            "dst": 11,
+            "id": 30,
+            "length": 224.1,
+            "slots": 320,
+            "src": 5
+        },
+        {
+            "dst": 5,
+            "id": 31,
+            "length": 224.1,
+            "slots": 320,
+            "src": 11
+        },
+        {
+            "dst": 9,
+            "id": 32,
+            "length": 257.2,
+            "slots": 320,
+            "src": 7
+        },
+        {
+            "dst": 7,
+            "id": 33,
+            "length": 257.2,
+            "slots": 320,
+            "src": 9
+        },
+        {
+            "dst": 11,
+            "id": 34,
+            "length": 274.4,
+            "slots": 320,
+            "src": 9
+        },
+        {
+            "dst": 9,
+            "id": 35,
+            "length": 274.4,
+            "slots": 320,
+            "src": 11
+        },
+        {
+            "dst": 11,
+            "id": 36,
+            "length": 180.8,
+            "slots": 320,
+            "src": 10
+        },
+        {
+            "dst": 10,
+            "id": 37,
+            "length": 180.8,
+            "slots": 320,
+            "src": 11
+        },
+        {
+            "dst": 13,
+            "id": 38,
+            "length": 145.6,
+            "slots": 320,
+            "src": 10
+        },
+        {
+            "dst": 10,
+            "id": 39,
+            "length": 145.6,
+            "slots": 320,
+            "src": 13
+        },
+        {
+            "dst": 12,
+            "id": 40,
+            "length": 188.7,
+            "slots": 320,
+            "src": 11
+        },
+        {
+            "dst": 11,
+            "id": 41,
+            "length": 188.7,
+            "slots": 320,
+            "src": 12
+        },
+        {
+            "dst": 13,
+            "id": 42,
+            "length": 37.1,
+            "slots": 320,
+            "src": 12
+        },
+        {
+            "dst": 12,
+            "id": 43,
+            "length": 37.1,
+            "slots": 320,
+            "src": 13
+        },
+        {
+            "dst": 7,
+            "id": 44,
+            "length": 294.9,
+            "slots": 320,
+            "src": 0
+        },
+        {
+            "dst": 0,
+            "id": 45,
+            "length": 294.9,
+            "slots": 320,
+            "src": 7
+        }
+    ],
+    "name": "TOP_27_DT17",
+    "nodes": [
+        {
+            "id": 0
+        },
+        {
+            "id": 1
+        },
+        {
+            "id": 2
+        },
+        {
+            "id": 3
+        },
+        {
+            "id": 4
+        },
+        {
+            "id": 5
+        },
+        {
+            "id": 6
+        },
+        {
+            "id": 7
+        },
+        {
+            "id": 8
+        },
+        {
+            "id": 9
+        },
+        {
+            "id": 10
+        },
+        {
+            "id": 11
+        },
+        {
+            "id": 12
+        },
+        {
+            "id": 13
+        }
+    ]
+}
