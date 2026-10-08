@@ -229,6 +229,7 @@ func main() {
 	configPath := flag.String("config", "files/config.json", "Path to JSON configuration file")
 	eventsCSV := flag.String("events-csv", "", "Path to write the generated events CSV after the simulation")
 	logs := flag.Bool("logs", true, "Enable progress logging")
+	fileLog := flag.Bool("file-log", true, "Also write output to a file under logs/")
 	defragMode := flag.String("defrag-mode", "", "Defragmentation mode: none, before_arrival, after_block, after_assign")
 	lambdaStart := flag.Float64("lambda-start", 500, "Start lambda for a multi-simulation sweep")
 	lambdaEnd := flag.Float64("lambda-end", 1500, "End lambda for a multi-simulation sweep")
@@ -314,11 +315,13 @@ func main() {
 		defragAlgorithm = cfg.DefragAlgorithm
 	}
 	logName := simulationLogName(network.Name, *cfg.Bands, defragAlgorithm, *cfg.Lambda, *cfg.Mu)
-	cleanupLogging, err := setupFileLogging(logName)
-	if err != nil {
-		log.Fatalf("Failed to set up file logging: %v", err)
+	if *fileLog {
+		cleanupLogging, err := setupFileLogging(logName)
+		if err != nil {
+			log.Fatalf("Failed to set up file logging: %v", err)
+		}
+		defer cleanupLogging()
 	}
-	defer cleanupLogging()
 
 	bitRate, err := resLoader.LoadBitRate(cfg.Bitrate, *cfg.Bands)
 	if err != nil {

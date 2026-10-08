@@ -35,6 +35,9 @@ func main() {
 	build := flag.Bool("build", true, "Build the simulador binary before running")
 	runLogsDir := flag.String("run-logs-dir", "logs/run-all", "Directory to store per-process stdout/stderr captures")
 	logs := flag.Bool("logs", true, "Pass -logs flag through to each simulation")
+	runDefaultConfig := flag.Bool("config", false, "Run only config.json files")
+	runMultibandSameBandConfig := flag.Bool("config-defrag-multiband-same-band", false, "Run only config-defrag-multiband-same-band.json files")
+	runBeforeArrivalConfig := flag.Bool("config-defrag-before-arrival", false, "Run only config-defrag-before-arrival.json files")
 	extraArgs := flag.String("args", "", "Extra raw flags appended to every simulador invocation, e.g. \"-defrag-mode=before_arrival\"")
 	fragDir := flag.String("frag-dir", "", "Directory for full-resolution fragmentation streams (one file set per config); disabled when empty")
 	fragStride := flag.Int("frag-stride", 1, "Record one fragmentation sample every N arrivals (used with -frag-dir)")
@@ -54,7 +57,21 @@ func main() {
 	if err != nil {
 		log.Fatalf("Failed to find config files: %v", err)
 	}
+	selectedConfigNames := make(map[string]bool)
+	if *runDefaultConfig {
+		selectedConfigNames["config.json"] = true
+	}
+	if *runMultibandSameBandConfig {
+		selectedConfigNames["config-defrag-multiband-same-band.json"] = true
+	}
+	if *runBeforeArrivalConfig {
+		selectedConfigNames["config-defrag-before-arrival.json"] = true
+	}
+	configPaths = filterConfigs(configPaths, selectedConfigNames)
 	if len(configPaths) == 0 {
+		if len(selectedConfigNames) > 0 {
+			log.Fatalf("No selected config files found under %s", *configsDir)
+		}
 		log.Fatalf("No config files found under %s", *configsDir)
 	}
 
@@ -105,6 +122,20 @@ func findConfigs(dir string) ([]string, error) {
 	return paths, err
 }
 
+func filterConfigs(configPaths []string, selectedNames map[string]bool) []string {
+	if len(selectedNames) == 0 {
+		return configPaths
+	}
+
+	filtered := make([]string, 0, len(configPaths))
+	for _, configPath := range configPaths {
+		if selectedNames[filepath.Base(configPath)] {
+			filtered = append(filtered, configPath)
+		}
+	}
+	return filtered
+}
+
 func runAll(configPaths []string, binPath, runLogsDir string, logsEnabled bool, extraArgs string, frag fragOptions, jobs int) []jobResult {
 	results := make([]jobResult, len(configPaths))
 	sem := make(chan struct{}, jobs)
@@ -136,7 +167,7 @@ func runOne(binPath, configPath, runLogsDir string, logsEnabled bool, extraArgs 
 	}
 	defer logFile.Close()
 
-	args := []string{"-config", configPath, fmt.Sprintf("-logs=%t", logsEnabled)}
+	args := []string{"-config", configPath, fmt.Sprintf("-logs=%t", logsEnabled), "-file-log=false"}
 	if frag.Dir != "" {
 		fragPrefix := filepath.Join(frag.Dir, fmt.Sprintf("%s_%s", name, start.Format("20060102_150405")))
 		args = append(args, "-frag-out="+fragPrefix, fmt.Sprintf("-frag-stride=%d", frag.Stride))

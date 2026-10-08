@@ -73,11 +73,24 @@ go run ./cmd/run-all -jobs 4
 go run ./cmd/run-all -configs-dir configs/UKNet
 ```
 
+Run one configuration variant across the configuration directory. These flags can
+also be combined to run multiple variants; without them, all JSON configurations
+are run as before:
+
+```bash
+go run ./cmd/run-all -config
+go run ./cmd/run-all -config-defrag-multiband-same-band
+go run ./cmd/run-all -config-defrag-before-arrival
+```
+
 Additional runner options:
 
 | Flag | Default | Description |
 |------|---------|-------------|
 | `-configs-dir` | `configs` | Directory recursively searched for `.json` configuration files |
+| `-config` | `false` | Run only files named `config.json` |
+| `-config-defrag-multiband-same-band` | `false` | Run only files named `config-defrag-multiband-same-band.json` |
+| `-config-defrag-before-arrival` | `false` | Run only files named `config-defrag-before-arrival.json` |
 | `-bin` | `bin/simulador` | Path for the simulator binary |
 | `-jobs` | Number of CPUs | Maximum number of simulations running concurrently |
 | `-build` | `true` | Build the simulator binary before running; set to `false` to use an existing binary |
