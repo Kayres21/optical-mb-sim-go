@@ -1,0 +1,6 @@
+Network Name: TOP_13_CERNET
+Starting simulation with lambda=800, mu=1...
+Simulation completed. Releases processed: 9195, Total simulated time: 12.32
+Fragmentation ratio (mean over simulation): C=0.623472, L=0.235839 | Network=0.429656
+Plot saved → result/FirstFit_CERNET-erlang-800.0_2_20261008_100019.png
+Plot saved → result/Fragmentation_CERNET-erlang-800.0_2_20261008_100019.png
