@@ -1,0 +1,6 @@
+Running simulation with defrag mode: before_arrival, algorithm: multiband_same_band, lambda: 1500, mu: 1
+Network Name: BDM_USNet
+Starting simulation with lambda=1500, mu=1...
++----------+----------+------------------+----------+-------------------+-------------------+-------------------+
+|  progress|   arrives|          blocking|   time(s)|            Wald CI|            A-C. CI|          Wilson CI|
++----------+----------+------------------+----------+-------------------+-------------------+-------------------+
