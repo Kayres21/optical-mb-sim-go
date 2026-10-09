@@ -11,8 +11,8 @@
   "legacy": false,
   "defrag_mode": "before_arrival",
   "defrag_algorithm": "multiband_same_band",
-  "sweep": false,
-  "lambda_start": 500,
-  "lambda_end": 2000,
-  "lambda_step": 100
+  "sweep": true,
+  "lambda_start": 800,
+  "lambda_end": 1300,
+  "lambda_step": 50
 }

@@ -12,7 +12,7 @@
   "defrag_mode": "none",
   "defrag_algorithm": "first_fit",
   "sweep": true,
-  "lambda_start": 100,
-  "lambda_end": 3000,
-  "lambda_step": 100
+  "lambda_start": 600,
+  "lambda_end": 1100,
+  "lambda_step": 50
 }
